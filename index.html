@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Acompanhamento de Faturamento</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LB FLORESTAL - Faturamento</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
+    </script>
+
     <style>
-        /* ============================================================
-        ESTILOS - MANTIDOS IGUAIS
-        ============================================================ */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -30,7 +36,7 @@
             border-radius: 16px;
             padding: 16px 24px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             border: 1px solid #e9eef3;
             display: flex;
             flex-wrap: wrap;
@@ -71,6 +77,25 @@
             font-size: 13px;
             font-weight: 600;
         }
+        .header .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .header .status-indicator .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .header .status-indicator .dot.online {
+            background: #4caf50;
+        }
+        .header .status-indicator .dot.offline {
+            background: #94a3b8;
+        }
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -82,7 +107,7 @@
             border-radius: 14px;
             padding: 14px 16px;
             border: 1px solid #e9eef3;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
         .card-dash .label {
             font-size: 11px;
@@ -111,14 +136,18 @@
             background: #0a1628;
             border-color: #0a1628;
         }
-        .card-dash.highlight .label { color: #94a3b8; }
-        .card-dash.highlight .value { color: #fff; }
+        .card-dash.highlight .label {
+            color: #94a3b8;
+        }
+        .card-dash.highlight .value {
+            color: #fff;
+        }
         .panel {
             background: #fff;
             border-radius: 14px;
             padding: 16px 18px;
             border: 1px solid #e9eef3;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
             margin-bottom: 16px;
         }
         .panel .panel-header {
@@ -132,8 +161,15 @@
             font-size: 16px;
             font-weight: 600;
         }
-        .panel .panel-header h2 i { color: #2e7d32; margin-right: 6px; }
-        .panel .panel-header .sub { font-size: 12px; font-weight: 400; color: #64748b; }
+        .panel .panel-header h2 i {
+            color: #2e7d32;
+            margin-right: 6px;
+        }
+        .panel .panel-header .sub {
+            font-size: 12px;
+            font-weight: 400;
+            color: #64748b;
+        }
         .panel .panel-header .btn-add {
             background: #2563eb;
             color: #fff;
@@ -144,19 +180,30 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .panel .panel-header .btn-add:hover { background: #1d4ed8; }
+        .panel .panel-header .btn-add:hover {
+            background: #1d4ed8;
+        }
         .main-grid {
             display: grid;
             grid-template-columns: 1.6fr 1fr;
             gap: 16px;
         }
-        @media (max-width: 992px) { .main-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 992px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         .table-wrap {
             max-height: 420px;
             overflow-y: auto;
         }
-        .table-wrap::-webkit-scrollbar { width: 5px; }
-        .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .table-wrap::-webkit-scrollbar {
+            width: 5px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -181,7 +228,10 @@
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
         }
-        .op-nome { font-weight: 500; font-size: 13px; }
+        .op-nome {
+            font-weight: 500;
+            font-size: 13px;
+        }
         .op-nome .extra-tag {
             background: #dbeafe;
             color: #1e4b8a;
@@ -191,7 +241,10 @@
             margin-left: 6px;
             font-weight: 600;
         }
-        .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -205,12 +258,26 @@
             border-radius: 10px;
             transition: width 0.6s ease;
         }
-        .progress-fill.success { background: #4caf50; }
-        .progress-fill.warning { background: #f59e0b; }
-        .progress-fill.danger { background: #dc3545; }
-        .progress-fill.extra { background: #8b5cf6; }
-        .total-row td { font-weight: 700; border-top: 2px solid #cbd5e1; padding-top: 10px; }
-        .extra-row td { background: #f8fafc; }
+        .progress-fill.success {
+            background: #4caf50;
+        }
+        .progress-fill.warning {
+            background: #f59e0b;
+        }
+        .progress-fill.danger {
+            background: #dc3545;
+        }
+        .progress-fill.extra {
+            background: #8b5cf6;
+        }
+        .total-row td {
+            font-weight: 700;
+            border-top: 2px solid #cbd5e1;
+            padding-top: 10px;
+        }
+        .extra-row td {
+            background: #f8fafc;
+        }
         .btn-remover-extra {
             background: transparent;
             border: none;
@@ -229,7 +296,11 @@
             border: 1px solid #e2e8f0;
             margin-bottom: 8px;
         }
-        .lancamento-area label { font-weight: 600; font-size: 12px; color: #334155; }
+        .lancamento-area label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #334155;
+        }
         .lancamento-area select,
         .lancamento-area input {
             padding: 4px 10px;
@@ -238,8 +309,12 @@
             font-size: 12px;
             background: #fff;
         }
-        .lancamento-area select { min-width: 130px; }
-        .lancamento-area input[type="number"] { width: 80px; }
+        .lancamento-area select {
+            min-width: 130px;
+        }
+        .lancamento-area input[type="number"] {
+            width: 80px;
+        }
         .lancamento-area button {
             padding: 4px 16px;
             border-radius: 6px;
@@ -250,14 +325,21 @@
             transition: 0.15s;
             white-space: nowrap;
         }
-        .lancamento-area .btn-primary { background: #0a1628; color: #fff; }
-        .lancamento-area .btn-primary:hover { background: #1a3a5c; }
+        .lancamento-area .btn-primary {
+            background: #0a1628;
+            color: #fff;
+        }
+        .lancamento-area .btn-primary:hover {
+            background: #1a3a5c;
+        }
         .lancamento-area .btn-reset {
             background: transparent;
             border: 1px solid #d1d9e6;
             color: #475569;
         }
-        .lancamento-area .btn-reset:hover { background: #f1f4f8; }
+        .lancamento-area .btn-reset:hover {
+            background: #f1f4f8;
+        }
         .lancamento-area .info-dia {
             font-size: 11px;
             color: #64748b;
@@ -283,8 +365,14 @@
             transition: 0.15s;
             position: relative;
         }
-        .dias-navegacao button:hover { background: #e2e8f0; color: #0f172a; }
-        .dias-navegacao button.active { background: #0a1628; color: #fff; }
+        .dias-navegacao button:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .dias-navegacao button.active {
+            background: #0a1628;
+            color: #fff;
+        }
         .dias-navegacao .dia-com-lancamento::after {
             content: '';
             position: absolute;
@@ -306,7 +394,11 @@
             border: 1px solid #fde68a;
             margin-top: 4px;
         }
-        .obs-area label { font-weight: 600; font-size: 11px; color: #92400e; }
+        .obs-area label {
+            font-weight: 600;
+            font-size: 11px;
+            color: #92400e;
+        }
         .obs-area input {
             flex: 1;
             min-width: 120px;
@@ -326,26 +418,102 @@
             cursor: pointer;
             font-size: 11px;
         }
-        .obs-area button:hover { background: #d97706; }
-        .obs-area .obs-exibir { font-size: 11px; color: #92400e; font-style: italic; flex: 1; }
+        .obs-area button:hover {
+            background: #d97706;
+        }
+        .obs-area .obs-exibir {
+            font-size: 11px;
+            color: #92400e;
+            font-style: italic;
+            flex: 1;
+        }
         .grafico-evolucao {
             min-height: 150px;
             background: #fafcff;
             border-radius: 10px;
             padding: 4px;
         }
-        .vazio { color: #94a3b8; font-style: italic; text-align: center; padding: 30px 0; font-size: 13px; }
-        .bar-group { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
-        .bar-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-        .bar-item .bar-label { width: 120px; flex-shrink: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .bar-item .bar-label .extra-tag { background: #dbeafe; color: #1e4b8a; font-size: 8px; padding: 0 6px; border-radius: 8px; margin-left: 4px; }
-        .bar-item .bar-track { flex: 1; height: 16px; background: #f1f4f8; border-radius: 30px; overflow: hidden; position: relative; }
-        .bar-item .bar-track .bar-proj { height: 100%; background: #93bbfc; border-radius: 30px; position: absolute; top: 0; left: 0; opacity: 0.4; }
-        .bar-item .bar-track .bar-real { height: 100%; background: #2563eb; border-radius: 30px; position: absolute; top: 0; left: 0; }
-        .bar-item .bar-track .bar-real.extra { background: #8b5cf6; }
-        .bar-item .bar-val { width: 80px; text-align: right; font-variant-numeric: tabular-nums; cursor: pointer; }
-        .bar-item .bar-val:hover { background: #f1f4f8; border-radius: 4px; }
-        .legenda-barras { display: flex; gap: 16px; font-size: 10px; color: #64748b; margin-top: 6px; flex-wrap: wrap; }
+        .vazio {
+            color: #94a3b8;
+            font-style: italic;
+            text-align: center;
+            padding: 30px 0;
+            font-size: 13px;
+        }
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+        .bar-item .bar-label {
+            width: 120px;
+            flex-shrink: 0;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bar-item .bar-label .extra-tag {
+            background: #dbeafe;
+            color: #1e4b8a;
+            font-size: 8px;
+            padding: 0 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+        }
+        .bar-item .bar-track {
+            flex: 1;
+            height: 16px;
+            background: #f1f4f8;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-item .bar-track .bar-proj {
+            height: 100%;
+            background: #93bbfc;
+            border-radius: 30px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0.4;
+        }
+        .bar-item .bar-track .bar-real {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 30px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .bar-item .bar-track .bar-real.extra {
+            background: #8b5cf6;
+        }
+        .bar-item .bar-val {
+            width: 80px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+        }
+        .bar-item .bar-val:hover {
+            background: #f1f4f8;
+            border-radius: 4px;
+        }
+        .legenda-barras {
+            display: flex;
+            gap: 16px;
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
         .modal-custom {
             display: none;
             position: fixed;
@@ -353,29 +521,49 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 999;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(4px);
         }
-        .modal-custom.active { display: flex; }
+        .modal-custom.active {
+            display: flex;
+        }
         .modal-custom .modal-content {
             background: #fff;
             border-radius: 16px;
             padding: 24px;
             max-width: 420px;
             width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             animation: modalIn 0.3s ease;
         }
         @keyframes modalIn {
-            from { opacity: 0; transform: translateY(-30px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
-        .modal-custom .modal-content h3 { font-size: 18px; margin-bottom: 8px; }
-        .modal-custom .modal-content .sub { font-size: 13px; color: #64748b; margin-bottom: 16px; }
-        .modal-custom .modal-content label { font-weight: 600; font-size: 13px; display: block; margin-top: 12px; }
+        .modal-custom .modal-content h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .modal-custom .modal-content .sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+        .modal-custom .modal-content label {
+            font-weight: 600;
+            font-size: 13px;
+            display: block;
+            margin-top: 12px;
+        }
         .modal-custom .modal-content input {
             width: 100%;
             padding: 8px 12px;
@@ -384,8 +572,16 @@
             font-size: 13px;
             margin-top: 4px;
         }
-        .modal-custom .modal-content input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        .modal-custom .modal-content .btn-group { display: flex; gap: 10px; margin-top: 18px; }
+        .modal-custom .modal-content input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .modal-custom .modal-content .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
         .modal-custom .modal-content .btn-group button {
             padding: 8px 20px;
             border-radius: 8px;
@@ -395,12 +591,28 @@
             font-size: 13px;
             transition: 0.15s;
         }
-        .modal-custom .modal-content .btn-group .btn-primary { background: #0a1628; color: #fff; }
-        .modal-custom .modal-content .btn-group .btn-primary:hover { background: #1a3a5c; }
-        .modal-custom .modal-content .btn-group .btn-secondary { background: #f1f4f8; color: #475569; }
-        .modal-custom .modal-content .btn-group .btn-secondary:hover { background: #e2e8f0; }
-        .modal-custom .modal-content .btn-group .btn-danger { background: #dc3545; color: #fff; margin-left: auto; }
-        .modal-custom .modal-content .btn-group .btn-danger:hover { background: #b91c1c; }
+        .modal-custom .modal-content .btn-group .btn-primary {
+            background: #0a1628;
+            color: #fff;
+        }
+        .modal-custom .modal-content .btn-group .btn-primary:hover {
+            background: #1a3a5c;
+        }
+        .modal-custom .modal-content .btn-group .btn-secondary {
+            background: #f1f4f8;
+            color: #475569;
+        }
+        .modal-custom .modal-content .btn-group .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .modal-custom .modal-content .btn-group .btn-danger {
+            background: #dc3545;
+            color: #fff;
+            margin-left: auto;
+        }
+        .modal-custom .modal-content .btn-group .btn-danger:hover {
+            background: #b91c1c;
+        }
         .modal-custom .modal-content .dados-adicionais {
             font-size: 12px;
             color: #64748b;
@@ -409,7 +621,11 @@
             background: #f8fafc;
             border-radius: 6px;
         }
-        .modal-custom .modal-content .info-text { font-size: 13px; color: #475569; margin: 4px 0 12px; }
+        .modal-custom .modal-content .info-text {
+            font-size: 13px;
+            color: #475569;
+            margin: 4px 0 12px;
+        }
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -422,20 +638,34 @@
             padding: 10px 20px;
             border-radius: 10px;
             font-size: 13px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             display: flex;
             align-items: center;
             gap: 10px;
             animation: toastIn 0.3s ease;
             margin-top: 8px;
         }
-        .toast.success { background: #2e7d32; }
-        .toast.error { background: #dc3545; }
-        .toast.warning { background: #f59e0b; }
-        .toast.info { background: #2563eb; }
+        .toast.success {
+            background: #2e7d32;
+        }
+        .toast.error {
+            background: #dc3545;
+        }
+        .toast.warning {
+            background: #f59e0b;
+        }
+        .toast.info {
+            background: #2563eb;
+        }
         @keyframes toastIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         .footer {
             background: #fff;
@@ -461,798 +691,1235 @@
             color: #475569;
             transition: 0.15s;
         }
-        .footer button:hover { background: #f1f4f8; }
+        .footer button:hover {
+            background: #f1f4f8;
+        }
+        .footer .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .footer .sync-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .footer .sync-status .dot.synced {
+            background: #4caf50;
+        }
+        .footer .sync-status .dot.syncing {
+            background: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+        .footer .sync-status .dot.error {
+            background: #dc3545;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
         @media (max-width: 768px) {
-            body { padding: 12px; }
-            .header { padding: 12px 16px; flex-direction: column; gap: 8px; text-align: center; }
-            .header .logo h1 { font-size: 16px; }
-            .header .logo h1 small { display: none; }
-            .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .card-dash { padding: 12px 14px; }
-            .card-dash .value { font-size: 18px; }
-            .lancamento-area { flex-direction: column; align-items: stretch; }
-            .lancamento-area .info-dia { margin-left: 0; text-align: center; }
+            body {
+                padding: 12px;
+            }
+            .header {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            .header .logo h1 {
+                font-size: 16px;
+            }
+            .header .logo h1 small {
+                display: none;
+            }
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .card-dash {
+                padding: 12px 14px;
+            }
+            .card-dash .value {
+                font-size: 18px;
+            }
+            .lancamento-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .lancamento-area .info-dia {
+                margin-left: 0;
+                text-align: center;
+            }
             .lancamento-area select,
-            .lancamento-area input { width: 100% !important; }
-            .main-grid { grid-template-columns: 1fr; }
-            .panel { padding: 12px 14px; }
-            .dias-navegacao button { padding: 2px 8px; font-size: 10px; }
-            .bar-item .bar-label { width: 80px; font-size: 10px; }
-            .bar-item .bar-val { width: 60px; font-size: 10px; }
+            .lancamento-area input {
+                width: 100% !important;
+            }
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .panel {
+                padding: 12px 14px;
+            }
+            .dias-navegacao button {
+                padding: 2px 8px;
+                font-size: 10px;
+            }
+            .bar-item .bar-label {
+                width: 80px;
+                font-size: 10px;
+            }
+            .bar-item .bar-val {
+                width: 60px;
+                font-size: 10px;
+            }
         }
         @media (max-width: 480px) {
-            .cards { grid-template-columns: 1fr 1fr; }
-            .card-dash .value { font-size: 16px; }
-            table { font-size: 11px; }
-            th, td { padding: 4px 4px 4px 0; }
+            .cards {
+                grid-template-columns: 1fr 1fr;
+            }
+            .card-dash .value {
+                font-size: 16px;
+            }
+            table {
+                font-size: 11px;
+            }
+            th,
+            td {
+                padding: 4px 4px 4px 0;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <div class="container">
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="logo">
-            <div class="icon">LB</div>
-            <h1>LB FLORESTAL <small>Gestão de Faturamento</small></h1>
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo">
+                <div class="icon">LB</div>
+                <h1>LB FLORESTAL <small>Gestão de Faturamento</small></h1>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span class="badge-periodo">📅 21/07 a 20/08/2026</span>
+                <div class="status-indicator">
+                    <span class="dot online" id="statusDot"></span>
+                    <span id="statusText">Conectado</span>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" id="btnSync" title="Sincronizar">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
         </div>
-        <span class="badge-periodo">📅 21/07 a 20/08/2026</span>
-    </div>
 
-    <!-- CARDS -->
-    <div class="cards">
-        <div class="card-dash">
-            <div class="label">📅 Dia atual</div>
-            <div class="value" id="diaAtualDisplay">-</div>
+        <!-- CARDS -->
+        <div class="cards">
+            <div class="card-dash">
+                <div class="label">📅 Dia atual</div>
+                <div class="value" id="diaAtualDisplay">-</div>
+            </div>
+            <div class="card-dash">
+                <div class="label">🎯 Projetado</div>
+                <div class="value"><span class="currency">R$</span> <span id="projetadoTotal">0</span></div>
+            </div>
+            <div class="card-dash">
+                <div class="label">✅ Realizado</div>
+                <div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div>
+            </div>
+            <div class="card-dash highlight">
+                <div class="label">📉 Déficit / Excedente</div>
+                <div class="value" id="saldoDisplay"><span class="currency">R$</span> 0</div>
+            </div>
+            <div class="card-dash">
+                <div class="label">📊 % Execução</div>
+                <div class="value" id="percentExecucao">0%</div>
+            </div>
+            <div class="card-dash">
+                <div class="label">🌾 Área realizada</div>
+                <div class="value" id="areaRealizada">0 <span class="unit">ha</span></div>
+            </div>
         </div>
-        <div class="card-dash">
-            <div class="label">🎯 Projetado</div>
-            <div class="value"><span class="currency">R$</span> <span id="projetadoTotal">0</span></div>
-        </div>
-        <div class="card-dash">
-            <div class="label">✅ Realizado</div>
-            <div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div>
-        </div>
-        <div class="card-dash highlight">
-            <div class="label">📉 Déficit / Excedente</div>
-            <div class="value" id="saldoDisplay"><span class="currency">R$</span> 0</div>
-        </div>
-        <div class="card-dash">
-            <div class="label">📊 % Execução</div>
-            <div class="value" id="percentExecucao">0%</div>
-        </div>
-        <div class="card-dash">
-            <div class="label">🌾 Área realizada</div>
-            <div class="value" id="areaRealizada">0 <span class="unit">ha</span></div>
-        </div>
-    </div>
 
-    <!-- DIAS + LANÇAMENTO -->
-    <div class="panel">
-        <div class="dias-navegacao" id="diasContainer"></div>
-        <div class="lancamento-area">
-            <label for="opSelect">Operação:</label>
-            <select id="opSelect"></select>
-            <label for="valorHa">ha:</label>
-            <input type="number" id="valorHa" step="0.01" placeholder="0,00">
-            <label for="valorR$">R$:</label>
-            <input type="number" id="valorR$" step="0.01" placeholder="0,00">
-            <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
-            <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar dia</button>
-            <span class="info-dia" id="infoLancamentoDia"></span>
+        <!-- DIAS + LANÇAMENTO -->
+        <div class="panel">
+            <div class="dias-navegacao" id="diasContainer"></div>
+            <div class="lancamento-area">
+                <label for="opSelect">Operação:</label>
+                <select id="opSelect"></select>
+                <label for="valorHa">ha:</label>
+                <input type="number" id="valorHa" step="0.01" placeholder="0,00">
+                <label for="valorR$">R$:</label>
+                <input type="number" id="valorR$" step="0.01" placeholder="0,00">
+                <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
+                <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar dia</button>
+                <span class="info-dia" id="infoLancamentoDia"></span>
+            </div>
+            <div class="obs-area">
+                <label><i class="fas fa-pencil"></i> Obs.:</label>
+                <input type="text" id="obsInput" placeholder="Observação para este dia...">
+                <button id="btnSalvarObs">Salvar</button>
+                <span class="obs-exibir" id="obsExibir"></span>
+            </div>
+            <div style="font-size:11px; color:#64748b; display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
+                <span>💡 Selecione dia, operação, hectares e valor</span>
+                <span>🔵 Dias com lançamento têm ponto azul</span>
+                <span>✏️ Clique em um valor para editar</span>
+                <span>➕ <strong>Extra:</strong> botão para criar operações não programadas</span>
+                <span>☁️ <strong>Firebase:</strong> Dados sincronizados em nuvem</span>
+            </div>
         </div>
-        <div class="obs-area">
-            <label><i class="fas fa-pencil"></i> Obs.:</label>
-            <input type="text" id="obsInput" placeholder="Observação para este dia...">
-            <button id="btnSalvarObs">Salvar</button>
-            <span class="obs-exibir" id="obsExibir"></span>
-        </div>
-        <div style="font-size:11px; color:#64748b; display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
-            <span>💡 Selecione dia, operação, hectares e valor</span>
-            <span>🔵 Dias com lançamento têm ponto azul</span>
-            <span>✏️ Clique em um valor para editar</span>
-            <span>➕ <strong>Extra:</strong> botão para criar operações não programadas</span>
-        </div>
-    </div>
 
-    <!-- TABELA + GRÁFICO -->
-    <div class="main-grid">
+        <!-- TABELA + GRÁFICO -->
+        <div class="main-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2>
+                    <button class="btn-add" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="tabelaOperacoes">
+                        <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">Área Proj.</th><th class="num">Realizado (R$)</th><th class="num">Área</th><th class="num">%</th><th></th></tr></thead>
+                        <tbody id="tbodyOperacoes"><tr><td colspan="7" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2>
+                </div>
+                <div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
+                <div style="display:flex; gap:14px; font-size:11px; margin-top:8px; flex-wrap:wrap;">
+                    <span><span style="display:inline-block; width:14px; height:14px; background:#93bbfc; border-radius:4px;"></span> Projetado acum.</span>
+                    <span><span style="display:inline-block; width:14px; height:14px; background:#2563eb; border-radius:4px;"></span> Realizado acum.</span>
+                    <span><span style="display:inline-block; width:14px; height:14px; background:#8b5cf6; border-radius:4px;"></span> Extra</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRAS -->
         <div class="panel">
             <div class="panel-header">
-                <h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2>
-                <button class="btn-add" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button>
+                <h2><i class="fas fa-chart-bar"></i> Comparativo por operação <span class="sub">(R$)</span></h2>
             </div>
-            <div class="table-wrap">
-                <table id="tabelaOperacoes">
-                    <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">Área Proj.</th><th class="num">Realizado (R$)</th><th class="num">Área</th><th class="num">%</th><th></th></tr></thead>
-                    <tbody id="tbodyOperacoes"><tr><td colspan="7" class="text-center text-muted py-3">Carregando...</td></tr></tbody>
-                </table>
-            </div>
+            <div id="barChartContainer"></div>
         </div>
-        <div class="panel">
-            <div class="panel-header">
-                <h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2>
-            </div>
-            <div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
-            <div style="display:flex; gap:14px; font-size:11px; margin-top:8px; flex-wrap:wrap;">
-                <span><span style="display:inline-block; width:14px; height:14px; background:#93bbfc; border-radius:4px;"></span> Projetado acum.</span>
-                <span><span style="display:inline-block; width:14px; height:14px; background:#2563eb; border-radius:4px;"></span> Realizado acum.</span>
-                <span><span style="display:inline-block; width:14px; height:14px; background:#8b5cf6; border-radius:4px;"></span> Extra</span>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <span><i class="fas fa-database"></i> Dados salvos no Firebase</span>
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <div class="sync-status">
+                    <span class="dot synced" id="syncDot"></span>
+                    <span id="syncStatusText">Sincronizado</span>
+                </div>
+                <span id="lastUpdate">Atualizado agora</span>
+                <button id="resetCompleto"><i class="fas fa-trash-alt"></i> Resetar todos os dados</button>
             </div>
         </div>
+
     </div>
 
-    <!-- BARRAS -->
-    <div class="panel">
-        <div class="panel-header">
-            <h2><i class="fas fa-chart-bar"></i> Comparativo por operação <span class="sub">(R$)</span></h2>
-        </div>
-        <div id="barChartContainer"></div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-        <span><i class="fas fa-database"></i> Dados salvos localmente</span>
-        <div>
-            <span id="lastUpdate" style="margin-right:12px;">Atualizado agora</span>
-            <button id="resetCompleto"><i class="fas fa-trash-alt"></i> Resetar todos os dados</button>
-        </div>
-    </div>
-
-</div>
-
-<!-- MODAL EDIÇÃO -->
-<div class="modal-custom" id="editModal">
-    <div class="modal-content">
-        <h3>✏️ Editar Lançamento</h3>
-        <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
-        <label>Hectares (ha):</label>
-        <input type="number" id="editHa" step="0.01">
-        <label>Valor (R$):</label>
-        <input type="number" id="editValor" step="0.01">
-        <div class="dados-adicionais" id="editDadosAdicionais"></div>
-        <div class="btn-group">
-            <button class="btn-primary" id="editSalvar">💾 Salvar</button>
-            <button class="btn-secondary" id="editCancelar">Cancelar</button>
-            <button class="btn-danger" id="editExcluir">🗑️ Excluir</button>
+    <!-- MODAL EDIÇÃO -->
+    <div class="modal-custom" id="editModal">
+        <div class="modal-content">
+            <h3>✏️ Editar Lançamento</h3>
+            <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
+            <label>Hectares (ha):</label>
+            <input type="number" id="editHa" step="0.01">
+            <label>Valor (R$):</label>
+            <input type="number" id="editValor" step="0.01">
+            <div class="dados-adicionais" id="editDadosAdicionais"></div>
+            <div class="btn-group">
+                <button class="btn-primary" id="editSalvar">💾 Salvar</button>
+                <button class="btn-secondary" id="editCancelar">Cancelar</button>
+                <button class="btn-danger" id="editExcluir">🗑️ Excluir</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL EXTRA -->
-<div class="modal-custom" id="extraModal">
-    <div class="modal-content">
-        <h3>➕ Criar Operação Extra</h3>
-        <div class="sub">Para serviços não previstos</div>
-        <label>Nome da operação:</label>
-        <input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
-        <label>Área projetada (ha):</label>
-        <input type="number" id="extraArea" step="0.01" placeholder="0,00">
-        <label>Valor projetado (R$):</label>
-        <input type="number" id="extraValor" step="0.01" placeholder="0,00">
-        <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Deixe área ou valor em branco se não souber ainda</div>
-        <div class="btn-group">
-            <button class="btn-primary" id="btnCriarExtra">✅ Criar</button>
-            <button class="btn-secondary" id="btnCancelarExtra">Cancelar</button>
+    <!-- MODAL EXTRA -->
+    <div class="modal-custom" id="extraModal">
+        <div class="modal-content">
+            <h3>➕ Criar Operação Extra</h3>
+            <div class="sub">Para serviços não previstos</div>
+            <label>Nome da operação:</label>
+            <input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
+            <label>Área projetada (ha):</label>
+            <input type="number" id="extraArea" step="0.01" placeholder="0,00">
+            <label>Valor projetado (R$):</label>
+            <input type="number" id="extraValor" step="0.01" placeholder="0,00">
+            <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Deixe área ou valor em branco se não souber ainda</div>
+            <div class="btn-group">
+                <button class="btn-primary" id="btnCriarExtra">✅ Criar</button>
+                <button class="btn-secondary" id="btnCancelarExtra">Cancelar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
 
-<script>
-    // ============================================================
-    // DADOS BASE - OPERAÇÕES (ATUALIZADO COM IRRIGAÇÃO REPLANTIO)
-    // ============================================================
-    const OPERACOES_BASE = [
-        { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
-        { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
-        { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78 },
-        { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40 },
-        { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30 },
-        { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28 },
-        { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24 },
-        { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68 },
-        // NOVA OPERAÇÃO: IRRIGAÇÃO DE REPLANTIO (61 ha x R$ 421,63 = R$ 25.719,43)
-        { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00 },
-        { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47 },
-        { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
-    ];
-
-    const DIAS = [];
-    for (let i = 0; i < 31; i++) {
-        const data = new Date(2026, 6, 21 + i);
-        DIAS.push({ numero: i + 1, label: `${String(data.getDate()).padStart(2,'0')}/${String(data.getMonth()+1).padStart(2,'0')}` });
-    }
-
-    // ============================================================
-    // ESTADO
-    // ============================================================
-    let state = {
-        operacoes: [],
-        lancamentos: {},
-        observacoes: {},
-        currentDia: 1,
-        extraCounter: 0
-    };
-
-    // ============================================================
-    // DOM
-    // ============================================================
-    const $ = id => document.getElementById(id);
-    const DOM = {
-        tbody: $('tbodyOperacoes'),
-        projetadoTotal: $('projetadoTotal'),
-        realizadoTotal: $('realizadoTotal'),
-        saldoDisplay: $('saldoDisplay'),
-        percentExecucao: $('percentExecucao'),
-        areaRealizada: $('areaRealizada'),
-        diaAtualDisplay: $('diaAtualDisplay'),
-        diasContainer: $('diasContainer'),
-        opSelect: $('opSelect'),
-        valorHa: $('valorHa'),
-        valorR$: $('valorR$'),
-        btnLancar: $('btnLancar'),
-        btnResetDia: $('btnResetDia'),
-        resetCompleto: $('resetCompleto'),
-        graficoEvolucao: $('graficoEvolucao'),
-        barChartContainer: $('barChartContainer'),
-        infoLancamentoDia: $('infoLancamentoDia'),
-        obsInput: $('obsInput'),
-        btnSalvarObs: $('btnSalvarObs'),
-        obsExibir: $('obsExibir'),
-        btnAbrirExtra: $('btnAbrirExtra'),
-        toastContainer: $('toastContainer'),
-        lastUpdate: $('lastUpdate')
-    };
-
-    // ============================================================
-    // MODAIS
-    // ============================================================
-    const Modals = {
-        edit: $('editModal'),
-        extra: $('extraModal'),
-        editInfo: $('editInfo'),
-        editHa: $('editHa'),
-        editValor: $('editValor'),
-        editDadosAdicionais: $('editDadosAdicionais'),
-        editSalvar: $('editSalvar'),
-        editCancelar: $('editCancelar'),
-        editExcluir: $('editExcluir'),
-        extraNome: $('extraNome'),
-        extraArea: $('extraArea'),
-        extraValor: $('extraValor'),
-        btnCriarExtra: $('btnCriarExtra'),
-        btnCancelarExtra: $('btnCancelarExtra')
-    };
-
-    let editTarget = null;
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-    function formatMoney(v) {
-        return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-
-    function getTotalProjetado() {
-        return state.operacoes.reduce((s, o) => s + (o.projetado || 0), 0);
-    }
-
-    function getTotalRealizado() {
-        let total = 0;
-        for (const dia in state.lancamentos) {
-            for (const opId in state.lancamentos[dia]) {
-                total += state.lancamentos[dia][opId].valor || 0;
-            }
-        }
-        return total;
-    }
-
-    function getAreaTotal() {
-        let total = 0;
-        for (const dia in state.lancamentos) {
-            for (const opId in state.lancamentos[dia]) {
-                total += state.lancamentos[dia][opId].ha || 0;
-            }
-        }
-        return total;
-    }
-
-    function getRealizadoOp(opId) {
-        let total = 0;
-        for (const dia in state.lancamentos) {
-            if (state.lancamentos[dia][opId]) {
-                total += state.lancamentos[dia][opId].valor || 0;
-            }
-        }
-        return total;
-    }
-
-    function getAreaOp(opId) {
-        let total = 0;
-        for (const dia in state.lancamentos) {
-            if (state.lancamentos[dia][opId]) {
-                total += state.lancamentos[dia][opId].ha || 0;
-            }
-        }
-        return total;
-    }
-
-    function temLancamento(dia) {
-        return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0;
-    }
-
-    function getRealizadoDia(dia) {
-        const d = state.lancamentos[dia] || {};
-        let total = 0;
-        for (const opId in d) {
-            total += d[opId].valor || 0;
-        }
-        return total;
-    }
-
-    function getAreaDia(dia) {
-        const d = state.lancamentos[dia] || {};
-        let total = 0;
-        for (const opId in d) {
-            total += d[opId].ha || 0;
-        }
-        return total;
-    }
-
-    function showToast(msg, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
-        DOM.toastContainer.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
-    }
-
-    // ============================================================
-    // SALVAR / CARREGAR
-    // ============================================================
-    function salvarDados() {
-        const data = {
-            operacoes: state.operacoes,
-            lancamentos: state.lancamentos,
-            observacoes: state.observacoes,
-            currentDia: state.currentDia,
-            extraCounter: state.extraCounter
+    <script>
+        // ============================================================
+        // CONFIGURAÇÃO FIREBASE
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
+            authDomain: "lb-florestal-faturamento.firebaseapp.com",
+            projectId: "lb-florestal-faturamento",
+            storageBucket: "lb-florestal-faturamento.firebasestorage.app",
+            messagingSenderId: "236326503927",
+            appId: "1:236326503927:web:4f23dd5c96efd1274adaf2"
         };
-        localStorage.setItem('lb_faturamento_data', JSON.stringify(data));
-    }
 
-    function carregarDados() {
-        const raw = localStorage.getItem('lb_faturamento_data');
-        if (raw) {
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        db.settings({ timestampsInSnapshots: true });
+
+        // Habilitar persistência offline
+        db.enablePersistence({ synchronizeTabs: true })
+            .then(() => console.log('📶 Persistência offline habilitada'))
+            .catch((err) => console.warn('⚠️ Persistência offline:', err));
+
+        // ============================================================
+        // DADOS BASE - OPERAÇÕES
+        // ============================================================
+        const OPERACOES_BASE = [
+            { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
+            { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
+            { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78 },
+            { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40 },
+            { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30 },
+            { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28 },
+            { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24 },
+            { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68 },
+            { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00 },
+            { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47 },
+            { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
+        ];
+
+        const DIAS = [];
+        for (let i = 0; i < 31; i++) {
+            const data = new Date(2026, 6, 21 + i);
+            DIAS.push({ numero: i + 1, label: `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}` });
+        }
+
+        // ============================================================
+        // ESTADO
+        // ============================================================
+        let state = {
+            operacoes: [],
+            lancamentos: {},
+            observacoes: {},
+            currentDia: 1,
+            extraCounter: 0,
+            isLoaded: false,
+            isSyncing: false
+        };
+
+        let editTarget = null;
+        let unsubscribeListeners = [];
+
+        // ============================================================
+        // DOM
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const DOM = {
+            tbody: $('tbodyOperacoes'),
+            projetadoTotal: $('projetadoTotal'),
+            realizadoTotal: $('realizadoTotal'),
+            saldoDisplay: $('saldoDisplay'),
+            percentExecucao: $('percentExecucao'),
+            areaRealizada: $('areaRealizada'),
+            diaAtualDisplay: $('diaAtualDisplay'),
+            diasContainer: $('diasContainer'),
+            opSelect: $('opSelect'),
+            valorHa: $('valorHa'),
+            valorR$: $('valorR$'),
+            btnLancar: $('btnLancar'),
+            btnResetDia: $('btnResetDia'),
+            resetCompleto: $('resetCompleto'),
+            graficoEvolucao: $('graficoEvolucao'),
+            barChartContainer: $('barChartContainer'),
+            infoLancamentoDia: $('infoLancamentoDia'),
+            obsInput: $('obsInput'),
+            btnSalvarObs: $('btnSalvarObs'),
+            obsExibir: $('obsExibir'),
+            btnAbrirExtra: $('btnAbrirExtra'),
+            toastContainer: $('toastContainer'),
+            lastUpdate: $('lastUpdate'),
+            statusDot: $('statusDot'),
+            statusText: $('statusText'),
+            syncDot: $('syncDot'),
+            syncStatusText: $('syncStatusText'),
+            btnSync: $('btnSync')
+        };
+
+        // ============================================================
+        // MODAIS
+        // ============================================================
+        const Modals = {
+            edit: $('editModal'),
+            extra: $('extraModal'),
+            editInfo: $('editInfo'),
+            editHa: $('editHa'),
+            editValor: $('editValor'),
+            editDadosAdicionais: $('editDadosAdicionais'),
+            editSalvar: $('editSalvar'),
+            editCancelar: $('editCancelar'),
+            editExcluir: $('editExcluir'),
+            extraNome: $('extraNome'),
+            extraArea: $('extraArea'),
+            extraValor: $('extraValor'),
+            btnCriarExtra: $('btnCriarExtra'),
+            btnCancelarExtra: $('btnCancelarExtra')
+        };
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function formatMoney(v) {
+            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function getTotalProjetado() {
+            return state.operacoes.reduce((s, o) => s + (o.projetado || 0), 0);
+        }
+
+        function getTotalRealizado() {
+            let total = 0;
+            for (const dia in state.lancamentos) {
+                for (const opId in state.lancamentos[dia]) {
+                    total += state.lancamentos[dia][opId].valor || 0;
+                }
+            }
+            return total;
+        }
+
+        function getAreaTotal() {
+            let total = 0;
+            for (const dia in state.lancamentos) {
+                for (const opId in state.lancamentos[dia]) {
+                    total += state.lancamentos[dia][opId].ha || 0;
+                }
+            }
+            return total;
+        }
+
+        function getRealizadoOp(opId) {
+            let total = 0;
+            for (const dia in state.lancamentos) {
+                if (state.lancamentos[dia][opId]) {
+                    total += state.lancamentos[dia][opId].valor || 0;
+                }
+            }
+            return total;
+        }
+
+        function getAreaOp(opId) {
+            let total = 0;
+            for (const dia in state.lancamentos) {
+                if (state.lancamentos[dia][opId]) {
+                    total += state.lancamentos[dia][opId].ha || 0;
+                }
+            }
+            return total;
+        }
+
+        function temLancamento(dia) {
+            return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0;
+        }
+
+        function getRealizadoDia(dia) {
+            const d = state.lancamentos[dia] || {};
+            let total = 0;
+            for (const opId in d) {
+                total += d[opId].valor || 0;
+            }
+            return total;
+        }
+
+        function getAreaDia(dia) {
+            const d = state.lancamentos[dia] || {};
+            let total = 0;
+            for (const opId in d) {
+                total += d[opId].ha || 0;
+            }
+            return total;
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
+            DOM.toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function atualizarStatusFirebase(connected) {
+            if (connected) {
+                DOM.statusDot.className = 'dot online';
+                DOM.statusText.textContent = 'Conectado';
+                DOM.syncDot.className = 'dot synced';
+                DOM.syncStatusText.textContent = 'Sincronizado';
+            } else {
+                DOM.statusDot.className = 'dot offline';
+                DOM.statusText.textContent = 'Offline';
+                DOM.syncDot.className = 'dot error';
+                DOM.syncStatusText.textContent = 'Offline';
+            }
+        }
+
+        function atualizarUltimaAtualizacao() {
+            DOM.lastUpdate.textContent = `Atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
+        }
+
+        // ============================================================
+        // FIREBASE - CRUD
+        // ============================================================
+
+        async function carregarDoFirebase() {
             try {
-                const data = JSON.parse(raw);
-                state.operacoes = data.operacoes || OPERACOES_BASE.map(o => ({ ...o }));
-                state.lancamentos = data.lancamentos || {};
-                state.observacoes = data.observacoes || {};
-                state.currentDia = data.currentDia || 1;
-                state.extraCounter = data.extraCounter || 0;
-                return true;
-            } catch (e) { console.error('Erro ao carregar:', e); }
-        }
-        state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
-        state.lancamentos = {};
-        state.observacoes = {};
-        state.currentDia = 1;
-        state.extraCounter = 0;
-        return false;
-    }
+                // 1. Carregar operações
+                const opsSnapshot = await db.collection('operacoes').get();
+                const operacoes = [];
+                opsSnapshot.forEach(doc => {
+                    operacoes.push({ id: doc.id, ...doc.data() });
+                });
 
-    // ============================================================
-    // RENDERIZAÇÃO
-    // ============================================================
-    function renderizarSelect() {
-        DOM.opSelect.innerHTML = '';
-        for (const op of state.operacoes) {
-            const opt = document.createElement('option');
-            opt.value = op.id;
-            const extraTag = op.extra ? ' ⭐' : '';
-            const areaStr = op.areaProjetada ? ` (${op.areaProjetada.toFixed(1)} ha)` : '';
-            opt.textContent = op.nome + areaStr + extraTag;
-            DOM.opSelect.appendChild(opt);
-        }
-    }
+                if (operacoes.length > 0) {
+                    state.operacoes = operacoes;
+                } else {
+                    state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
+                    await salvarOperacoes();
+                }
 
-    function renderizarDias() {
-        DOM.diasContainer.innerHTML = '';
-        for (const dia of DIAS) {
-            const btn = document.createElement('button');
-            btn.textContent = dia.label;
-            if (dia.numero === state.currentDia) btn.classList.add('active');
-            if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
-            btn.addEventListener('click', () => {
-                state.currentDia = dia.numero;
-                salvarDados();
+                // 2. Carregar lançamentos
+                const lancSnapshot = await db.collection('lancamentos').get();
+                const lancamentos = {};
+                lancSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dia = data.dia;
+                    const opId = data.opId;
+                    if (!lancamentos[dia]) lancamentos[dia] = {};
+                    lancamentos[dia][opId] = {
+                        ha: data.ha || 0,
+                        valor: data.valor || 0
+                    };
+                });
+                state.lancamentos = lancamentos;
+
+                // 3. Carregar observações
+                const obsSnapshot = await db.collection('observacoes').get();
+                const observacoes = {};
+                obsSnapshot.forEach(doc => {
+                    observacoes[doc.id] = doc.data().texto || '';
+                });
+                state.observacoes = observacoes;
+
+                // 4. Carregar configurações
+                const configDoc = await db.collection('config').doc('app').get();
+                if (configDoc.exists) {
+                    const data = configDoc.data();
+                    state.currentDia = data.currentDia || 1;
+                    state.extraCounter = data.extraCounter || 0;
+                }
+
+                state.isLoaded = true;
+                atualizarStatusFirebase(true);
                 renderizarTudo();
+                atualizarUltimaAtualizacao();
+
+                // Iniciar listeners em tempo real
+                iniciarListeners();
+
+                return true;
+
+            } catch (error) {
+                console.error('Erro ao carregar do Firebase:', error);
+                atualizarStatusFirebase(false);
+                // Fallback para localStorage
+                carregarLocal();
+                return false;
+            }
+        }
+
+        function iniciarListeners() {
+            // Remover listeners antigos
+            unsubscribeListeners.forEach(unsub => unsub());
+            unsubscribeListeners = [];
+
+            // Listener para operações
+            const unsubOps = db.collection('operacoes').onSnapshot((snapshot) => {
+                const operacoes = [];
+                snapshot.forEach(doc => {
+                    operacoes.push({ id: doc.id, ...doc.data() });
+                });
+                if (operacoes.length > 0) {
+                    state.operacoes = operacoes;
+                    renderizarTudo();
+                }
+            }, (error) => {
+                console.error('Erro no listener de operações:', error);
             });
-            DOM.diasContainer.appendChild(btn);
+            unsubscribeListeners.push(unsubOps);
+
+            // Listener para lançamentos
+            const unsubLanc = db.collection('lancamentos').onSnapshot((snapshot) => {
+                const lancamentos = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dia = data.dia;
+                    const opId = data.opId;
+                    if (!lancamentos[dia]) lancamentos[dia] = {};
+                    lancamentos[dia][opId] = {
+                        ha: data.ha || 0,
+                        valor: data.valor || 0
+                    };
+                });
+                state.lancamentos = lancamentos;
+                renderizarTudo();
+            }, (error) => {
+                console.error('Erro no listener de lançamentos:', error);
+            });
+            unsubscribeListeners.push(unsubLanc);
+
+            // Listener para observações
+            const unsubObs = db.collection('observacoes').onSnapshot((snapshot) => {
+                const observacoes = {};
+                snapshot.forEach(doc => {
+                    observacoes[doc.id] = doc.data().texto || '';
+                });
+                state.observacoes = observacoes;
+                renderizarDias();
+            }, (error) => {
+                console.error('Erro no listener de observações:', error);
+            });
+            unsubscribeListeners.push(unsubObs);
+
+            // Listener para configurações
+            const unsubConfig = db.collection('config').doc('app').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    state.currentDia = data.currentDia || 1;
+                    state.extraCounter = data.extraCounter || 0;
+                    renderizarDias();
+                }
+            }, (error) => {
+                console.error('Erro no listener de configurações:', error);
+            });
+            unsubscribeListeners.push(unsubConfig);
         }
-        DOM.diaAtualDisplay.textContent = DIAS.find(d => d.numero === state.currentDia)?.label || state.currentDia;
-        const totalDia = getRealizadoDia(state.currentDia);
-        const areaDia = getAreaDia(state.currentDia);
-        DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)} | ${areaDia.toFixed(2)} ha`;
-        const obs = state.observacoes[state.currentDia] || '';
-        DOM.obsInput.value = obs;
-        DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
-    }
 
-    function renderizarTabela() {
-        let html = '';
-        let totalRealizado = 0;
-        let totalArea = 0;
-        const totalProj = getTotalProjetado();
+        async function salvarOperacoes() {
+            const batch = db.batch();
+            for (const op of state.operacoes) {
+                const ref = db.collection('operacoes').doc(op.id);
+                const data = { ...op };
+                batch.set(ref, data);
+            }
+            await batch.commit();
+        }
 
-        for (const op of state.operacoes) {
-            const realizado = getRealizadoOp(op.id);
-            const area = getAreaOp(op.id);
-            totalRealizado += realizado;
-            totalArea += area;
-            const pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
-            const pctClamp = Math.min(pct, 100);
-            let classe = 'danger';
-            if (pctClamp >= 90) classe = 'success';
-            else if (pctClamp >= 50) classe = 'warning';
-            if (op.extra) classe = 'extra';
+        async function salvarLancamentos() {
+            // Primeiro limpar tudo
+            const snapshot = await db.collection('lancamentos').get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
 
-            const extraTag = op.extra ? `<span class="extra-tag">⭐ extra</span>` : '';
-            const areaProjStr = op.areaProjetada ? op.areaProjetada.toFixed(2) : '-';
-            const projStr = op.projetado ? `R$ ${formatMoney(op.projetado)}` : '-';
+            // Depois salvar os novos
+            const newBatch = db.batch();
+            for (const dia in state.lancamentos) {
+                for (const opId in state.lancamentos[dia]) {
+                    const data = {
+                        dia: parseInt(dia),
+                        opId: opId,
+                        ha: state.lancamentos[dia][opId].ha || 0,
+                        valor: state.lancamentos[dia][opId].valor || 0
+                    };
+                    const ref = db.collection('lancamentos').doc();
+                    newBatch.set(ref, data);
+                }
+            }
+            await newBatch.commit();
+        }
 
-            html += `<tr class="${op.extra ? 'extra-row' : ''}">
-                <td class="op-nome">${op.nome} ${extraTag}</td>
-                <td class="num">${projStr}</td>
-                <td class="num">${areaProjStr}</td>
-                <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">R$ ${formatMoney(realizado)}</td>
-                <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">${area.toFixed(2)}</td>
-                <td class="num" style="width:65px;">
-                    ${pct.toFixed(1)}%
-                    <div class="progress-bar"><div class="progress-fill ${classe}" style="width:${pctClamp}%;"></div></div>
-                </td>
-                <td class="num">${op.extra ? `<button class="btn-remover-extra" onclick="removerExtra('${op.id}')" title="Remover">✕</button>` : ''}</td>
+        async function salvarObservacoes() {
+            const batch = db.batch();
+            for (const dia in state.observacoes) {
+                const ref = db.collection('observacoes').doc(dia);
+                batch.set(ref, { texto: state.observacoes[dia] });
+            }
+            await batch.commit();
+        }
+
+        async function salvarConfiguracoes() {
+            const ref = db.collection('config').doc('app');
+            await ref.set({
+                currentDia: state.currentDia,
+                extraCounter: state.extraCounter,
+                updatedAt: new Date()
+            }, { merge: true });
+        }
+
+        async function salvarTudo() {
+            try {
+                state.isSyncing = true;
+                DOM.syncDot.className = 'dot syncing';
+                DOM.syncStatusText.textContent = 'Sincronizando...';
+
+                await salvarOperacoes();
+                await salvarLancamentos();
+                await salvarObservacoes();
+                await salvarConfiguracoes();
+
+                DOM.syncDot.className = 'dot synced';
+                DOM.syncStatusText.textContent = 'Sincronizado';
+                atualizarUltimaAtualizacao();
+                showToast('Dados sincronizados com sucesso!', 'success');
+
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                DOM.syncDot.className = 'dot error';
+                DOM.syncStatusText.textContent = 'Erro ao sincronizar';
+                showToast('Erro ao sincronizar dados', 'error');
+                // Fallback localStorage
+                salvarLocal();
+            } finally {
+                state.isSyncing = false;
+            }
+        }
+
+        // ============================================================
+        // LOCAL STORAGE (FALLBACK)
+        // ============================================================
+
+        function salvarLocal() {
+            const data = {
+                operacoes: state.operacoes,
+                lancamentos: state.lancamentos,
+                observacoes: state.observacoes,
+                currentDia: state.currentDia,
+                extraCounter: state.extraCounter
+            };
+            localStorage.setItem('lb_faturamento_data', JSON.stringify(data));
+        }
+
+        function carregarLocal() {
+            const raw = localStorage.getItem('lb_faturamento_data');
+            if (raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    state.operacoes = data.operacoes || OPERACOES_BASE.map(o => ({ ...o }));
+                    state.lancamentos = data.lancamentos || {};
+                    state.observacoes = data.observacoes || {};
+                    state.currentDia = data.currentDia || 1;
+                    state.extraCounter = data.extraCounter || 0;
+                    state.isLoaded = true;
+                    renderizarTudo();
+                    showToast('Dados carregados do cache local', 'info');
+                } catch (e) { console.error('Erro ao carregar local:', e); }
+            }
+        }
+
+        // ============================================================
+        // RENDERIZAÇÃO
+        // ============================================================
+
+        function renderizarSelect() {
+            DOM.opSelect.innerHTML = '';
+            for (const op of state.operacoes) {
+                const opt = document.createElement('option');
+                opt.value = op.id;
+                const extraTag = op.extra ? ' ⭐' : '';
+                const areaStr = op.areaProjetada ? ` (${op.areaProjetada.toFixed(1)} ha)` : '';
+                opt.textContent = op.nome + areaStr + extraTag;
+                DOM.opSelect.appendChild(opt);
+            }
+        }
+
+        function renderizarDias() {
+            DOM.diasContainer.innerHTML = '';
+            for (const dia of DIAS) {
+                const btn = document.createElement('button');
+                btn.textContent = dia.label;
+                if (dia.numero === state.currentDia) btn.classList.add('active');
+                if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
+                btn.addEventListener('click', () => {
+                    state.currentDia = dia.numero;
+                    salvarConfiguracoes();
+                    renderizarTudo();
+                });
+                DOM.diasContainer.appendChild(btn);
+            }
+            DOM.diaAtualDisplay.textContent = DIAS.find(d => d.numero === state.currentDia)?.label || state.currentDia;
+            const totalDia = getRealizadoDia(state.currentDia);
+            const areaDia = getAreaDia(state.currentDia);
+            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)} | ${areaDia.toFixed(2)} ha`;
+            const obs = state.observacoes[state.currentDia] || '';
+            DOM.obsInput.value = obs;
+            DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
+        }
+
+        function renderizarTabela() {
+            let html = '';
+            let totalRealizado = 0;
+            let totalArea = 0;
+            const totalProj = getTotalProjetado();
+
+            for (const op of state.operacoes) {
+                const realizado = getRealizadoOp(op.id);
+                const area = getAreaOp(op.id);
+                totalRealizado += realizado;
+                totalArea += area;
+                const pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
+                const pctClamp = Math.min(pct, 100);
+                let classe = 'danger';
+                if (pctClamp >= 90) classe = 'success';
+                else if (pctClamp >= 50) classe = 'warning';
+                if (op.extra) classe = 'extra';
+
+                const extraTag = op.extra ? `<span class="extra-tag">⭐ extra</span>` : '';
+                const areaProjStr = op.areaProjetada ? op.areaProjetada.toFixed(2) : '-';
+                const projStr = op.projetado ? `R$ ${formatMoney(op.projetado)}` : '-';
+
+                html += `<tr class="${op.extra ? 'extra-row' : ''}">
+                    <td class="op-nome">${op.nome} ${extraTag}</td>
+                    <td class="num">${projStr}</td>
+                    <td class="num">${areaProjStr}</td>
+                    <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">R$ ${formatMoney(realizado)}</td>
+                    <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">${area.toFixed(2)}</td>
+                    <td class="num" style="width:65px;">
+                        ${pct.toFixed(1)}%
+                        <div class="progress-bar"><div class="progress-fill ${classe}" style="width:${pctClamp}%;"></div></div>
+                    </td>
+                    <td class="num">${op.extra ? `<button class="btn-remover-extra" onclick="removerExtra('${op.id}')" title="Remover">✕</button>` : ''}</td>
+                </tr>`;
+            }
+
+            const pctTotal = totalProj > 0 ? (totalRealizado / totalProj) * 100 : 0;
+            const totalAreaProj = state.operacoes.reduce((s, o) => s + (o.areaProjetada || 0), 0);
+            html += `<tr class="total-row">
+                <td><strong>TOTAL</strong></td>
+                <td class="num"><strong>R$ ${formatMoney(totalProj)}</strong></td>
+                <td class="num"><strong>${totalAreaProj.toFixed(2)}</strong></td>
+                <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
+                <td class="num"><strong>${totalArea.toFixed(2)}</strong></td>
+                <td class="num"><strong>${pctTotal.toFixed(1)}%</strong></td>
+                <td></td>
             </tr>`;
+            DOM.tbody.innerHTML = html;
         }
 
-        const pctTotal = totalProj > 0 ? (totalRealizado / totalProj) * 100 : 0;
-        html += `<tr class="total-row">
-            <td><strong>TOTAL</strong></td>
-            <td class="num"><strong>R$ ${formatMoney(totalProj)}</strong></td>
-            <td class="num"><strong>${state.operacoes.reduce((s, o) => s + (o.areaProjetada || 0), 0).toFixed(2)}</strong></td>
-            <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
-            <td class="num"><strong>${totalArea.toFixed(2)}</strong></td>
-            <td class="num"><strong>${pctTotal.toFixed(1)}%</strong></td>
-            <td></td>
-        </tr>`;
-        DOM.tbody.innerHTML = html;
-    }
+        function atualizarCards() {
+            const totalProj = getTotalProjetado();
+            const totalReal = getTotalRealizado();
+            const totalArea = getAreaTotal();
 
-    function atualizarCards() {
-        const totalProj = getTotalProjetado();
-        const totalReal = getTotalRealizado();
-        const totalArea = getAreaTotal();
+            DOM.projetadoTotal.textContent = formatMoney(totalProj);
+            DOM.realizadoTotal.textContent = formatMoney(totalReal);
 
-        DOM.projetadoTotal.textContent = formatMoney(totalProj);
-        DOM.realizadoTotal.textContent = formatMoney(totalReal);
+            const saldo = totalReal - totalProj;
+            DOM.saldoDisplay.textContent = (saldo >= 0 ? '+' : '') + formatMoney(saldo);
+            DOM.saldoDisplay.style.color = saldo >= 0 ? '#16a34a' : '#dc2626';
 
-        const saldo = totalReal - totalProj;
-        DOM.saldoDisplay.textContent = (saldo >= 0 ? '+' : '') + formatMoney(saldo);
-        DOM.saldoDisplay.style.color = saldo >= 0 ? '#16a34a' : '#dc2626';
+            const pct = totalProj > 0 ? (totalReal / totalProj) * 100 : 0;
+            DOM.percentExecucao.textContent = pct.toFixed(1) + '%';
+            DOM.percentExecucao.style.color = pct >= 90 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
 
-        const pct = totalProj > 0 ? (totalReal / totalProj) * 100 : 0;
-        DOM.percentExecucao.textContent = pct.toFixed(1) + '%';
-        DOM.percentExecucao.style.color = pct >= 90 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
-
-        DOM.areaRealizada.innerHTML = `${totalArea.toFixed(2)} <span class="unit">ha</span>`;
-    }
-
-    function renderizarGraficoEvolucao() {
-        const hasData = Object.keys(state.lancamentos).length > 0;
-        if (!hasData) {
-            DOM.graficoEvolucao.innerHTML = `<div class="vazio">Nenhum lançamento ainda.</div>`;
-            return;
+            DOM.areaRealizada.innerHTML = `${totalArea.toFixed(2)} <span class="unit">ha</span>`;
         }
 
-        const diasComLanc = Object.keys(state.lancamentos).map(Number).sort((a, b) => a - b);
-        const primeiroDia = Math.max(1, Math.min(...diasComLanc) - 1);
-        const ultimoDia = Math.min(31, Math.max(...diasComLanc) + 1);
-        const totalProj = getTotalProjetado();
+        function renderizarGraficoEvolucao() {
+            const hasData = Object.keys(state.lancamentos).length > 0;
+            if (!hasData) {
+                DOM.graficoEvolucao.innerHTML = `<div class="vazio">Nenhum lançamento ainda.</div>`;
+                return;
+            }
 
-        let labels = [], projAcum = [], realAcum = [];
-        for (let i = primeiroDia; i <= ultimoDia; i++) {
-            labels.push(i);
-            projAcum.push(totalProj * (i / 31));
-            let real = 0;
-            for (let j = 1; j <= i; j++) real += getRealizadoDia(j);
-            realAcum.push(real);
+            const diasComLanc = Object.keys(state.lancamentos).map(Number).sort((a, b) => a - b);
+            const primeiroDia = Math.max(1, Math.min(...diasComLanc) - 1);
+            const ultimoDia = Math.min(31, Math.max(...diasComLanc) + 1);
+            const totalProj = getTotalProjetado();
+
+            let labels = [],
+                projAcum = [],
+                realAcum = [];
+            for (let i = primeiroDia; i <= ultimoDia; i++) {
+                labels.push(i);
+                projAcum.push(totalProj * (i / 31));
+                let real = 0;
+                for (let j = 1; j <= i; j++) real += getRealizadoDia(j);
+                realAcum.push(real);
+            }
+
+            const width = 500,
+                height = 130,
+                pad = 25;
+            const maxVal = Math.max(...projAcum, ...realAcum, 100);
+            const scale = (v) => (v / maxVal) * (height - pad * 2) + pad;
+
+            let svg =
+                `<svg viewBox="0 0 ${width} ${height}" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">`;
+            svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="#fafcff" rx="8"/>`;
+            svg +=
+                `<polyline points="${projAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />`;
+            svg +=
+                `<polyline points="${realAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#2563eb" stroke-width="4" />`;
+            svg += realAcum.map((v, i) => {
+                const cx = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                const cy = height - scale(v);
+                return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>`;
+            }).join('');
+            svg += labels.map((l, i) => {
+                const x = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                const label = DIAS.find(d => d.numero === l)?.label || l;
+                return `<text x="${x}" y="${height - 4}" font-size="7" fill="#64748b" text-anchor="middle">${label}</text>`;
+            }).join('');
+            svg += `</svg>`;
+            DOM.graficoEvolucao.innerHTML = svg;
         }
 
-        const width = 500, height = 130, pad = 25;
-        const maxVal = Math.max(...projAcum, ...realAcum, 100);
-        const scale = (v) => (v / maxVal) * (height - pad * 2) + pad;
-
-        let svg = `<svg viewBox="0 0 ${width} ${height}" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">`;
-        svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="#fafcff" rx="8"/>`;
-        svg += `<polyline points="${projAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />`;
-        svg += `<polyline points="${realAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#2563eb" stroke-width="4" />`;
-        svg += realAcum.map((v, i) => {
-            const cx = pad + (i / (labels.length - 1)) * (width - pad * 2);
-            const cy = height - scale(v);
-            return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>`;
-        }).join('');
-        svg += labels.map((l, i) => {
-            const x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-            const label = DIAS.find(d => d.numero === l)?.label || l;
-            return `<text x="${x}" y="${height - 4}" font-size="7" fill="#64748b" text-anchor="middle">${label}</text>`;
-        }).join('');
-        svg += `</svg>`;
-        DOM.graficoEvolucao.innerHTML = svg;
-    }
-
-    function renderizarBarras() {
-        let html = `<div class="bar-group">`;
-        for (const op of state.operacoes) {
-            const real = getRealizadoOp(op.id);
-            const pct = op.projetado > 0 ? Math.min((real / op.projetado) * 100, 100) : 0;
-            const extraTag = op.extra ? `<span class="extra-tag">extra</span>` : '';
-            const classeExtra = op.extra ? 'extra' : '';
-            html += `
-                <div class="bar-item">
-                    <span class="bar-label" title="${op.nome}">${op.nome} ${extraTag}</span>
-                    <div class="bar-track">
-                        <div class="bar-proj" style="width:100%;"></div>
-                        <div class="bar-real ${classeExtra}" style="width:${pct}%;"></div>
+        function renderizarBarras() {
+            let html = `<div class="bar-group">`;
+            for (const op of state.operacoes) {
+                const real = getRealizadoOp(op.id);
+                const pct = op.projetado > 0 ? Math.min((real / op.projetado) * 100, 100) : 0;
+                const extraTag = op.extra ? `<span class="extra-tag">extra</span>` : '';
+                const classeExtra = op.extra ? 'extra' : '';
+                html += `
+                    <div class="bar-item">
+                        <span class="bar-label" title="${op.nome}">${op.nome} ${extraTag}</span>
+                        <div class="bar-track">
+                            <div class="bar-proj" style="width:100%;"></div>
+                            <div class="bar-real ${classeExtra}" style="width:${pct}%;"></div>
+                        </div>
+                        <span class="bar-val" onclick="editarValor('${op.id}')" title="Clique para editar">${real > 0 ? 'R$ ' + formatMoney(real) : '-'}</span>
                     </div>
-                    <span class="bar-val" onclick="editarValor('${op.id}')" title="Clique para editar">${real > 0 ? 'R$ '+formatMoney(real) : '-'}</span>
+                `;
+            }
+            html += `</div>
+                <div class="legenda-barras">
+                    <span>⬜ Projetado (base 100%)</span>
+                    <span>🟦 Realizado</span>
+                    <span>🟣 Extra</span>
+                    <span>✏️ Clique no valor para editar</span>
                 </div>
             `;
+            DOM.barChartContainer.innerHTML = html;
         }
-        html += `</div>
-            <div class="legenda-barras">
-                <span>⬜ Projetado (base 100%)</span>
-                <span>🟦 Realizado</span>
-                <span>🟣 Extra</span>
-                <span>✏️ Clique no valor para editar</span>
-            </div>
-        `;
-        DOM.barChartContainer.innerHTML = html;
-    }
 
-    function renderizarTudo() {
-        renderizarSelect();
-        renderizarDias();
-        renderizarTabela();
-        renderizarGraficoEvolucao();
-        renderizarBarras();
-        atualizarCards();
-        DOM.lastUpdate.textContent = `Atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
-    }
-
-    // ============================================================
-    // OPERAÇÕES EXTRA
-    // ============================================================
-    function criarOperacaoExtra(nome, area, valor) {
-        state.extraCounter++;
-        const id = 'extra_' + state.extraCounter + '_' + Date.now();
-        state.operacoes.push({ id, nome, projetado: valor || 0, areaProjetada: area || 0, extra: true });
-        salvarDados();
-        renderizarTudo();
-        showToast(`✅ Operação extra "${nome}" criada!`);
-    }
-
-    function removerExtra(id) {
-        const op = state.operacoes.find(o => o.id === id);
-        if (!op) return;
-        if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
-        for (const dia in state.lancamentos) {
-            if (state.lancamentos[dia][id]) delete state.lancamentos[dia][id];
-            if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+        function renderizarTudo() {
+            renderizarSelect();
+            renderizarDias();
+            renderizarTabela();
+            renderizarGraficoEvolucao();
+            renderizarBarras();
+            atualizarCards();
+            atualizarUltimaAtualizacao();
         }
-        state.operacoes = state.operacoes.filter(o => o.id !== id);
-        salvarDados();
-        renderizarTudo();
-        showToast('🗑️ Operação extra removida');
-    }
 
-    // ============================================================
-    // LANÇAMENTOS
-    // ============================================================
-    function lancarValor() {
-        const opId = DOM.opSelect.value;
-        if (!opId) return alert('Selecione uma operação.');
-        const rawHa = DOM.valorHa.value.trim().replace(',', '.');
-        const rawValor = DOM.valorR$.value.trim().replace(',', '.');
-        if (!rawHa && !rawValor) return alert('Digite pelo menos hectares ou valor R$.');
-        const ha = rawHa ? parseFloat(rawHa) : 0;
-        const valor = rawValor ? parseFloat(rawValor) : 0;
-        if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
-        if (ha === 0 && valor === 0) return alert('Digite pelo menos um valor positivo.');
+        // ============================================================
+        // OPERAÇÕES EXTRA
+        // ============================================================
 
-        const dia = state.currentDia;
-        if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-        if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
-        state.lancamentos[dia][opId].ha += ha;
-        state.lancamentos[dia][opId].valor += valor;
-
-        DOM.valorHa.value = '';
-        DOM.valorR$.value = '';
-        salvarDados();
-        renderizarTudo();
-        const msg = [];
-        if (ha > 0) msg.push(`${ha.toFixed(2)} ha`);
-        if (valor > 0) msg.push(`R$ ${formatMoney(valor)}`);
-        showToast(`✅ Lançado: ${msg.join(' | ')} em ${DIAS.find(d => d.numero === dia)?.label}`);
-    }
-
-    function resetarDia() {
-        const dia = state.currentDia;
-        if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
-        if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
-        delete state.lancamentos[dia];
-        salvarDados();
-        renderizarTudo();
-        showToast(`🗑️ Dia ${DIAS.find(d => d.numero === dia)?.label} resetado`);
-    }
-
-    // ============================================================
-    // EDIÇÃO
-    // ============================================================
-    function editarValor(opId) {
-        const dia = state.currentDia;
-        const lanc = state.lancamentos[dia]?.[opId];
-        if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) {
-            showToast('⚠️ Não há lançamento para esta operação no dia atual.', 'warning');
-            return;
+        function criarOperacaoExtra(nome, area, valor) {
+            state.extraCounter++;
+            const id = 'extra_' + state.extraCounter + '_' + Date.now();
+            state.operacoes.push({ id, nome, projetado: valor || 0, areaProjetada: area || 0, extra: true });
+            salvarTudo();
+            renderizarTudo();
+            showToast(`✅ Operação extra "${nome}" criada!`);
         }
-        editTarget = { dia, opId };
-        const opNome = state.operacoes.find(o => o.id === opId)?.nome || opId;
-        const diaLabel = DIAS.find(d => d.numero === dia)?.label || dia;
-        Modals.editInfo.textContent = `Dia: ${diaLabel} | Operação: ${opNome}`;
-        Modals.editHa.value = lanc.ha || 0;
-        Modals.editValor.value = lanc.valor || 0;
-        Modals.editDadosAdicionais.textContent = `📌 Atual: ${lanc.ha.toFixed(2)} ha | R$ ${formatMoney(lanc.valor)}`;
-        Modals.edit.classList.add('active');
-    }
 
-    function salvarEdicao() {
-        if (!editTarget) return;
-        const { dia, opId } = editTarget;
-        const rawHa = Modals.editHa.value.trim().replace(',', '.');
-        const rawValor = Modals.editValor.value.trim().replace(',', '.');
-        const ha = rawHa ? parseFloat(rawHa) : 0;
-        const valor = rawValor ? parseFloat(rawValor) : 0;
-        if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
-        if (ha === 0 && valor === 0) {
+        function removerExtra(id) {
+            const op = state.operacoes.find(o => o.id === id);
+            if (!op) return;
+            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
+            for (const dia in state.lancamentos) {
+                if (state.lancamentos[dia][id]) delete state.lancamentos[dia][id];
+                if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+            }
+            state.operacoes = state.operacoes.filter(o => o.id !== id);
+            salvarTudo();
+            renderizarTudo();
+            showToast('🗑️ Operação extra removida');
+        }
+
+        // ============================================================
+        // LANÇAMENTOS
+        // ============================================================
+
+        function lancarValor() {
+            const opId = DOM.opSelect.value;
+            if (!opId) return alert('Selecione uma operação.');
+            const rawHa = DOM.valorHa.value.trim().replace(',', '.');
+            const rawValor = DOM.valorR$.value.trim().replace(',', '.');
+            if (!rawHa && !rawValor) return alert('Digite pelo menos hectares ou valor R$.');
+            const ha = rawHa ? parseFloat(rawHa) : 0;
+            const valor = rawValor ? parseFloat(rawValor) : 0;
+            if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
+            if (ha === 0 && valor === 0) return alert('Digite pelo menos um valor positivo.');
+
+            const dia = state.currentDia;
+            if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+            if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
+            state.lancamentos[dia][opId].ha += ha;
+            state.lancamentos[dia][opId].valor += valor;
+
+            DOM.valorHa.value = '';
+            DOM.valorR$.value = '';
+            salvarTudo();
+            renderizarTudo();
+            const msg = [];
+            if (ha > 0) msg.push(`${ha.toFixed(2)} ha`);
+            if (valor > 0) msg.push(`R$ ${formatMoney(valor)}`);
+            showToast(`✅ Lançado: ${msg.join(' | ')} em ${DIAS.find(d => d.numero === dia)?.label}`);
+        }
+
+        function resetarDia() {
+            const dia = state.currentDia;
+            if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
+            if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
+            delete state.lancamentos[dia];
+            salvarTudo();
+            renderizarTudo();
+            showToast(`🗑️ Dia ${DIAS.find(d => d.numero === dia)?.label} resetado`);
+        }
+
+        // ============================================================
+        // EDIÇÃO
+        // ============================================================
+
+        function editarValor(opId) {
+            const dia = state.currentDia;
+            const lanc = state.lancamentos[dia]?.[opId];
+            if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) {
+                showToast('⚠️ Não há lançamento para esta operação no dia atual.', 'warning');
+                return;
+            }
+            editTarget = { dia, opId };
+            const opNome = state.operacoes.find(o => o.id === opId)?.nome || opId;
+            const diaLabel = DIAS.find(d => d.numero === dia)?.label || dia;
+            Modals.editInfo.textContent = `Dia: ${diaLabel} | Operação: ${opNome}`;
+            Modals.editHa.value = lanc.ha || 0;
+            Modals.editValor.value = lanc.valor || 0;
+            Modals.editDadosAdicionais.textContent = `📌 Atual: ${lanc.ha.toFixed(2)} ha | R$ ${formatMoney(lanc.valor)}`;
+            Modals.edit.classList.add('active');
+        }
+
+        function salvarEdicao() {
+            if (!editTarget) return;
+            const { dia, opId } = editTarget;
+            const rawHa = Modals.editHa.value.trim().replace(',', '.');
+            const rawValor = Modals.editValor.value.trim().replace(',', '.');
+            const ha = rawHa ? parseFloat(rawHa) : 0;
+            const valor = rawValor ? parseFloat(rawValor) : 0;
+            if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
+            if (ha === 0 && valor === 0) {
+                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
+                    delete state.lancamentos[dia][opId];
+                    if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+                }
+            } else {
+                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                state.lancamentos[dia][opId] = { ha, valor };
+            }
+            fecharModal();
+            salvarTudo();
+            renderizarTudo();
+            showToast(`💾 Atualizado: ${ha.toFixed(2)} ha | R$ ${formatMoney(valor)}`);
+        }
+
+        function excluirEdicao() {
+            if (!editTarget) return;
+            const { dia, opId } = editTarget;
             if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
                 delete state.lancamentos[dia][opId];
                 if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
             }
-        } else {
-            if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-            state.lancamentos[dia][opId] = { ha, valor };
-        }
-        fecharModal();
-        salvarDados();
-        renderizarTudo();
-        showToast(`💾 Atualizado: ${ha.toFixed(2)} ha | R$ ${formatMoney(valor)}`);
-    }
-
-    function excluirEdicao() {
-        if (!editTarget) return;
-        const { dia, opId } = editTarget;
-        if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-            delete state.lancamentos[dia][opId];
-            if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-        }
-        fecharModal();
-        salvarDados();
-        renderizarTudo();
-        showToast('🗑️ Lançamento excluído');
-    }
-
-    function fecharModal() {
-        Modals.edit.classList.remove('active');
-        Modals.extra.classList.remove('active');
-        editTarget = null;
-    }
-
-    // ============================================================
-    // OBSERVAÇÕES
-    // ============================================================
-    function salvarObservacao() {
-        const texto = DOM.obsInput.value.trim();
-        if (texto) state.observacoes[state.currentDia] = texto;
-        else delete state.observacoes[state.currentDia];
-        salvarDados();
-        renderizarDias();
-        showToast(texto ? '📝 Observação salva' : 'Observação removida');
-    }
-
-    // ============================================================
-    // EXTRA MODAL
-    // ============================================================
-    function abrirExtraModal() {
-        Modals.extraNome.value = '';
-        Modals.extraArea.value = '';
-        Modals.extraValor.value = '';
-        Modals.extra.classList.add('active');
-    }
-
-    function criarExtra() {
-        const nome = Modals.extraNome.value.trim();
-        if (!nome) return alert('Digite um nome para a operação.');
-        const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
-        const valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
-        if (area === 0 && valor === 0) {
-            if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
-        }
-        criarOperacaoExtra(nome, area, valor);
-        fecharModal();
-    }
-
-    // ============================================================
-    // EVENTOS
-    // ============================================================
-    function setupEvents() {
-        DOM.btnLancar.addEventListener('click', lancarValor);
-        DOM.valorHa.addEventListener('keydown', e => { if (e.key === 'Enter') DOM.valorR$.focus(); });
-        DOM.valorR$.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
-        DOM.btnResetDia.addEventListener('click', resetarDia);
-        DOM.resetCompleto.addEventListener('click', () => {
-            if (!confirm('Resetar TODOS os dados? Esta ação não pode ser desfeita!')) return;
-            state.lancamentos = {};
-            state.observacoes = {};
-            state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
-            state.extraCounter = 0;
-            salvarDados();
+            fecharModal();
+            salvarTudo();
             renderizarTudo();
-            showToast('🔄 Todos os dados foram resetados');
-        });
-        DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
-        DOM.obsInput.addEventListener('keydown', e => { if (e.key === 'Enter') salvarObservacao(); });
-        DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
-        Modals.btnCriarExtra.addEventListener('click', criarExtra);
-        Modals.btnCancelarExtra.addEventListener('click', fecharModal);
-        Modals.extra.addEventListener('click', e => { if (e.target === Modals.extra) fecharModal(); });
-        Modals.editSalvar.addEventListener('click', salvarEdicao);
-        Modals.editCancelar.addEventListener('click', fecharModal);
-        Modals.editExcluir.addEventListener('click', excluirEdicao);
-        Modals.edit.addEventListener('click', e => { if (e.target === Modals.edit) fecharModal(); });
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') fecharModal();
-            if (e.key === 'Enter' && Modals.edit.classList.contains('active')) salvarEdicao();
-            if (e.key === 'Enter' && Modals.extra.classList.contains('active')) criarExtra();
-        });
-        setInterval(() => { salvarDados(); }, 30000);
-    }
+            showToast('🗑️ Lançamento excluído');
+        }
 
-    // ============================================================
-    // GLOBAIS
-    // ============================================================
-    window.editarValor = editarValor;
-    window.removerExtra = removerExtra;
+        function fecharModal() {
+            Modals.edit.classList.remove('active');
+            Modals.extra.classList.remove('active');
+            editTarget = null;
+        }
 
-    // ============================================================
-    // INIT
-    // ============================================================
-    function init() {
-        carregarDados();
-        renderizarTudo();
-        setupEvents();
-        console.log('✅ LB FLORESTAL iniciado!');
-        console.log(`📊 ${state.operacoes.length} operações, ${Object.keys(state.lancamentos).length} dias com lançamentos`);
-    }
+        // ============================================================
+        // OBSERVAÇÕES
+        // ============================================================
 
-    document.addEventListener('DOMContentLoaded', init);
-</script>
+        function salvarObservacao() {
+            const texto = DOM.obsInput.value.trim();
+            if (texto) state.observacoes[state.currentDia] = texto;
+            else delete state.observacoes[state.currentDia];
+            salvarTudo();
+            renderizarDias();
+            showToast(texto ? '📝 Observação salva' : 'Observação removida');
+        }
+
+        // ============================================================
+        // EXTRA MODAL
+        // ============================================================
+
+        function abrirExtraModal() {
+            Modals.extraNome.value = '';
+            Modals.extraArea.value = '';
+            Modals.extraValor.value = '';
+            Modals.extra.classList.add('active');
+        }
+
+        function criarExtra() {
+            const nome = Modals.extraNome.value.trim();
+            if (!nome) return alert('Digite um nome para a operação.');
+            const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
+            const valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
+            if (area === 0 && valor === 0) {
+                if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
+            }
+            criarOperacaoExtra(nome, area, valor);
+            fecharModal();
+        }
+
+        // ============================================================
+        // RESET COMPLETO
+        // ============================================================
+
+        async function resetarCompleto() {
+            if (!confirm('Resetar TODOS os dados? Esta ação não pode ser desfeita!')) return;
+            if (!confirm('Tem certeza absoluta?')) return;
+
+            try {
+                // Limpar Firebase
+                const collections = ['operacoes', 'lancamentos', 'observacoes'];
+                for (const collection of collections) {
+                    const snapshot = await db.collection(collection).get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+
+                // Resetar estado
+                state.lancamentos = {};
+                state.observacoes = {};
+                state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
+                state.extraCounter = 0;
+                state.currentDia = 1;
+
+                // Salvar operações base
+                await salvarOperacoes();
+                await salvarConfiguracoes();
+
+                renderizarTudo();
+                showToast('🔄 Todos os dados foram resetados');
+
+            } catch (error) {
+                console.error('Erro ao resetar:', error);
+                showToast('Erro ao resetar dados', 'error');
+            }
+        }
+
+        // ============================================================
+        // EVENTOS
+        // ============================================================
+
+        function setupEvents() {
+            DOM.btnLancar.addEventListener('click', lancarValor);
+            DOM.valorHa.addEventListener('keydown', e => { if (e.key === 'Enter') DOM.valorR$.focus(); });
+            DOM.valorR$.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
+            DOM.btnResetDia.addEventListener('click', resetarDia);
+            DOM.resetCompleto.addEventListener('click', resetarCompleto);
+            DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
+            DOM.obsInput.addEventListener('keydown', e => { if (e.key === 'Enter') salvarObservacao(); });
+            DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
+            DOM.btnSync.addEventListener('click', () => {
+                salvarTudo();
+                showToast('Sincronizando...', 'info');
+            });
+
+            Modals.btnCriarExtra.addEventListener('click', criarExtra);
+            Modals.btnCancelarExtra.addEventListener('click', fecharModal);
+            Modals.extra.addEventListener('click', e => { if (e.target === Modals.extra) fecharModal(); });
+
+            Modals.editSalvar.addEventListener('click', salvarEdicao);
+            Modals.editCancelar.addEventListener('click', fecharModal);
+            Modals.editExcluir.addEventListener('click', excluirEdicao);
+            Modals.edit.addEventListener('click', e => { if (e.target === Modals.edit) fecharModal(); });
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') fecharModal();
+                if (e.key === 'Enter' && Modals.edit.classList.contains('active')) salvarEdicao();
+                if (e.key === 'Enter' && Modals.extra.classList.contains('active')) criarExtra();
+            });
+
+            // Monitorar conexão
+            window.addEventListener('online', () => {
+                atualizarStatusFirebase(true);
+                carregarDoFirebase();
+            });
+
+            window.addEventListener('offline', () => {
+                atualizarStatusFirebase(false);
+            });
+        }
+
+        // ============================================================
+        // GLOBAIS
+        // ============================================================
+        window.editarValor = editarValor;
+        window.removerExtra = removerExtra;
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        async function init() {
+            console.log('🚀 LB FLORESTAL iniciando...');
+
+            // Tentar carregar do Firebase
+            const loaded = await carregarDoFirebase();
+
+            // Se não carregou do Firebase, tentar localStorage
+            if (!loaded) {
+                carregarLocal();
+                showToast('Usando dados locais (offline)', 'warning');
+            }
+
+            setupEvents();
+
+            // Auto-save a cada 30 segundos
+            setInterval(() => {
+                if (state.isLoaded && navigator.onLine) {
+                    salvarTudo();
+                }
+            }, 30000);
+
+            console.log('✅ LB FLORESTAL iniciado com sucesso!');
+            console.log(`📊 ${state.operacoes.length} operações, ${Object.keys(state.lancamentos).length} dias com lançamentos`);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 
 </body>
 </html>
