@@ -11,9 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
     </script>
     <style>
-        /* ============================================================
-        ESTILOS
-        ============================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -207,7 +204,6 @@
         .lancamento-area .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
         .lancamento-area .btn-reset {
             background: transparent;
@@ -593,7 +589,6 @@
 
     <div class="container">
 
-        <!-- HEADER -->
         <div class="header">
             <div class="logo">
                 <div class="icon">LB</div>
@@ -605,35 +600,15 @@
             </div>
         </div>
 
-        <!-- CARDS -->
         <div class="cards">
-            <div class="card-dash">
-                <div class="label">📅 Dia atual</div>
-                <div class="value" id="diaAtualDisplay">-</div>
-            </div>
-            <div class="card-dash">
-                <div class="label">🎯 Meta</div>
-                <div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div>
-            </div>
-            <div class="card-dash highlight">
-                <div class="label">✅ Realizado</div>
-                <div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div>
-            </div>
-            <div class="card-dash">
-                <div class="label">📊 % Execução</div>
-                <div class="value" id="percentExecucao">0%</div>
-            </div>
-            <div class="card-dash">
-                <div class="label">📉 Meta Diária</div>
-                <div class="value"><span class="currency">R$</span> <span id="metaDiaria">0</span></div>
-            </div>
-            <div class="card-dash">
-                <div class="label">🌾 Área total</div>
-                <div class="value" id="areaRealizada">0 <span class="unit">ha</span></div>
-            </div>
+            <div class="card-dash"><div class="label">📅 Dia atual</div><div class="value" id="diaAtualDisplay">-</div></div>
+            <div class="card-dash"><div class="label">🎯 Meta</div><div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div></div>
+            <div class="card-dash highlight"><div class="label">✅ Realizado</div><div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div></div>
+            <div class="card-dash"><div class="label">📊 % Execução</div><div class="value" id="percentExecucao">0%</div></div>
+            <div class="card-dash"><div class="label">📉 Meta Diária</div><div class="value"><span class="currency">R$</span> <span id="metaDiaria">0</span></div></div>
+            <div class="card-dash"><div class="label">🌾 Área total</div><div class="value" id="areaRealizada">0 <span class="unit">ha</span></div></div>
         </div>
 
-        <!-- DIAS + LANÇAMENTO -->
         <div class="panel">
             <div class="dias-navegacao" id="diasContainer"></div>
             <div class="lancamento-area">
@@ -654,12 +629,9 @@
                 <button id="btnSalvarObs">Salvar</button>
                 <span class="obs-exibir" id="obsExibir"></span>
             </div>
-            <div style="font-size:11px; color:#64748b; margin-top:6px;">
-                💡 Digite a área (ha) e o valor por hectare (R$/ha). O total é calculado automaticamente!
-            </div>
+            <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Digite a área (ha) e o valor por hectare (R$/ha). O total é calculado automaticamente!</div>
         </div>
 
-        <!-- TABELA -->
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2>
@@ -673,7 +645,6 @@
             </div>
         </div>
 
-        <!-- GRÁFICO EVOLUÇÃO -->
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2>
@@ -681,7 +652,6 @@
             <div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
         </div>
 
-        <!-- FOOTER -->
         <div class="footer">
             <span><i class="fas fa-database"></i> Dados salvos no Firebase</span>
             <div>
@@ -692,7 +662,6 @@
 
     </div>
 
-    <!-- MODAL EDIÇÃO -->
     <div class="modal-custom" id="editModal">
         <div class="modal-content">
             <h3>✏️ Editar Lançamento</h3>
@@ -712,7 +681,6 @@
         </div>
     </div>
 
-    <!-- MODAL EXTRA -->
     <div class="modal-custom" id="extraModal">
         <div class="modal-content">
             <h3>➕ Criar Operação Extra</h3>
@@ -730,12 +698,11 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
         // ============================================================
-        // FIREBASE CONFIG
+        // FIREBASE
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
@@ -751,7 +718,7 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS BASE
+        // DADOS
         // ============================================================
         const OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
@@ -783,11 +750,11 @@
             currentDia: 1,
             extraCounter: 0,
             isLoaded: false,
-            isSaving: false
+            isSaving: false,
+            lancamentosCache: {} // Cache para evitar duplicação
         };
 
         let editTarget = null;
-        let unsubscribeListeners = [];
 
         // ============================================================
         // DOM
@@ -939,7 +906,6 @@
         // ============================================================
         // CÁLCULO AUTOMÁTICO
         // ============================================================
-
         function calcularTotal() {
             const ha = parseFloat(DOM.valorHa.value) || 0;
             const rha = parseFloat(DOM.valorRha.value) || 0;
@@ -949,118 +915,76 @@
         }
 
         // ============================================================
-        // FIREBASE - CRUD
+        // FIREBASE - COM PREVENÇÃO DE DUPLICAÇÃO
         // ============================================================
+
+        async function carregarOperacoes() {
+            const snapshot = await db.collection('operacoes').get();
+            const operacoes = [];
+            snapshot.forEach(doc => {
+                operacoes.push({ id: doc.id, ...doc.data() });
+            });
+            if (operacoes.length > 0) {
+                state.operacoes = operacoes;
+            } else {
+                state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
+                await salvarOperacoes();
+            }
+        }
+
+        async function carregarLancamentos() {
+            const snapshot = await db.collection('lancamentos').get();
+            const lancamentos = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const dia = data.dia;
+                const opId = data.opId;
+                if (!lancamentos[dia]) lancamentos[dia] = {};
+                // Usar um hash único para evitar duplicação
+                const key = `${dia}_${opId}`;
+                if (!lancamentos[dia][opId]) {
+                    lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                }
+                lancamentos[dia][opId].ha += data.ha || 0;
+                lancamentos[dia][opId].valor += data.valor || 0;
+            });
+            state.lancamentos = lancamentos;
+            state.lancamentosCache = JSON.stringify(lancamentos); // Cache para comparar
+        }
+
+        async function carregarObservacoes() {
+            const snapshot = await db.collection('observacoes').get();
+            const observacoes = {};
+            snapshot.forEach(doc => {
+                observacoes[doc.id] = doc.data().texto || '';
+            });
+            state.observacoes = observacoes;
+        }
+
+        async function carregarConfiguracoes() {
+            const doc = await db.collection('config').doc('app').get();
+            if (doc.exists) {
+                const data = doc.data();
+                state.currentDia = data.currentDia || 1;
+                state.extraCounter = data.extraCounter || 0;
+            }
+        }
 
         async function carregarDoFirebase() {
             try {
-                const opsSnapshot = await db.collection('operacoes').get();
-                const operacoes = [];
-                opsSnapshot.forEach(doc => {
-                    operacoes.push({ id: doc.id, ...doc.data() });
-                });
-
-                if (operacoes.length > 0) {
-                    state.operacoes = operacoes;
-                } else {
-                    state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
-                    await salvarOperacoes();
-                }
-
-                const lancSnapshot = await db.collection('lancamentos').get();
-                const lancamentos = {};
-                lancSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const dia = data.dia;
-                    const opId = data.opId;
-                    if (!lancamentos[dia]) lancamentos[dia] = {};
-                    lancamentos[dia][opId] = {
-                        ha: data.ha || 0,
-                        valor: data.valor || 0
-                    };
-                });
-                state.lancamentos = lancamentos;
-
-                const obsSnapshot = await db.collection('observacoes').get();
-                const observacoes = {};
-                obsSnapshot.forEach(doc => {
-                    observacoes[doc.id] = doc.data().texto || '';
-                });
-                state.observacoes = observacoes;
-
-                const configDoc = await db.collection('config').doc('app').get();
-                if (configDoc.exists) {
-                    const data = configDoc.data();
-                    state.currentDia = data.currentDia || 1;
-                    state.extraCounter = data.extraCounter || 0;
-                }
+                await carregarOperacoes();
+                await carregarLancamentos();
+                await carregarObservacoes();
+                await carregarConfiguracoes();
 
                 state.isLoaded = true;
                 renderizarTudo();
                 atualizarUltimaAtualizacao();
-
-                iniciarListeners();
-
                 return true;
-
             } catch (error) {
                 console.error('Erro ao carregar:', error);
                 return false;
             }
-        }
-
-        function iniciarListeners() {
-            unsubscribeListeners.forEach(unsub => unsub());
-            unsubscribeListeners = [];
-
-            const unsubOps = db.collection('operacoes').onSnapshot((snapshot) => {
-                const operacoes = [];
-                snapshot.forEach(doc => {
-                    operacoes.push({ id: doc.id, ...doc.data() });
-                });
-                if (operacoes.length > 0) {
-                    state.operacoes = operacoes;
-                    renderizarTudo();
-                }
-            });
-            unsubscribeListeners.push(unsubOps);
-
-            const unsubLanc = db.collection('lancamentos').onSnapshot((snapshot) => {
-                const lancamentos = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const dia = data.dia;
-                    const opId = data.opId;
-                    if (!lancamentos[dia]) lancamentos[dia] = {};
-                    lancamentos[dia][opId] = {
-                        ha: data.ha || 0,
-                        valor: data.valor || 0
-                    };
-                });
-                state.lancamentos = lancamentos;
-                renderizarTudo();
-            });
-            unsubscribeListeners.push(unsubLanc);
-
-            const unsubObs = db.collection('observacoes').onSnapshot((snapshot) => {
-                const observacoes = {};
-                snapshot.forEach(doc => {
-                    observacoes[doc.id] = doc.data().texto || '';
-                });
-                state.observacoes = observacoes;
-                renderizarDias();
-            });
-            unsubscribeListeners.push(unsubObs);
-
-            const unsubConfig = db.collection('config').doc('app').onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    state.currentDia = data.currentDia || 1;
-                    state.extraCounter = data.extraCounter || 0;
-                    renderizarDias();
-                }
-            });
-            unsubscribeListeners.push(unsubConfig);
         }
 
         async function salvarOperacoes() {
@@ -1073,17 +997,31 @@
         }
 
         async function salvarLancamento(dia, opId, ha, valor) {
+            // Verificar se já existe um lançamento igual (prevenir duplicação)
+            const existing = await db.collection('lancamentos')
+                .where('dia', '==', dia)
+                .where('opId', '==', opId)
+                .where('ha', '==', ha)
+                .where('valor', '==', valor)
+                .get();
+
+            if (!existing.empty) {
+                showToast('⚠️ Lançamento já existe!', 'warning');
+                return false;
+            }
+
             const ref = db.collection('lancamentos').doc();
             await ref.set({ dia, opId, ha, valor });
+            return true;
+        }
+
+        async function deletarLancamento(docId) {
+            await db.collection('lancamentos').doc(docId).delete();
         }
 
         async function atualizarLancamento(docId, dia, opId, ha, valor) {
             const ref = db.collection('lancamentos').doc(docId);
             await ref.update({ ha, valor, dia, opId });
-        }
-
-        async function deletarLancamento(docId) {
-            await db.collection('lancamentos').doc(docId).delete();
         }
 
         async function salvarObservacao(dia, texto) {
@@ -1259,13 +1197,12 @@
         }
 
         // ============================================================
-        // LANÇAMENTOS - COM PREVENÇÃO DE DUPLICAÇÃO
+        // LANÇAMENTOS - COM VERIFICAÇÃO DE DUPLICIDADE
         // ============================================================
 
         async function lancarValor() {
-            // Evitar duplicação
             if (state.isSaving) {
-                showToast('⏳ Aguarde... Salvando lançamento', 'warning');
+                showToast('⏳ Aguarde...', 'warning');
                 return;
             }
 
@@ -1279,28 +1216,51 @@
             if (rha <= 0) return alert('Digite o valor por hectare (R$/ha > 0).');
 
             const valorTotal = ha * rha;
-
             const dia = state.currentDia;
 
-            // Desabilitar botão
             DOM.btnLancar.disabled = true;
             DOM.btnLancar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
             state.isSaving = true;
 
             try {
-                await salvarLancamento(dia, opId, ha, valorTotal);
+                // Verificar se já existe (prevenir duplicação)
+                const existing = await db.collection('lancamentos')
+                    .where('dia', '==', dia)
+                    .where('opId', '==', opId)
+                    .get();
 
-                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
-                state.lancamentos[dia][opId].ha += ha;
-                state.lancamentos[dia][opId].valor += valorTotal;
+                let jaExiste = false;
+                existing.forEach(doc => {
+                    const data = doc.data();
+                    if (data.ha === ha && data.valor === valorTotal) {
+                        jaExiste = true;
+                    }
+                });
 
-                DOM.valorHa.value = '';
-                DOM.valorRha.value = '';
-                DOM.totalDisplay.textContent = 'R$ 0,00';
+                if (jaExiste) {
+                    showToast('⚠️ Este lançamento já foi registrado!', 'warning');
+                    DOM.btnLancar.disabled = false;
+                    DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
+                    state.isSaving = false;
+                    return;
+                }
 
-                renderizarTudo();
-                showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
+                const saved = await salvarLancamento(dia, opId, ha, valorTotal);
+
+                if (saved) {
+                    // Atualizar estado local
+                    if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                    if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                    state.lancamentos[dia][opId].ha += ha;
+                    state.lancamentos[dia][opId].valor += valorTotal;
+
+                    DOM.valorHa.value = '';
+                    DOM.valorRha.value = '';
+                    DOM.totalDisplay.textContent = 'R$ 0,00';
+
+                    renderizarTudo();
+                    showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
+                }
 
             } catch (error) {
                 console.error('Erro ao lançar:', error);
