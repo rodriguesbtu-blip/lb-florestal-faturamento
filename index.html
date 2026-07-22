@@ -9,7 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <!-- Firebase SDKs -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
@@ -101,7 +104,7 @@
         }
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 10px;
             margin-bottom: 18px;
         }
@@ -244,6 +247,11 @@
             margin-left: 6px;
             font-weight: 600;
         }
+        .op-nome .r-ha {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 400;
+        }
         .num {
             text-align: right;
             font-variant-numeric: tabular-nums;
@@ -317,6 +325,23 @@
         }
         .lancamento-area input[type="number"] {
             width: 80px;
+        }
+        .lancamento-area .rha-display {
+            font-weight: 700;
+            color: #2e7d32;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+        }
+        .lancamento-area .total-display {
+            font-weight: 700;
+            color: #1a56db;
+            font-size: 16px;
+            min-width: 100px;
+            text-align: center;
+            background: #dbeafe;
+            padding: 4px 12px;
+            border-radius: 6px;
         }
         .lancamento-area button {
             padding: 4px 16px;
@@ -765,6 +790,10 @@
             .lancamento-area input {
                 width: 100% !important;
             }
+            .lancamento-area .rha-display,
+            .lancamento-area .total-display {
+                text-align: center;
+            }
             .main-grid {
                 grid-template-columns: 1fr;
             }
@@ -830,23 +859,23 @@
                 <div class="value" id="diaAtualDisplay">-</div>
             </div>
             <div class="card-dash">
-                <div class="label">🎯 Projetado</div>
-                <div class="value"><span class="currency">R$</span> <span id="projetadoTotal">0</span></div>
-            </div>
-            <div class="card-dash">
-                <div class="label">✅ Realizado</div>
-                <div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div>
+                <div class="label">🎯 Meta</div>
+                <div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div>
             </div>
             <div class="card-dash highlight">
-                <div class="label">📉 Déficit / Excedente</div>
-                <div class="value" id="saldoDisplay"><span class="currency">R$</span> 0</div>
+                <div class="label">✅ Realizado</div>
+                <div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div>
             </div>
             <div class="card-dash">
                 <div class="label">📊 % Execução</div>
                 <div class="value" id="percentExecucao">0%</div>
             </div>
             <div class="card-dash">
-                <div class="label">🌾 Área realizada</div>
+                <div class="label">📉 Meta Diária</div>
+                <div class="value"><span class="currency">R$</span> <span id="metaDiaria">0</span></div>
+            </div>
+            <div class="card-dash">
+                <div class="label">🌾 Área total</div>
                 <div class="value" id="areaRealizada">0 <span class="unit">ha</span></div>
             </div>
         </div>
@@ -857,10 +886,10 @@
             <div class="lancamento-area">
                 <label for="opSelect">Operação:</label>
                 <select id="opSelect"></select>
+                <span class="rha-display" id="rhaDisplay">R$ 0,00/ha</span>
                 <label for="valorHa">ha:</label>
                 <input type="number" id="valorHa" step="0.01" placeholder="0,00">
-                <label for="valorR$">R$:</label>
-                <input type="number" id="valorR$" step="0.01" placeholder="0,00">
+                <span class="total-display" id="totalDisplay">R$ 0,00</span>
                 <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
                 <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar dia</button>
                 <span class="info-dia" id="infoLancamentoDia"></span>
@@ -872,7 +901,7 @@
                 <span class="obs-exibir" id="obsExibir"></span>
             </div>
             <div style="font-size:11px; color:#64748b; display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
-                <span>💡 Selecione dia, operação, hectares e valor</span>
+                <span>💡 Selecione a operação, digite a área (ha) e o valor total é calculado automaticamente</span>
                 <span>🔵 Dias com lançamento têm ponto azul</span>
                 <span>✏️ Clique em um valor para editar</span>
                 <span>➕ <strong>Extra:</strong> botão para criar operações não programadas</span>
@@ -889,7 +918,7 @@
                 </div>
                 <div class="table-wrap">
                     <table id="tabelaOperacoes">
-                        <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">Área Proj.</th><th class="num">Realizado (R$)</th><th class="num">Área</th><th class="num">%</th><th></th></tr></thead>
+                        <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">R$/ha</th><th class="num">Área</th><th class="num">Realizado (R$)</th><th class="num">%</th><th></th></tr></thead>
                         <tbody id="tbodyOperacoes"><tr><td colspan="7" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody>
                     </table>
                 </div>
@@ -907,12 +936,53 @@
             </div>
         </div>
 
-        <!-- BARRAS -->
+        <!-- BARRAS - RANKING -->
         <div class="panel">
             <div class="panel-header">
-                <h2><i class="fas fa-chart-bar"></i> Comparativo por operação <span class="sub">(R$)</span></h2>
+                <h2><i class="fas fa-trophy"></i> Ranking por Operação <span class="sub">(R$)</span></h2>
             </div>
             <div id="barChartContainer"></div>
+        </div>
+
+        <!-- RESUMO DO DIA -->
+        <div class="panel" id="resumoDiaPanel">
+            <div class="panel-header">
+                <h2><i class="fas fa-calendar-day"></i> Resumo do Dia <span class="sub" id="resumoDiaData">-</span></h2>
+            </div>
+            <div id="resumoDiaContainer">
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <div class="card-dash" style="border: none; background: #f8fafc;">
+                            <div class="label">Área total</div>
+                            <div class="value" id="resumoDiaArea">0 <span class="unit">ha</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card-dash" style="border: none; background: #f8fafc;">
+                            <div class="label">Faturamento</div>
+                            <div class="value" id="resumoDiaValor"><span class="currency">R$</span> 0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card-dash" style="border: none; background: #f8fafc;">
+                            <div class="label">Média por ha</div>
+                            <div class="value" id="resumoDiaMedia"><span class="currency">R$</span> 0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card-dash" style="border: none; background: #f8fafc;">
+                            <div class="label">Operações</div>
+                            <div class="value" id="resumoDiaOps">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrap mt-2">
+                    <table class="table table-sm" id="resumoDiaTable">
+                        <thead><tr><th>Operação</th><th class="text-end">Área</th><th class="text-end">Valor</th><th class="text-end">R$/ha</th></tr></thead>
+                        <tbody id="resumoDiaBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->
@@ -937,7 +1007,7 @@
             <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
             <label>Hectares (ha):</label>
             <input type="number" id="editHa" step="0.01">
-            <label>Valor (R$):</label>
+            <label>Valor Total (R$):</label>
             <input type="number" id="editValor" step="0.01">
             <div class="dados-adicionais" id="editDadosAdicionais"></div>
             <div class="btn-group">
@@ -957,7 +1027,9 @@
             <input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
             <label>Área projetada (ha):</label>
             <input type="number" id="extraArea" step="0.01" placeholder="0,00">
-            <label>Valor projetado (R$):</label>
+            <label>Valor por hectare (R$/ha):</label>
+            <input type="number" id="extraValorHa" step="0.01" placeholder="0,00">
+            <label>Valor projetado total (R$):</label>
             <input type="number" id="extraValor" step="0.01" placeholder="0,00">
             <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Deixe área ou valor em branco se não souber ainda</div>
             <div class="btn-group">
@@ -989,20 +1061,26 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS BASE - OPERAÇÕES
+        // DADOS BASE - OPERAÇÕES (com R$/ha)
         // ============================================================
         const OPERACOES_BASE = [
-            { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
-            { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
-            { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78 },
-            { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40 },
-            { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30 },
-            { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28 },
-            { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24 },
-            { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68 },
-            { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00 },
-            { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47 },
-            { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
+            { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06,
+                valorHa: 254.03 },
+            { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45,
+                valorHa: 272.56 },
+            { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78,
+                valorHa: 435.26 },
+            { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40, valorHa: 238.58 },
+            { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30, valorHa: 249.48 },
+            { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28, valorHa: 291.54 },
+            { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24,
+                valorHa: 659.08 },
+            { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68, valorHa: 598.22 },
+            { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00,
+                valorHa: 421.63 },
+            { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47,
+                valorHa: 119.09 },
+            { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44, valorHa: 792.91 }
         ];
 
         const DIAS = [];
@@ -1025,6 +1103,8 @@
 
         let editTarget = null;
         let unsubscribeListeners = [];
+        let chartEvolucao = null;
+        let chartRanking = null;
 
         // ============================================================
         // DOM
@@ -1032,14 +1112,16 @@
         const $ = id => document.getElementById(id);
         const DOM = {
             tbody: $('tbodyOperacoes'),
-            projetadoTotal: $('projetadoTotal'),
+            metaPeriodo: $('metaPeriodo'),
             realizadoTotal: $('realizadoTotal'),
-            saldoDisplay: $('saldoDisplay'),
             percentExecucao: $('percentExecucao'),
+            metaDiaria: $('metaDiaria'),
             areaRealizada: $('areaRealizada'),
             diaAtualDisplay: $('diaAtualDisplay'),
             diasContainer: $('diasContainer'),
             opSelect: $('opSelect'),
+            rhaDisplay: $('rhaDisplay'),
+            totalDisplay: $('totalDisplay'),
             valorHa: $('valorHa'),
             valorR$: $('valorR$'),
             btnLancar: $('btnLancar'),
@@ -1058,7 +1140,14 @@
             statusText: $('statusText'),
             syncDot: $('syncDot'),
             syncStatusText: $('syncStatusText'),
-            btnSync: $('btnSync')
+            btnSync: $('btnSync'),
+            resumoDiaArea: $('resumoDiaArea'),
+            resumoDiaValor: $('resumoDiaValor'),
+            resumoDiaMedia: $('resumoDiaMedia'),
+            resumoDiaOps: $('resumoDiaOps'),
+            resumoDiaBody: $('resumoDiaBody'),
+            resumoDiaData: $('resumoDiaData'),
+            extraValorHa: $('extraValorHa')
         };
 
         // ============================================================
@@ -1154,6 +1243,35 @@
             return total;
         }
 
+        function getLancamentosDia(dia) {
+            return state.lancamentos[dia] || {};
+        }
+
+        function getValorHa(opId) {
+            const op = state.operacoes.find(o => o.id === opId);
+            return op ? op.valorHa || 0 : 0;
+        }
+
+        function getDiasRestantes() {
+            const hoje = new Date();
+            const fim = new Date(2026, 7, 20);
+            const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
+            return Math.max(0, Math.ceil(diff));
+        }
+
+        function getMetaDiaria() {
+            const restante = getTotalProjetado() - getTotalRealizado();
+            const dias = getDiasRestantes();
+            return dias > 0 ? restante / dias : 0;
+        }
+
+        function getProjecao() {
+            const diasTrabalhados = Object.keys(state.lancamentos).length;
+            const mediaDiaria = diasTrabalhados > 0 ? getTotalRealizado() / diasTrabalhados : 0;
+            const diasTotais = 31;
+            return mediaDiaria * diasTotais;
+        }
+
         function showToast(msg, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1187,12 +1305,11 @@
         }
 
         // ============================================================
-        // FIREBASE - CRUD (CORRIGIDO - SEM APAGAR DADOS)
+        // FIREBASE - CRUD
         // ============================================================
 
         async function carregarDoFirebase() {
             try {
-                // 1. Carregar operações
                 const opsSnapshot = await db.collection('operacoes').get();
                 const operacoes = [];
                 opsSnapshot.forEach(doc => {
@@ -1206,7 +1323,6 @@
                     await salvarOperacoes();
                 }
 
-                // 2. Carregar lançamentos - SEM APAGAR!
                 const lancSnapshot = await db.collection('lancamentos').get();
                 const lancamentos = {};
                 lancSnapshot.forEach(doc => {
@@ -1221,7 +1337,6 @@
                 });
                 state.lancamentos = lancamentos;
 
-                // 3. Carregar observações
                 const obsSnapshot = await db.collection('observacoes').get();
                 const observacoes = {};
                 obsSnapshot.forEach(doc => {
@@ -1229,7 +1344,6 @@
                 });
                 state.observacoes = observacoes;
 
-                // 4. Carregar configurações
                 const configDoc = await db.collection('config').doc('app').get();
                 if (configDoc.exists) {
                     const data = configDoc.data();
@@ -1242,7 +1356,6 @@
                 renderizarTudo();
                 atualizarUltimaAtualizacao();
 
-                // Iniciar listeners
                 iniciarListeners();
 
                 return true;
@@ -1258,7 +1371,6 @@
             unsubscribeListeners.forEach(unsub => unsub());
             unsubscribeListeners = [];
 
-            // Listener para operações
             const unsubOps = db.collection('operacoes').onSnapshot((snapshot) => {
                 const operacoes = [];
                 snapshot.forEach(doc => {
@@ -1271,7 +1383,6 @@
             });
             unsubscribeListeners.push(unsubOps);
 
-            // Listener para lançamentos - NÃO APAGA!
             const unsubLanc = db.collection('lancamentos').onSnapshot((snapshot) => {
                 const lancamentos = {};
                 snapshot.forEach(doc => {
@@ -1289,7 +1400,6 @@
             });
             unsubscribeListeners.push(unsubLanc);
 
-            // Listener para observações
             const unsubObs = db.collection('observacoes').onSnapshot((snapshot) => {
                 const observacoes = {};
                 snapshot.forEach(doc => {
@@ -1300,7 +1410,6 @@
             });
             unsubscribeListeners.push(unsubObs);
 
-            // Listener para configurações
             const unsubConfig = db.collection('config').doc('app').onSnapshot((doc) => {
                 if (doc.exists) {
                     const data = doc.data();
@@ -1312,10 +1421,6 @@
             unsubscribeListeners.push(unsubConfig);
         }
 
-        // ============================================================
-        // SALVAR - SEM APAGAR DADOS EXISTENTES!
-        // ============================================================
-
         async function salvarOperacoes() {
             const batch = db.batch();
             for (const op of state.operacoes) {
@@ -1326,7 +1431,6 @@
         }
 
         async function salvarLancamento(dia, opId, ha, valor) {
-            // SALVAR APENAS UM LANÇAMENTO - NÃO APAGA NADA!
             const ref = db.collection('lancamentos').doc();
             await ref.set({
                 dia: dia,
@@ -1365,6 +1469,25 @@
         }
 
         // ============================================================
+        // CÁLCULO AUTOMÁTICO
+        // ============================================================
+
+        function calcularTotalAutomatico() {
+            const opId = DOM.opSelect.value;
+            const ha = parseFloat(DOM.valorHa.value) || 0;
+            const valorHa = getValorHa(opId);
+
+            // Atualizar display do R$/ha
+            DOM.rhaDisplay.textContent = `R$ ${formatMoney(valorHa)}/ha`;
+
+            // Calcular total
+            const total = ha * valorHa;
+            DOM.totalDisplay.textContent = `R$ ${formatMoney(total)}`;
+
+            return total;
+        }
+
+        // ============================================================
         // RENDERIZAÇÃO
         // ============================================================
 
@@ -1378,6 +1501,8 @@
                 opt.textContent = op.nome + areaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
+            // Atualizar R$/ha do primeiro
+            calcularTotalAutomatico();
         }
 
         function renderizarDias() {
@@ -1401,6 +1526,54 @@
             const obs = state.observacoes[state.currentDia] || '';
             DOM.obsInput.value = obs;
             DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
+
+            // Resumo do dia
+            renderizarResumoDia();
+        }
+
+        function renderizarResumoDia() {
+            const dia = state.currentDia;
+            const lancs = getLancamentosDia(dia);
+            const diaLabel = DIAS.find(d => d.numero === dia)?.label || dia;
+            DOM.resumoDiaData.textContent = diaLabel;
+
+            let totalArea = 0;
+            let totalValor = 0;
+            let totalOps = 0;
+            let html = '';
+
+            for (const opId in lancs) {
+                const op = state.operacoes.find(o => o.id === opId);
+                const nome = op ? op.nome : 'Removida';
+                const ha = lancs[opId].ha || 0;
+                const valor = lancs[opId].valor || 0;
+                const valorHa = ha > 0 ? valor / ha : 0;
+
+                totalArea += ha;
+                totalValor += valor;
+                totalOps++;
+
+                html += `<tr>
+                    <td>${nome}</td>
+                    <td class="text-end">${ha.toFixed(2)}</td>
+                    <td class="text-end">R$ ${formatMoney(valor)}</td>
+                    <td class="text-end">R$ ${formatMoney(valorHa)}</td>
+                </tr>`;
+            }
+
+            DOM.resumoDiaArea.innerHTML = `${totalArea.toFixed(2)} <span class="unit">ha</span>`;
+            DOM.resumoDiaValor.innerHTML = `<span class="currency">R$</span> ${formatMoney(totalValor)}`;
+            DOM.resumoDiaMedia.innerHTML = totalArea > 0 ?
+                `<span class="currency">R$</span> ${formatMoney(totalValor / totalArea)}` :
+                `<span class="currency">R$</span> 0`;
+            DOM.resumoDiaOps.textContent = totalOps;
+
+            if (totalOps === 0) {
+                DOM.resumoDiaBody.innerHTML =
+                    `<tr><td colspan="4" class="text-center text-muted py-2">Nenhum lançamento neste dia</td></tr>`;
+            } else {
+                DOM.resumoDiaBody.innerHTML = html;
+            }
         }
 
         function renderizarTabela() {
@@ -1422,15 +1595,14 @@
                 if (op.extra) classe = 'extra';
 
                 const extraTag = op.extra ? `<span class="extra-tag">⭐ extra</span>` : '';
-                const areaProjStr = op.areaProjetada ? op.areaProjetada.toFixed(2) : '-';
-                const projStr = op.projetado ? `R$ ${formatMoney(op.projetado)}` : '-';
+                const valorHa = op.valorHa || 0;
 
                 html += `<tr class="${op.extra ? 'extra-row' : ''}">
                     <td class="op-nome">${op.nome} ${extraTag}</td>
-                    <td class="num">${projStr}</td>
-                    <td class="num">${areaProjStr}</td>
+                    <td class="num">R$ ${formatMoney(op.projetado || 0)}</td>
+                    <td class="num">R$ ${formatMoney(valorHa)}</td>
+                    <td class="num">${area.toFixed(2)}</td>
                     <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">R$ ${formatMoney(realizado)}</td>
-                    <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')" title="Clique para editar">${area.toFixed(2)}</td>
                     <td class="num" style="width:65px;">
                         ${pct.toFixed(1)}%
                         <div class="progress-bar"><div class="progress-fill ${classe}" style="width:${pctClamp}%;"></div></div>
@@ -1444,9 +1616,9 @@
             html += `<tr class="total-row">
                 <td><strong>TOTAL</strong></td>
                 <td class="num"><strong>R$ ${formatMoney(totalProj)}</strong></td>
-                <td class="num"><strong>${totalAreaProj.toFixed(2)}</strong></td>
-                <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
+                <td class="num"><strong>-</strong></td>
                 <td class="num"><strong>${totalArea.toFixed(2)}</strong></td>
+                <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
                 <td class="num"><strong>${pctTotal.toFixed(1)}%</strong></td>
                 <td></td>
             </tr>`;
@@ -1457,18 +1629,14 @@
             const totalProj = getTotalProjetado();
             const totalReal = getTotalRealizado();
             const totalArea = getAreaTotal();
-
-            DOM.projetadoTotal.textContent = formatMoney(totalProj);
-            DOM.realizadoTotal.textContent = formatMoney(totalReal);
-
-            const saldo = totalReal - totalProj;
-            DOM.saldoDisplay.textContent = (saldo >= 0 ? '+' : '') + formatMoney(saldo);
-            DOM.saldoDisplay.style.color = saldo >= 0 ? '#16a34a' : '#dc2626';
-
+            const metaDiaria = getMetaDiaria();
             const pct = totalProj > 0 ? (totalReal / totalProj) * 100 : 0;
-            DOM.percentExecucao.textContent = pct.toFixed(1) + '%';
-            DOM.percentExecucao.style.color = pct >= 90 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
 
+            DOM.metaPeriodo.textContent = formatMoney(totalProj);
+            DOM.realizadoTotal.textContent = formatMoney(totalReal);
+            DOM.percentExecucao.textContent = pct.toFixed(1) + '%';
+            DOM.percentExecucao.style.color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
+            DOM.metaDiaria.textContent = formatMoney(metaDiaria);
             DOM.areaRealizada.innerHTML = `${totalArea.toFixed(2)} <span class="unit">ha</span>`;
         }
 
@@ -1522,32 +1690,47 @@
             DOM.graficoEvolucao.innerHTML = svg;
         }
 
-        function renderizarBarras() {
+        function renderizarRanking() {
+            // Calcular ranking por operação
+            const ranking = state.operacoes.map(op => {
+                const realizado = getRealizadoOp(op.id);
+                return { ...op, realizado };
+            }).filter(op => op.realizado > 0 || op.projetado > 0)
+            .sort((a, b) => b.realizado - a.realizado);
+
+            if (ranking.length === 0) {
+                DOM.barChartContainer.innerHTML = `<div class="vazio">Nenhum dado para ranking</div>`;
+                return;
+            }
+
+            const maxValor = ranking.length > 0 ? ranking[0].realizado : 1;
             let html = `<div class="bar-group">`;
-            for (const op of state.operacoes) {
-                const real = getRealizadoOp(op.id);
-                const pct = op.projetado > 0 ? Math.min((real / op.projetado) * 100, 100) : 0;
+
+            ranking.slice(0, 10).forEach((op, index) => {
+                const pct = maxValor > 0 ? (op.realizado / maxValor) * 100 : 0;
                 const extraTag = op.extra ? `<span class="extra-tag">extra</span>` : '';
-                const classeExtra = op.extra ? 'extra' : '';
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`;
+
                 html += `
                     <div class="bar-item">
-                        <span class="bar-label" title="${op.nome}">${op.nome} ${extraTag}</span>
+                        <span class="bar-label" title="${op.nome}">${medal} ${op.nome} ${extraTag}</span>
                         <div class="bar-track">
                             <div class="bar-proj" style="width:100%;"></div>
-                            <div class="bar-real ${classeExtra}" style="width:${pct}%;"></div>
+                            <div class="bar-real ${op.extra ? 'extra' : ''}" style="width:${Math.min(pct, 100)}%;"></div>
                         </div>
-                        <span class="bar-val" onclick="editarValor('${op.id}')" title="Clique para editar">${real > 0 ? 'R$ ' + formatMoney(real) : '-'}</span>
+                        <span class="bar-val">R$ ${formatMoney(op.realizado)}</span>
                     </div>
                 `;
-            }
+            });
+
             html += `</div>
                 <div class="legenda-barras">
-                    <span>⬜ Projetado (base 100%)</span>
+                    <span>🏆 Ranking por faturamento realizado</span>
+                    <span>⬜ Meta (100%)</span>
                     <span>🟦 Realizado</span>
-                    <span>🟣 Extra</span>
-                    <span>✏️ Clique no valor para editar</span>
                 </div>
             `;
+
             DOM.barChartContainer.innerHTML = html;
         }
 
@@ -1556,19 +1739,27 @@
             renderizarDias();
             renderizarTabela();
             renderizarGraficoEvolucao();
-            renderizarBarras();
+            renderizarRanking();
             atualizarCards();
             atualizarUltimaAtualizacao();
+            calcularTotalAutomatico();
         }
 
         // ============================================================
         // OPERAÇÕES EXTRA
         // ============================================================
 
-        function criarOperacaoExtra(nome, area, valor) {
+        function criarOperacaoExtra(nome, area, valorHa, valorTotal) {
             state.extraCounter++;
             const id = 'extra_' + state.extraCounter + '_' + Date.now();
-            state.operacoes.push({ id, nome, projetado: valor || 0, areaProjetada: area || 0, extra: true });
+            state.operacoes.push({
+                id,
+                nome,
+                projetado: valorTotal || (area * valorHa) || 0,
+                areaProjetada: area || 0,
+                valorHa: valorHa || 0,
+                extra: true
+            });
             salvarOperacoes();
             renderizarTudo();
             showToast(`✅ Operação extra "${nome}" criada!`);
@@ -1585,51 +1776,44 @@
         }
 
         // ============================================================
-        // LANÇAMENTOS - CORRIGIDO!
+        // LANÇAMENTOS - COM CÁLCULO AUTOMÁTICO
         // ============================================================
 
         async function lancarValor() {
             const opId = DOM.opSelect.value;
             if (!opId) return alert('Selecione uma operação.');
-            const rawHa = DOM.valorHa.value.trim().replace(',', '.');
-            const rawValor = DOM.valorR$.value.trim().replace(',', '.');
-            if (!rawHa && !rawValor) return alert('Digite pelo menos hectares ou valor R$.');
-            const ha = rawHa ? parseFloat(rawHa) : 0;
-            const valor = rawValor ? parseFloat(rawValor) : 0;
-            if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
-            if (ha === 0 && valor === 0) return alert('Digite pelo menos um valor positivo.');
+
+            const ha = parseFloat(DOM.valorHa.value) || 0;
+            if (ha <= 0) return alert('Digite uma área válida (ha > 0).');
+
+            const valorHa = getValorHa(opId);
+            const valorTotal = ha * valorHa;
+
+            if (valorTotal <= 0) return alert('Valor total inválido.');
 
             const dia = state.currentDia;
 
-            // SALVAR NO FIREBASE - SEM APAGAR NADA!
-            await salvarLancamento(dia, opId, ha, valor);
+            await salvarLancamento(dia, opId, ha, valorTotal);
 
-            // Atualizar estado local
             if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
             if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
             state.lancamentos[dia][opId].ha += ha;
-            state.lancamentos[dia][opId].valor += valor;
+            state.lancamentos[dia][opId].valor += valorTotal;
 
             DOM.valorHa.value = '';
-            DOM.valorR$.value = '';
 
             renderizarTudo();
-            const msg = [];
-            if (ha > 0) msg.push(`${ha.toFixed(2)} ha`);
-            if (valor > 0) msg.push(`R$ ${formatMoney(valor)}`);
-            showToast(`✅ Lançado: ${msg.join(' | ')} em ${DIAS.find(d => d.numero === dia)?.label}`);
+            showToast(`✅ Lançado: ${ha.toFixed(2)} ha = R$ ${formatMoney(valorTotal)} em ${DIAS.find(d => d.numero === dia)?.label}`);
         }
 
         async function resetarDia() {
             const dia = state.currentDia;
             if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
 
-            // Buscar documentos do dia no Firebase
             const snapshot = await db.collection('lancamentos').where('dia', '==', dia).get();
 
             if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
 
-            // Deletar cada documento
             const batch = db.batch();
             snapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
@@ -1640,7 +1824,7 @@
         }
 
         // ============================================================
-        // EDIÇÃO - CORRIGIDO!
+        // EDIÇÃO
         // ============================================================
 
         async function editarValor(opId) {
@@ -1651,7 +1835,6 @@
                 return;
             }
 
-            // Buscar o documento do Firebase
             const snapshot = await db.collection('lancamentos')
                 .where('dia', '==', dia)
                 .where('opId', '==', opId)
@@ -1679,10 +1862,8 @@
             if (!editTarget) return;
             const { docId, dia, opId } = editTarget;
 
-            const rawHa = Modals.editHa.value.trim().replace(',', '.');
-            const rawValor = Modals.editValor.value.trim().replace(',', '.');
-            const ha = rawHa ? parseFloat(rawHa) : 0;
-            const valor = rawValor ? parseFloat(rawValor) : 0;
+            const ha = parseFloat(Modals.editHa.value) || 0;
+            const valor = parseFloat(Modals.editValor.value) || 0;
 
             if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
 
@@ -1749,18 +1930,23 @@
             Modals.extraNome.value = '';
             Modals.extraArea.value = '';
             Modals.extraValor.value = '';
+            Modals.extraValorHa.value = '';
             Modals.extra.classList.add('active');
         }
 
         function criarExtra() {
             const nome = Modals.extraNome.value.trim();
             if (!nome) return alert('Digite um nome para a operação.');
+
             const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
-            const valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
-            if (area === 0 && valor === 0) {
+            const valorHa = parseFloat(Modals.extraValorHa.value.replace(',', '.')) || 0;
+            const valorTotal = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
+
+            if (area === 0 && valorTotal === 0 && valorHa === 0) {
                 if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
             }
-            criarOperacaoExtra(nome, area, valor);
+
+            criarOperacaoExtra(nome, area, valorHa, valorTotal);
             fecharModal();
         }
 
@@ -1773,7 +1959,6 @@
             if (!confirm('Tem certeza absoluta?')) return;
 
             try {
-                // Limpar Firebase
                 const collections = ['operacoes', 'lancamentos', 'observacoes'];
                 for (const collection of collections) {
                     const snapshot = await db.collection(collection).get();
@@ -1782,14 +1967,12 @@
                     await batch.commit();
                 }
 
-                // Resetar estado
                 state.lancamentos = {};
                 state.observacoes = {};
                 state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
                 state.extraCounter = 0;
                 state.currentDia = 1;
 
-                // Salvar operações base
                 await salvarOperacoes();
                 await salvarConfiguracoes();
 
@@ -1807,9 +1990,13 @@
         // ============================================================
 
         function setupEvents() {
+            // Cálculo automático ao mudar operação ou área
+            DOM.opSelect.addEventListener('change', calcularTotalAutomatico);
+            DOM.valorHa.addEventListener('input', calcularTotalAutomatico);
+
             DOM.btnLancar.addEventListener('click', lancarValor);
-            DOM.valorHa.addEventListener('keydown', e => { if (e.key === 'Enter') DOM.valorR$.focus(); });
-            DOM.valorR$.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
+            DOM.valorHa.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
+
             DOM.btnResetDia.addEventListener('click', resetarDia);
             DOM.resetCompleto.addEventListener('click', resetarCompleto);
             DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
@@ -1835,7 +2022,6 @@
                 if (e.key === 'Enter' && Modals.extra.classList.contains('active')) criarExtra();
             });
 
-            // Monitorar conexão
             window.addEventListener('online', () => {
                 atualizarStatusFirebase(true);
                 carregarDoFirebase();
