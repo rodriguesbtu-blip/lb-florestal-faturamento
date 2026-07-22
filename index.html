@@ -718,7 +718,7 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS
+        // DADOS BASE COM PROJETADO
         // ============================================================
         const OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
@@ -750,8 +750,7 @@
             currentDia: 1,
             extraCounter: 0,
             isLoaded: false,
-            isSaving: false,
-            lancamentosCache: {} // Cache para evitar duplicação
+            isSaving: false
         };
 
         let editTarget = null;
@@ -915,89 +914,86 @@
         }
 
         // ============================================================
-        // FIREBASE - COM PREVENÇÃO DE DUPLICAÇÃO
+        // FIREBASE - FORÇA CRIAÇÃO DAS OPERAÇÕES
         // ============================================================
 
-        async function carregarOperacoes() {
-            const snapshot = await db.collection('operacoes').get();
-            const operacoes = [];
-            snapshot.forEach(doc => {
-                operacoes.push({ id: doc.id, ...doc.data() });
-            });
-            if (operacoes.length > 0) {
-                state.operacoes = operacoes;
-            } else {
-                state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
-                await salvarOperacoes();
+        async function criarOperacoesPadrao() {
+            console.log('📦 Criando operações padrão no Firebase...');
+            const batch = db.batch();
+            for (const op of OPERACOES_BASE) {
+                const ref = db.collection('operacoes').doc(op.id);
+                batch.set(ref, { ...op });
             }
-        }
-
-        async function carregarLancamentos() {
-            const snapshot = await db.collection('lancamentos').get();
-            const lancamentos = {};
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const dia = data.dia;
-                const opId = data.opId;
-                if (!lancamentos[dia]) lancamentos[dia] = {};
-                // Usar um hash único para evitar duplicação
-                const key = `${dia}_${opId}`;
-                if (!lancamentos[dia][opId]) {
-                    lancamentos[dia][opId] = { ha: 0, valor: 0 };
-                }
-                lancamentos[dia][opId].ha += data.ha || 0;
-                lancamentos[dia][opId].valor += data.valor || 0;
-            });
-            state.lancamentos = lancamentos;
-            state.lancamentosCache = JSON.stringify(lancamentos); // Cache para comparar
-        }
-
-        async function carregarObservacoes() {
-            const snapshot = await db.collection('observacoes').get();
-            const observacoes = {};
-            snapshot.forEach(doc => {
-                observacoes[doc.id] = doc.data().texto || '';
-            });
-            state.observacoes = observacoes;
-        }
-
-        async function carregarConfiguracoes() {
-            const doc = await db.collection('config').doc('app').get();
-            if (doc.exists) {
-                const data = doc.data();
-                state.currentDia = data.currentDia || 1;
-                state.extraCounter = data.extraCounter || 0;
-            }
+            await batch.commit();
+            console.log('✅ Operações criadas com sucesso!');
+            showToast('✅ Operações cadastradas no Firebase!', 'success');
         }
 
         async function carregarDoFirebase() {
             try {
-                await carregarOperacoes();
-                await carregarLancamentos();
-                await carregarObservacoes();
-                await carregarConfiguracoes();
+                // 1. Carregar operações
+                const opsSnapshot = await db.collection('operacoes').get();
+                const operacoes = [];
+                opsSnapshot.forEach(doc => {
+                    operacoes.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (operacoes.length === 0) {
+                    // SE NÃO TIVER OPERAÇÕES, CRIA!
+                    await criarOperacoesPadrao();
+                    // Recarregar depois de criar
+                    const newOps = await db.collection('operacoes').get();
+                    newOps.forEach(doc => {
+                        operacoes.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+
+                state.operacoes = operacoes;
+
+                // 2. Carregar lançamentos
+                const lancSnapshot = await db.collection('lancamentos').get();
+                const lancamentos = {};
+                lancSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dia = data.dia;
+                    const opId = data.opId;
+                    if (!lancamentos[dia]) lancamentos[dia] = {};
+                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                    lancamentos[dia][opId].ha += data.ha || 0;
+                    lancamentos[dia][opId].valor += data.valor || 0;
+                });
+                state.lancamentos = lancamentos;
+
+                // 3. Carregar observações
+                const obsSnapshot = await db.collection('observacoes').get();
+                const observacoes = {};
+                obsSnapshot.forEach(doc => {
+                    observacoes[doc.id] = doc.data().texto || '';
+                });
+                state.observacoes = observacoes;
+
+                // 4. Carregar configurações
+                const configDoc = await db.collection('config').doc('app').get();
+                if (configDoc.exists) {
+                    const data = configDoc.data();
+                    state.currentDia = data.currentDia || 1;
+                    state.extraCounter = data.extraCounter || 0;
+                }
 
                 state.isLoaded = true;
                 renderizarTudo();
                 atualizarUltimaAtualizacao();
                 return true;
+
             } catch (error) {
                 console.error('Erro ao carregar:', error);
+                showToast('❌ Erro ao carregar dados', 'error');
                 return false;
             }
         }
 
-        async function salvarOperacoes() {
-            const batch = db.batch();
-            for (const op of state.operacoes) {
-                const ref = db.collection('operacoes').doc(op.id);
-                batch.set(ref, { ...op });
-            }
-            await batch.commit();
-        }
-
         async function salvarLancamento(dia, opId, ha, valor) {
-            // Verificar se já existe um lançamento igual (prevenir duplicação)
+            // Verificar duplicidade
             const existing = await db.collection('lancamentos')
                 .where('dia', '==', dia)
                 .where('opId', '==', opId)
@@ -1013,29 +1009,6 @@
             const ref = db.collection('lancamentos').doc();
             await ref.set({ dia, opId, ha, valor });
             return true;
-        }
-
-        async function deletarLancamento(docId) {
-            await db.collection('lancamentos').doc(docId).delete();
-        }
-
-        async function atualizarLancamento(docId, dia, opId, ha, valor) {
-            const ref = db.collection('lancamentos').doc(docId);
-            await ref.update({ ha, valor, dia, opId });
-        }
-
-        async function salvarObservacao(dia, texto) {
-            const ref = db.collection('observacoes').doc(String(dia));
-            await ref.set({ texto: texto });
-        }
-
-        async function salvarConfiguracoes() {
-            const ref = db.collection('config').doc('app');
-            await ref.set({
-                currentDia: state.currentDia,
-                extraCounter: state.extraCounter,
-                updatedAt: new Date()
-            }, { merge: true });
         }
 
         // ============================================================
@@ -1063,7 +1036,6 @@
                 if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
                 btn.addEventListener('click', () => {
                     state.currentDia = dia.numero;
-                    salvarConfiguracoes();
                     renderizarTudo();
                 });
                 DOM.diasContainer.appendChild(btn);
@@ -1197,7 +1169,7 @@
         }
 
         // ============================================================
-        // LANÇAMENTOS - COM VERIFICAÇÃO DE DUPLICIDADE
+        // LANÇAMENTOS
         // ============================================================
 
         async function lancarValor() {
@@ -1223,32 +1195,9 @@
             state.isSaving = true;
 
             try {
-                // Verificar se já existe (prevenir duplicação)
-                const existing = await db.collection('lancamentos')
-                    .where('dia', '==', dia)
-                    .where('opId', '==', opId)
-                    .get();
-
-                let jaExiste = false;
-                existing.forEach(doc => {
-                    const data = doc.data();
-                    if (data.ha === ha && data.valor === valorTotal) {
-                        jaExiste = true;
-                    }
-                });
-
-                if (jaExiste) {
-                    showToast('⚠️ Este lançamento já foi registrado!', 'warning');
-                    DOM.btnLancar.disabled = false;
-                    DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
-                    state.isSaving = false;
-                    return;
-                }
-
                 const saved = await salvarLancamento(dia, opId, ha, valorTotal);
 
                 if (saved) {
-                    // Atualizar estado local
                     if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
                     if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
                     state.lancamentos[dia][opId].ha += ha;
@@ -1319,13 +1268,13 @@
             if (ha < 0 || rha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
 
             if (ha === 0 && valor === 0) {
-                await deletarLancamento(docId);
+                await db.collection('lancamentos').doc(docId).delete();
                 if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
                     delete state.lancamentos[dia][opId];
                     if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
                 }
             } else {
-                await atualizarLancamento(docId, dia, opId, ha, valor);
+                await db.collection('lancamentos').doc(docId).update({ ha, valor, dia, opId });
                 if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
                 state.lancamentos[dia][opId] = { ha, valor };
             }
@@ -1333,21 +1282,6 @@
             fecharModal();
             renderizarTudo();
             showToast(`💾 Atualizado: ${ha.toFixed(2)} ha | R$ ${formatMoney(valor)}`);
-        }
-
-        async function excluirEdicao() {
-            if (!editTarget) return;
-            const { docId, dia, opId } = editTarget;
-
-            await deletarLancamento(docId);
-            if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                delete state.lancamentos[dia][opId];
-                if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-            }
-
-            fecharModal();
-            renderizarTudo();
-            showToast('🗑️ Lançamento excluído');
         }
 
         function fecharModal() {
@@ -1362,19 +1296,20 @@
 
         async function salvarObservacao() {
             const texto = DOM.obsInput.value.trim();
+            const dia = state.currentDia;
             if (texto) {
-                state.observacoes[state.currentDia] = texto;
-                await salvarObservacao(state.currentDia, texto);
+                state.observacoes[dia] = texto;
+                await db.collection('observacoes').doc(String(dia)).set({ texto: texto });
             } else {
-                delete state.observacoes[state.currentDia];
-                await salvarObservacao(state.currentDia, '');
+                delete state.observacoes[dia];
+                await db.collection('observacoes').doc(String(dia)).delete().catch(() => {});
             }
             renderizarDias();
             showToast(texto ? '📝 Observação salva' : 'Observação removida');
         }
 
         // ============================================================
-        // EXTRA MODAL
+        // EXTRA
         // ============================================================
 
         function abrirExtraModal() {
@@ -1395,11 +1330,6 @@
                 if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
             }
 
-            criarOperacaoExtra(nome, area, valor);
-            fecharModal();
-        }
-
-        function criarOperacaoExtra(nome, area, valor) {
             state.extraCounter++;
             const id = 'extra_' + state.extraCounter + '_' + Date.now();
             state.operacoes.push({
@@ -1409,19 +1339,16 @@
                 areaProjetada: area || 0,
                 extra: true
             });
-            salvarOperacoes();
+
+            // Salvar no Firebase
+            const batch = db.batch();
+            const ref = db.collection('operacoes').doc(id);
+            batch.set(ref, state.operacoes[state.operacoes.length - 1]);
+            batch.commit();
+
+            fecharModal();
             renderizarTudo();
             showToast(`✅ Operação extra "${nome}" criada!`);
-        }
-
-        function removerExtra(id) {
-            const op = state.operacoes.find(o => o.id === id);
-            if (!op) return;
-            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
-            state.operacoes = state.operacoes.filter(o => o.id !== id);
-            salvarOperacoes();
-            renderizarTudo();
-            showToast('🗑️ Operação extra removida');
         }
 
         // ============================================================
@@ -1464,8 +1391,8 @@
                 state.extraCounter = 0;
                 state.currentDia = 1;
 
-                await salvarOperacoes();
-                await salvarConfiguracoes();
+                // Recriar operações base
+                await criarOperacoesPadrao();
 
                 renderizarTudo();
                 showToast('🔄 Todos os dados foram resetados');
@@ -1503,7 +1430,18 @@
 
             Modals.editSalvar.addEventListener('click', salvarEdicao);
             Modals.editCancelar.addEventListener('click', fecharModal);
-            Modals.editExcluir.addEventListener('click', excluirEdicao);
+            Modals.editExcluir.addEventListener('click', () => {
+                if (!editTarget) return;
+                const { docId, dia, opId } = editTarget;
+                db.collection('lancamentos').doc(docId).delete();
+                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
+                    delete state.lancamentos[dia][opId];
+                    if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+                }
+                fecharModal();
+                renderizarTudo();
+                showToast('🗑️ Lançamento excluído');
+            });
             Modals.edit.addEventListener('click', e => { if (e.target === Modals.edit) fecharModal(); });
 
             document.addEventListener('keydown', e => {
@@ -1517,7 +1455,6 @@
         // GLOBAIS
         // ============================================================
         window.editarValor = editarValor;
-        window.removerExtra = removerExtra;
 
         // ============================================================
         // INIT
@@ -1529,6 +1466,7 @@
             setupEvents();
 
             console.log('✅ LB FLORESTAL iniciado com sucesso!');
+            console.log(`📊 ${state.operacoes.length} operações carregadas`);
         }
 
         document.addEventListener('DOMContentLoaded', init);
