@@ -280,7 +280,7 @@
             extraCounter: 0,
             isLoaded: false,
             isSaving: false,
-            isRendering: false
+            lastUpdateTime: 0
         };
         var editTarget = null;
         var isListenerActive = false;
@@ -465,6 +465,14 @@
         }
 
         function salvarLancamento(dia, opId, ha, valor) {
+            // Verificar se já existe um lançamento igual nos últimos 2 segundos
+            var now = Date.now();
+            if (now - state.lastUpdateTime < 2000) {
+                console.log('⏳ Ignorando duplicação (menos de 2 segundos)');
+                return Promise.resolve(false);
+            }
+            state.lastUpdateTime = now;
+
             var ref = db.collection('lancamentos').doc();
             return ref.set({ dia: dia, opId: opId, ha: ha, valor: valor });
         }
@@ -493,11 +501,10 @@
         }
 
         // ============================================================
-        // CARREGAR DO FIREBASE - SEM DUPLICAÇÃO
+        // CARREGAR DO FIREBASE
         // ============================================================
 
         function carregarDoFirebase() {
-            // Carregar operações
             db.collection('operacoes').get().then(function(opsSnapshot) {
                 var operacoes = [];
                 opsSnapshot.forEach(function(doc) {
@@ -579,15 +586,52 @@
         }
 
         // ============================================================
-        // LISTENERS - COM CONTROLE DE DUPLICAÇÃO
+        // LISTENERS
         // ============================================================
 
         function iniciarListeners() {
             if (isListenerActive) return;
             isListenerActive = true;
 
+            db.collection('lancamentos').onSnapshot(function(snapshot) {
+                var lancamentos = {};
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    var dia = data.dia;
+                    var opId = data.opId;
+                    if (!lancamentos[dia]) lancamentos[dia] = {};
+                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                    lancamentos[dia][opId].ha += data.ha || 0;
+                    lancamentos[dia][opId].valor += data.valor || 0;
+                });
+                // Verificar se mudou antes de atualizar
+                var mudou = false;
+                for (var dia in lancamentos) {
+                    if (!state.lancamentos[dia]) { mudou = true; break; }
+                    for (var opId in lancamentos[dia]) {
+                        if (!state.lancamentos[dia][opId] || state.lancamentos[dia][opId].valor !== lancamentos[dia][
+                                opId
+                            ].valor) {
+                            mudou = true;
+                            break;
+                        }
+                    }
+                    if (mudou) break;
+                }
+                if (!mudou) {
+                    for (var dia in state.lancamentos) {
+                        if (!lancamentos[dia]) { mudou = true; break; }
+                    }
+                }
+                if (mudou) {
+                    state.lancamentos = lancamentos;
+                    renderizarTudo();
+                }
+            }, function(error) {
+                console.error('Erro no listener de lançamentos:', error);
+            });
+
             db.collection('operacoes').onSnapshot(function(snapshot) {
-                if (state.isRendering) return;
                 var operacoes = [];
                 snapshot.forEach(function(doc) {
                     operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado,
@@ -601,26 +645,7 @@
                 console.error('Erro no listener de operações:', error);
             });
 
-            db.collection('lancamentos').onSnapshot(function(snapshot) {
-                if (state.isRendering) return;
-                var lancamentos = {};
-                snapshot.forEach(function(doc) {
-                    var data = doc.data();
-                    var dia = data.dia;
-                    var opId = data.opId;
-                    if (!lancamentos[dia]) lancamentos[dia] = {};
-                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
-                    lancamentos[dia][opId].ha += data.ha || 0;
-                    lancamentos[dia][opId].valor += data.valor || 0;
-                });
-                state.lancamentos = lancamentos;
-                renderizarTudo();
-            }, function(error) {
-                console.error('Erro no listener de lançamentos:', error);
-            });
-
             db.collection('observacoes').onSnapshot(function(snapshot) {
-                if (state.isRendering) return;
                 var observacoes = {};
                 snapshot.forEach(function(doc) {
                     observacoes[doc.id] = doc.data().texto || '';
@@ -632,7 +657,6 @@
             });
 
             db.collection('config').doc('app').onSnapshot(function(doc) {
-                if (state.isRendering) return;
                 if (doc.exists) {
                     var data = doc.data();
                     state.currentDia = data.currentDia || 1;
@@ -849,7 +873,6 @@
         }
 
         function renderizarTudo() {
-            state.isRendering = true;
             renderizarSelect();
             renderizarDias();
             renderizarTabela();
@@ -857,7 +880,6 @@
             atualizarCards();
             atualizarUltimaAtualizacao();
             calcularTotal();
-            state.isRendering = false;
         }
 
         // ============================================================
@@ -886,19 +908,21 @@
             DOM.btnLancar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
             state.isSaving = true;
 
-            salvarLancamento(dia, opId, ha, valorTotal).then(function() {
-                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
-                state.lancamentos[dia][opId].ha += ha;
-                state.lancamentos[dia][opId].valor += valorTotal;
+            salvarLancamento(dia, opId, ha, valorTotal).then(function(result) {
+                if (result !== false) {
+                    if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                    if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                    state.lancamentos[dia][opId].ha += ha;
+                    state.lancamentos[dia][opId].valor += valorTotal;
 
-                DOM.valorHa.value = '';
-                DOM.valorRha.value = '';
-                DOM.totalDisplay.textContent = 'R$ 0,00';
+                    DOM.valorHa.value = '';
+                    DOM.valorRha.value = '';
+                    DOM.totalDisplay.textContent = 'R$ 0,00';
 
-                renderizarTudo();
-                showToast('✅ Lançado: ' + ha.toFixed(2) + ' ha × R$ ' + formatMoney(rha) + ' = R$ ' + formatMoney(
-                    valorTotal));
+                    renderizarTudo();
+                    showToast('✅ Lançado: ' + ha.toFixed(2) + ' ha × R$ ' + formatMoney(rha) + ' = R$ ' + formatMoney(
+                        valorTotal));
+                }
                 DOM.btnLancar.disabled = false;
                 DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
                 state.isSaving = false;
