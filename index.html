@@ -11,679 +11,112 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #f0f4f9;
-            padding: 20px;
-            color: #1e293b;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .header {
-            background: #fff;
-            border-radius: 16px;
-            padding: 16px 24px;
-            margin-bottom: 20px;
-            border: 1px solid #e9eef3;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .header .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .header .logo .icon {
-            width: 40px;
-            height: 40px;
-            background: #2e7d32;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 18px;
-            color: #fff;
-        }
-        .header .logo h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .header .logo h1 small {
-            font-size: 13px;
-            font-weight: 400;
-            color: #64748b;
-        }
-        .header .badge-periodo {
-            background: #dbeafe;
-            color: #1e4b8a;
-            padding: 4px 16px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .header .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #64748b;
-        }
-        .header .status-indicator .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .header .status-indicator .dot.online {
-            background: #4caf50;
-        }
-        .header .status-indicator .dot.offline {
-            background: #94a3b8;
-        }
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-        .card-dash {
-            background: #fff;
-            border-radius: 14px;
-            padding: 14px 16px;
-            border: 1px solid #e9eef3;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-        }
-        .card-dash .label {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .card-dash .value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-        }
-        .card-dash .value .currency {
-            font-size: 14px;
-            font-weight: 500;
-            color: #475569;
-        }
-        .card-dash .value .unit {
-            font-size: 14px;
-            font-weight: 400;
-            color: #475569;
-        }
-        .card-dash.highlight {
-            background: #0a1628;
-            border-color: #0a1628;
-        }
-        .card-dash.highlight .label {
-            color: #94a3b8;
-        }
-        .card-dash.highlight .value {
-            color: #fff;
-        }
-        .panel {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px 18px;
-            border: 1px solid #e9eef3;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-            margin-bottom: 16px;
-        }
-        .panel .panel-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        .panel .panel-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .panel .panel-header h2 i {
-            color: #2e7d32;
-            margin-right: 6px;
-        }
-        .panel .panel-header .sub {
-            font-size: 12px;
-            font-weight: 400;
-            color: #64748b;
-        }
-        .lancamento-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            padding: 12px 16px;
-            background: #f8fafc;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 8px;
-        }
-        .lancamento-area label {
-            font-weight: 600;
-            font-size: 13px;
-            color: #334155;
-        }
-        .lancamento-area select {
-            min-width: 200px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d9e6;
-            font-size: 14px;
-            background: #fff;
-        }
-        .lancamento-area input[type="number"] {
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d9e6;
-            font-size: 14px;
-            background: #fff;
-            width: 120px;
-        }
-        .lancamento-area .total-display {
-            font-weight: 700;
-            color: #1a56db;
-            font-size: 18px;
-            min-width: 140px;
-            text-align: center;
-            background: #dbeafe;
-            padding: 6px 16px;
-            border-radius: 8px;
-        }
-        .lancamento-area .btn-primary {
-            background: #0a1628;
-            color: #fff;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .lancamento-area .btn-primary:hover {
-            background: #1a3a5c;
-        }
-        .lancamento-area .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .lancamento-area .btn-reset {
-            background: transparent;
-            border: 1px solid #d1d9e6;
-            color: #475569;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .lancamento-area .btn-reset:hover {
-            background: #f1f4f8;
-        }
-        .lancamento-area .info-dia {
-            font-size: 12px;
-            color: #64748b;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-        .dias-navegacao {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 8px;
-        }
-        .dias-navegacao button {
-            background: #f1f4f8;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            color: #475569;
-            position: relative;
-        }
-        .dias-navegacao button:hover {
-            background: #e2e8f0;
-        }
-        .dias-navegacao button.active {
-            background: #0a1628;
-            color: #fff;
-        }
-        .dias-navegacao .dia-com-lancamento::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 6px;
-            height: 6px;
-            background: #2563eb;
-            border-radius: 50%;
-        }
-        .table-wrap {
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        .table-wrap::-webkit-scrollbar {
-            width: 5px;
-        }
-        .table-wrap::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        th {
-            text-align: left;
-            font-weight: 600;
-            color: #475569;
-            padding: 8px 6px 8px 0;
-            border-bottom: 2px solid #e2e8f0;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 2;
-        }
-        td {
-            padding: 8px 6px 8px 0;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-        .num {
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e9eef3;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 2px;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.6s ease;
-        }
-        .progress-fill.success {
-            background: #4caf50;
-        }
-        .progress-fill.warning {
-            background: #f59e0b;
-        }
-        .progress-fill.danger {
-            background: #dc3545;
-        }
-        .total-row td {
-            font-weight: 700;
-            border-top: 2px solid #cbd5e1;
-            padding-top: 10px;
-        }
-        .obs-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-            padding: 6px 12px;
-            background: #fefce8;
-            border-radius: 8px;
-            border: 1px solid #fde68a;
-            margin-top: 4px;
-        }
-        .obs-area label {
-            font-weight: 600;
-            font-size: 11px;
-            color: #92400e;
-        }
-        .obs-area input {
-            flex: 1;
-            min-width: 120px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid #fde68a;
-            font-size: 11px;
-            background: #fff;
-        }
-        .obs-area button {
-            background: #f59e0b;
-            border: none;
-            color: #fff;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 11px;
-        }
-        .obs-area button:hover {
-            background: #d97706;
-        }
-        .obs-area .obs-exibir {
-            font-size: 11px;
-            color: #92400e;
-            font-style: italic;
-            flex: 1;
-        }
-        .grafico-evolucao {
-            min-height: 150px;
-            background: #fafcff;
-            border-radius: 10px;
-            padding: 4px;
-        }
-        .vazio {
-            color: #94a3b8;
-            font-style: italic;
-            text-align: center;
-            padding: 30px 0;
-            font-size: 13px;
-        }
-
-        .resumo-dia {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px 18px;
-            border: 1px solid #e9eef3;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-            margin-bottom: 16px;
-        }
-        .resumo-dia .resumo-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .resumo-dia .resumo-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .resumo-dia .resumo-header h3 i {
-            color: #2e7d32;
-            margin-right: 6px;
-        }
-        .resumo-dia .resumo-header .total-dia {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a56db;
-            background: #dbeafe;
-            padding: 4px 16px;
-            border-radius: 8px;
-        }
-        .resumo-dia .resumo-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 13px;
-        }
-        .resumo-dia .resumo-item:last-child {
-            border-bottom: none;
-        }
-        .resumo-dia .resumo-item .op-nome {
-            font-weight: 500;
-        }
-        .resumo-dia .resumo-item .op-valor {
-            font-weight: 600;
-            color: #0f172a;
-        }
-        .resumo-dia .resumo-vazio {
-            color: #94a3b8;
-            font-style: italic;
-            text-align: center;
-            padding: 16px 0;
-            font-size: 13px;
-        }
-
-        .footer {
-            background: #fff;
-            border-radius: 14px;
-            padding: 12px 20px;
-            border: 1px solid #e9eef3;
-            margin-top: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            color: #64748b;
-            gap: 8px;
-        }
-        .footer button {
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            cursor: pointer;
-            color: #475569;
-        }
-        .footer button:hover {
-            background: #f1f4f8;
-        }
-        .footer .sync-status .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .footer .sync-status .dot.synced {
-            background: #4caf50;
-        }
-        .footer .sync-status .dot.error {
-            background: #dc3545;
-        }
-
-        .modal-custom {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-        .modal-custom.active {
-            display: flex;
-        }
-        .modal-custom .modal-content {
-            background: #fff;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-        }
-        .modal-custom .modal-content h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-        .modal-custom .modal-content label {
-            font-weight: 600;
-            font-size: 13px;
-            display: block;
-            margin-top: 12px;
-        }
-        .modal-custom .modal-content input {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d9e6;
-            font-size: 13px;
-            margin-top: 4px;
-        }
-        .modal-custom .modal-content .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 18px;
-        }
-        .modal-custom .modal-content .btn-group button {
-            padding: 8px 20px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .modal-custom .modal-content .btn-group .btn-primary {
-            background: #0a1628;
-            color: #fff;
-        }
-        .modal-custom .modal-content .btn-group .btn-secondary {
-            background: #f1f4f8;
-            color: #475569;
-        }
-        .modal-custom .modal-content .btn-group .btn-danger {
-            background: #dc3545;
-            color: #fff;
-            margin-left: auto;
-        }
-        .modal-custom .modal-content .dados-adicionais {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #f8fafc;
-            border-radius: 6px;
-        }
-        .modal-custom .modal-content .info-text {
-            font-size: 13px;
-            color: #475569;
-            margin: 4px 0 12px;
-        }
-        .toast-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1000;
-        }
-        .toast {
-            background: #0f172a;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toastIn 0.3s ease;
-            margin-top: 8px;
-        }
-        .toast.success {
-            background: #2e7d32;
-        }
-        .toast.error {
-            background: #dc3545;
-        }
-        .toast.warning {
-            background: #f59e0b;
-        }
-        .toast.info {
-            background: #2563eb;
-        }
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            .header {
-                padding: 12px 16px;
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-            .header .logo h1 {
-                font-size: 16px;
-            }
-            .header .logo h1 small {
-                display: none;
-            }
-            .cards {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            .card-dash {
-                padding: 12px 14px;
-            }
-            .card-dash .value {
-                font-size: 18px;
-            }
-            .lancamento-area {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .lancamento-area .info-dia {
-                margin-left: 0;
-                text-align: center;
-            }
-            .lancamento-area select,
-            .lancamento-area input {
-                width: 100% !important;
-            }
-            .resumo-dia .resumo-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-                text-align: center;
-            }
-        }
-        @media (max-width: 480px) {
-            .cards {
-                grid-template-columns: 1fr 1fr;
-            }
-            .card-dash .value {
-                font-size: 16px;
-            }
-            table {
-                font-size: 11px;
-            }
-            th,
-            td {
-                padding: 4px 4px 4px 0;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f9;padding:20px;color:#1e293b}
+        .container{max-width:1200px;margin:0 auto}
+        .header{background:#fff;border-radius:16px;padding:16px 24px;margin-bottom:20px;border:1px solid #e9eef3;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between}
+        .header .logo{display:flex;align-items:center;gap:12px}
+        .header .logo .icon{width:40px;height:40px;background:#2e7d32;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff}
+        .header .logo h1{font-size:20px;font-weight:700}
+        .header .logo h1 small{font-size:13px;font-weight:400;color:#64748b}
+        .header .badge-periodo{background:#dbeafe;color:#1e4b8a;padding:4px 16px;border-radius:40px;font-size:13px;font-weight:600}
+        .header .status-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b}
+        .header .status-indicator .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+        .header .status-indicator .dot.online{background:#4caf50}
+        .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+        .card-dash{background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #e9eef3;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
+        .card-dash .label{font-size:11px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.3px}
+        .card-dash .value{font-size:22px;font-weight:700;color:#0f172a;margin-top:2px}
+        .card-dash .value .currency{font-size:14px;font-weight:500;color:#475569}
+        .card-dash .value .unit{font-size:14px;font-weight:400;color:#475569}
+        .card-dash.highlight{background:#0a1628;border-color:#0a1628}
+        .card-dash.highlight .label{color:#94a3b8}
+        .card-dash.highlight .value{color:#fff}
+        .panel{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #e9eef3;box-shadow:0 2px 6px rgba(0,0,0,0.04);margin-bottom:16px}
+        .panel .panel-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+        .panel .panel-header h2{font-size:16px;font-weight:600}
+        .panel .panel-header h2 i{color:#2e7d32;margin-right:6px}
+        .panel .panel-header .sub{font-size:12px;font-weight:400;color:#64748b}
+        .lancamento-area{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:8px}
+        .lancamento-area label{font-weight:600;font-size:13px;color:#334155}
+        .lancamento-area select{min-width:200px;padding:6px 12px;border-radius:8px;border:1px solid #d1d9e6;font-size:14px;background:#fff}
+        .lancamento-area input[type=number]{padding:6px 12px;border-radius:8px;border:1px solid #d1d9e6;font-size:14px;background:#fff;width:120px}
+        .lancamento-area .total-display{font-weight:700;color:#1a56db;font-size:18px;min-width:140px;text-align:center;background:#dbeafe;padding:6px 16px;border-radius:8px}
+        .lancamento-area .btn-primary{background:#0a1628;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer}
+        .lancamento-area .btn-primary:hover{background:#1a3a5c}
+        .lancamento-area .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+        .lancamento-area .btn-reset{background:transparent;border:1px solid #d1d9e6;color:#475569;padding:8px 16px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer}
+        .lancamento-area .btn-reset:hover{background:#f1f4f8}
+        .lancamento-area .info-dia{font-size:12px;color:#64748b;margin-left:auto;white-space:nowrap}
+        .dias-navegacao{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+        .dias-navegacao button{background:#f1f4f8;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;color:#475569;position:relative}
+        .dias-navegacao button:hover{background:#e2e8f0}
+        .dias-navegacao button.active{background:#0a1628;color:#fff}
+        .dias-navegacao .dia-com-lancamento::after{content:'';position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#2563eb;border-radius:50%}
+        .table-wrap{max-height:350px;overflow-y:auto}
+        .table-wrap::-webkit-scrollbar{width:5px}
+        .table-wrap::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th{text-align:left;font-weight:600;color:#475569;padding:8px 6px 8px 0;border-bottom:2px solid #e2e8f0;font-size:11px;text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0;background:#fff;z-index:2}
+        td{padding:8px 6px 8px 0;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+        .num{text-align:right;font-variant-numeric:tabular-nums}
+        .progress-bar{width:100%;height:6px;background:#e9eef3;border-radius:10px;overflow:hidden;margin-top:2px}
+        .progress-fill{height:100%;border-radius:10px;transition:width .6s ease}
+        .progress-fill.success{background:#4caf50}
+        .progress-fill.warning{background:#f59e0b}
+        .progress-fill.danger{background:#dc3545}
+        .total-row td{font-weight:700;border-top:2px solid #cbd5e1;padding-top:10px}
+        .obs-area{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 12px;background:#fefce8;border-radius:8px;border:1px solid #fde68a;margin-top:4px}
+        .obs-area label{font-weight:600;font-size:11px;color:#92400e}
+        .obs-area input{flex:1;min-width:120px;padding:4px 10px;border-radius:6px;border:1px solid #fde68a;font-size:11px;background:#fff}
+        .obs-area button{background:#f59e0b;border:none;color:#fff;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px}
+        .obs-area button:hover{background:#d97706}
+        .obs-area .obs-exibir{font-size:11px;color:#92400e;font-style:italic;flex:1}
+        .grafico-evolucao{min-height:150px;background:#fafcff;border-radius:10px;padding:4px}
+        .vazio{color:#94a3b8;font-style:italic;text-align:center;padding:30px 0;font-size:13px}
+        .resumo-dia{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #e9eef3;box-shadow:0 2px 6px rgba(0,0,0,0.04);margin-bottom:16px}
+        .resumo-dia .resumo-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .resumo-dia .resumo-header h3{font-size:16px;font-weight:600}
+        .resumo-dia .resumo-header h3 i{color:#2e7d32;margin-right:6px}
+        .resumo-dia .resumo-header .total-dia{font-size:18px;font-weight:700;color:#1a56db;background:#dbeafe;padding:4px 16px;border-radius:8px}
+        .resumo-dia .resumo-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+        .resumo-dia .resumo-item:last-child{border-bottom:none}
+        .resumo-dia .resumo-item .op-nome{font-weight:500}
+        .resumo-dia .resumo-item .op-valor{font-weight:600;color:#0f172a}
+        .resumo-dia .resumo-vazio{color:#94a3b8;font-style:italic;text-align:center;padding:16px 0;font-size:13px}
+        .footer{background:#fff;border-radius:14px;padding:12px 20px;border:1px solid #e9eef3;margin-top:16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:12px;color:#64748b;gap:8px}
+        .footer button{background:transparent;border:1px solid #e2e8f0;padding:4px 14px;border-radius:20px;font-size:11px;cursor:pointer;color:#475569}
+        .footer button:hover{background:#f1f4f8}
+        .footer .sync-status .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+        .footer .sync-status .dot.synced{background:#4caf50}
+        .footer .sync-status .dot.error{background:#dc3545}
+        .modal-custom{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+        .modal-custom.active{display:flex}
+        .modal-custom .modal-content{background:#fff;border-radius:16px;padding:24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+        .modal-custom .modal-content h3{font-size:18px;margin-bottom:8px}
+        .modal-custom .modal-content .sub{font-size:13px;color:#64748b;margin-bottom:16px}
+        .modal-custom .modal-content label{font-weight:600;font-size:13px;display:block;margin-top:12px}
+        .modal-custom .modal-content input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #d1d9e6;font-size:13px;margin-top:4px}
+        .modal-custom .modal-content .btn-group{display:flex;gap:10px;margin-top:18px}
+        .modal-custom .modal-content .btn-group button{padding:8px 20px;border-radius:8px;border:none;font-weight:600;cursor:pointer;font-size:13px}
+        .modal-custom .modal-content .btn-group .btn-primary{background:#0a1628;color:#fff}
+        .modal-custom .modal-content .btn-group .btn-secondary{background:#f1f4f8;color:#475569}
+        .modal-custom .modal-content .btn-group .btn-danger{background:#dc3545;color:#fff;margin-left:auto}
+        .modal-custom .modal-content .dados-adicionais{font-size:12px;color:#64748b;margin-top:8px;padding:8px 12px;background:#f8fafc;border-radius:6px}
+        .modal-custom .modal-content .info-text{font-size:13px;color:#475569;margin:4px 0 12px}
+        .toast-container{position:fixed;bottom:24px;right:24px;z-index:1000}
+        .toast{background:#0f172a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;animation:toastIn .3s ease;margin-top:8px}
+        .toast.success{background:#2e7d32}
+        .toast.error{background:#dc3545}
+        .toast.warning{background:#f59e0b}
+        .toast.info{background:#2563eb}
+        @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        @media(max-width:768px){body{padding:12px}.header{padding:12px 16px;flex-direction:column;gap:8px;text-align:center}.header .logo h1{font-size:16px}.header .logo h1 small{display:none}.cards{grid-template-columns:repeat(2,1fr);gap:8px}.card-dash{padding:12px 14px}.card-dash .value{font-size:18px}.lancamento-area{flex-direction:column;align-items:stretch}.lancamento-area .info-dia{margin-left:0;text-align:center}.lancamento-area select,.lancamento-area input{width:100%!important}.resumo-dia .resumo-header{flex-direction:column;align-items:stretch;gap:8px;text-align:center}}
+        @media(max-width:480px){.cards{grid-template-columns:1fr 1fr}.card-dash .value{font-size:16px}table{font-size:11px}th,td{padding:4px 4px 4px 0}}
     </style>
 </head>
 <body>
-
     <div class="container">
-
         <div class="header">
             <div class="logo">
                 <div class="icon">LB</div>
@@ -698,7 +131,6 @@
                 <button class="btn btn-sm btn-outline-secondary" id="btnSync"><i class="fas fa-sync"></i></button>
             </div>
         </div>
-
         <div class="cards">
             <div class="card-dash"><div class="label">📅 Dia atual</div><div class="value" id="diaAtualDisplay">-</div></div>
             <div class="card-dash"><div class="label">🎯 Meta</div><div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div></div>
@@ -707,7 +139,6 @@
             <div class="card-dash"><div class="label">📉 Meta Diária</div><div class="value"><span class="currency">R$</span> <span id="metaDiaria">0</span></div></div>
             <div class="card-dash"><div class="label">🌾 Área total</div><div class="value" id="areaRealizada">0 <span class="unit">ha</span></div></div>
         </div>
-
         <div class="panel">
             <div class="dias-navegacao" id="diasContainer"></div>
             <div class="lancamento-area">
@@ -730,20 +161,13 @@
             </div>
             <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Digite a área (ha) e o valor por hectare (R$/ha). O total é calculado automaticamente!</div>
         </div>
-
-        <!-- ============================================================
-        RESUMO DO DIA
-        ============================================================ -->
         <div class="resumo-dia" id="resumoDia">
             <div class="resumo-header">
                 <h3><i class="fas fa-calendar-day"></i> Resumo do Dia <span id="resumoDiaData" style="font-weight:400;font-size:14px;color:#64748b;">-</span></h3>
                 <span class="total-dia" id="resumoDiaTotal">R$ 0,00</span>
             </div>
-            <div id="resumoDiaLista">
-                <div class="resumo-vazio">Nenhum lançamento neste dia</div>
-            </div>
+            <div id="resumoDiaLista"><div class="resumo-vazio">Nenhum lançamento neste dia</div></div>
         </div>
-
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2>
@@ -756,38 +180,29 @@
                 </table>
             </div>
         </div>
-
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2>
             </div>
             <div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
         </div>
-
         <div class="footer">
             <span><i class="fas fa-database"></i> Dados salvos no Firebase</span>
             <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-                <div class="sync-status">
-                    <span class="dot synced" id="syncDot"></span>
-                    <span id="syncStatusText">Sincronizado</span>
-                </div>
+                <div class="sync-status"><span class="dot synced" id="syncDot"></span><span id="syncStatusText">Sincronizado</span></div>
                 <span id="lastUpdate">Atualizado agora</span>
                 <button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar</button>
             </div>
         </div>
-
     </div>
 
     <div class="modal-custom" id="editModal">
         <div class="modal-content">
             <h3>✏️ Editar Lançamento</h3>
             <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
-            <label>Área (ha):</label>
-            <input type="number" id="editHa" step="0.01">
-            <label>R$/ha:</label>
-            <input type="number" id="editRha" step="0.01">
-            <label>Valor Total (R$):</label>
-            <input type="number" id="editValor" step="0.01">
+            <label>Área (ha):</label><input type="number" id="editHa" step="0.01">
+            <label>R$/ha:</label><input type="number" id="editRha" step="0.01">
+            <label>Valor Total (R$):</label><input type="number" id="editValor" step="0.01">
             <div class="dados-adicionais" id="editDadosAdicionais"></div>
             <div class="btn-group">
                 <button class="btn-primary" id="editSalvar">💾 Salvar</button>
@@ -801,12 +216,9 @@
         <div class="modal-content">
             <h3>➕ Criar Operação Extra</h3>
             <div class="sub">Para serviços não previstos</div>
-            <label>Nome da operação:</label>
-            <input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
-            <label>Área projetada (ha):</label>
-            <input type="number" id="extraArea" step="0.01" placeholder="0,00">
-            <label>Valor projetado (R$):</label>
-            <input type="number" id="extraValor" step="0.01" placeholder="0,00">
+            <label>Nome da operação:</label><input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
+            <label>Área projetada (ha):</label><input type="number" id="extraArea" step="0.01" placeholder="0,00">
+            <label>Valor projetado (R$):</label><input type="number" id="extraValor" step="0.01" placeholder="0,00">
             <div class="btn-group">
                 <button class="btn-primary" id="btnCriarExtra">✅ Criar</button>
                 <button class="btn-secondary" id="btnCancelarExtra">Cancelar</button>
@@ -853,7 +265,7 @@
         const DIAS = [];
         for (let i = 0; i < 31; i++) {
             const data = new Date(2026, 6, 21 + i);
-            DIAS.push({ numero: i + 1, label: `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}` });
+            DIAS.push({ numero: i + 1, label: `${String(data.getDate()).padStart(2,'0')}/${String(data.getMonth()+1).padStart(2,'0')}` });
         }
 
         // ============================================================
@@ -868,7 +280,6 @@
             isLoaded: false,
             isSaving: false
         };
-
         let editTarget = null;
         let isListenerActive = false;
 
@@ -877,70 +288,37 @@
         // ============================================================
         const $ = id => document.getElementById(id);
         const DOM = {
-            tbody: $('tbodyOperacoes'),
-            metaPeriodo: $('metaPeriodo'),
-            realizadoTotal: $('realizadoTotal'),
-            percentExecucao: $('percentExecucao'),
-            metaDiaria: $('metaDiaria'),
-            areaRealizada: $('areaRealizada'),
-            diaAtualDisplay: $('diaAtualDisplay'),
-            diasContainer: $('diasContainer'),
-            opSelect: $('opSelect'),
-            valorHa: $('valorHa'),
-            valorRha: $('valorRha'),
-            totalDisplay: $('totalDisplay'),
-            btnLancar: $('btnLancar'),
-            btnResetDia: $('btnResetDia'),
-            resetCompleto: $('resetCompleto'),
-            graficoEvolucao: $('graficoEvolucao'),
-            infoLancamentoDia: $('infoLancamentoDia'),
-            obsInput: $('obsInput'),
-            btnSalvarObs: $('btnSalvarObs'),
-            obsExibir: $('obsExibir'),
-            btnAbrirExtra: $('btnAbrirExtra'),
-            btnSync: $('btnSync'),
-            lastUpdate: $('lastUpdate'),
-            toastContainer: $('toastContainer'),
-            statusDot: $('statusDot'),
-            statusText: $('statusText'),
-            syncDot: $('syncDot'),
-            syncStatusText: $('syncStatusText'),
-            resumoDiaData: $('resumoDiaData'),
-            resumoDiaTotal: $('resumoDiaTotal'),
-            resumoDiaLista: $('resumoDiaLista')
+            tbody: $('tbodyOperacoes'), metaPeriodo: $('metaPeriodo'), realizadoTotal: $('realizadoTotal'),
+            percentExecucao: $('percentExecucao'), metaDiaria: $('metaDiaria'), areaRealizada: $('areaRealizada'),
+            diaAtualDisplay: $('diaAtualDisplay'), diasContainer: $('diasContainer'), opSelect: $('opSelect'),
+            valorHa: $('valorHa'), valorRha: $('valorRha'), totalDisplay: $('totalDisplay'),
+            btnLancar: $('btnLancar'), btnResetDia: $('btnResetDia'), resetCompleto: $('resetCompleto'),
+            graficoEvolucao: $('graficoEvolucao'), infoLancamentoDia: $('infoLancamentoDia'),
+            obsInput: $('obsInput'), btnSalvarObs: $('btnSalvarObs'), obsExibir: $('obsExibir'),
+            btnAbrirExtra: $('btnAbrirExtra'), btnSync: $('btnSync'), lastUpdate: $('lastUpdate'),
+            toastContainer: $('toastContainer'), statusDot: $('statusDot'), statusText: $('statusText'),
+            syncDot: $('syncDot'), syncStatusText: $('syncStatusText'),
+            resumoDiaData: $('resumoDiaData'), resumoDiaTotal: $('resumoDiaTotal'), resumoDiaLista: $('resumoDiaLista')
         };
 
         // ============================================================
         // MODAIS
         // ============================================================
         const Modals = {
-            edit: $('editModal'),
-            extra: $('extraModal'),
-            editInfo: $('editInfo'),
-            editHa: $('editHa'),
-            editRha: $('editRha'),
-            editValor: $('editValor'),
-            editDadosAdicionais: $('editDadosAdicionais'),
-            editSalvar: $('editSalvar'),
-            editCancelar: $('editCancelar'),
-            editExcluir: $('editExcluir'),
-            extraNome: $('extraNome'),
-            extraArea: $('extraArea'),
-            extraValor: $('extraValor'),
-            btnCriarExtra: $('btnCriarExtra'),
-            btnCancelarExtra: $('btnCancelarExtra')
+            edit: $('editModal'), extra: $('extraModal'), editInfo: $('editInfo'),
+            editHa: $('editHa'), editRha: $('editRha'), editValor: $('editValor'),
+            editDadosAdicionais: $('editDadosAdicionais'), editSalvar: $('editSalvar'),
+            editCancelar: $('editCancelar'), editExcluir: $('editExcluir'),
+            extraNome: $('extraNome'), extraArea: $('extraArea'), extraValor: $('extraValor'),
+            btnCriarExtra: $('btnCriarExtra'), btnCancelarExtra: $('btnCancelarExtra')
         };
 
         // ============================================================
         // HELPERS
         // ============================================================
-        function formatMoney(v) {
-            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
+        function formatMoney(v) { return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
-        function getTotalProjetado() {
-            return state.operacoes.reduce((s, o) => s + (o.projetado || 0), 0);
-        }
+        function getTotalProjetado() { return state.operacoes.reduce((s, o) => s + (o.projetado || 0), 0); }
 
         function getTotalRealizado() {
             let total = 0;
@@ -982,25 +360,19 @@
             return total;
         }
 
-        function temLancamento(dia) {
-            return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0;
-        }
+        function temLancamento(dia) { return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0; }
 
         function getRealizadoDia(dia) {
             const d = state.lancamentos[dia] || {};
             let total = 0;
-            for (const opId in d) {
-                total += d[opId].valor || 0;
-            }
+            for (const opId in d) { total += d[opId].valor || 0; }
             return total;
         }
 
         function getAreaDia(dia) {
             const d = state.lancamentos[dia] || {};
             let total = 0;
-            for (const opId in d) {
-                total += d[opId].ha || 0;
-            }
+            for (const opId in d) { total += d[opId].ha || 0; }
             return total;
         }
 
@@ -1017,22 +389,23 @@
             return dias > 0 ? restante / dias : 0;
         }
 
-        function showToast(msg, type = 'success') {
+        function showToast(msg, type) {
+            type = type || 'success';
             const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
+            toast.className = 'toast ' + type;
             const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle',
                 info: 'fa-info-circle' };
-            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
+            toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i> ' + msg;
             DOM.toastContainer.appendChild(toast);
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(20px)';
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(function() { toast.remove(); }, 300);
             }, 3500);
         }
 
         function atualizarUltimaAtualizacao() {
-            DOM.lastUpdate.textContent = `Atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
+            DOM.lastUpdate.textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
         }
 
         function atualizarStatusFirebase(connected) {
@@ -1053,10 +426,10 @@
         // CÁLCULO AUTOMÁTICO
         // ============================================================
         function calcularTotal() {
-            const ha = parseFloat(DOM.valorHa.value) || 0;
-            const rha = parseFloat(DOM.valorRha.value) || 0;
-            const total = ha * rha;
-            DOM.totalDisplay.textContent = `R$ ${formatMoney(total)}`;
+            var ha = parseFloat(DOM.valorHa.value) || 0;
+            var rha = parseFloat(DOM.valorRha.value) || 0;
+            var total = ha * rha;
+            DOM.totalDisplay.textContent = 'R$ ' + formatMoney(total);
             return total;
         }
 
@@ -1064,37 +437,39 @@
         // FIREBASE CRUD
         // ============================================================
 
-        async function salvarOperacoes() {
-            const batch = db.batch();
-            for (const op of state.operacoes) {
-                const ref = db.collection('operacoes').doc(op.id);
-                batch.set(ref, { ...op });
+        function salvarOperacoes() {
+            var batch = db.batch();
+            for (var i = 0; i < state.operacoes.length; i++) {
+                var op = state.operacoes[i];
+                var ref = db.collection('operacoes').doc(op.id);
+                batch.set(ref, { id: op.id, nome: op.nome, projetado: op.projetado, areaProjetada: op.areaProjetada,
+                    extra: op.extra || false });
             }
-            await batch.commit();
+            return batch.commit();
         }
 
-        async function salvarLancamento(dia, opId, ha, valor) {
-            const ref = db.collection('lancamentos').doc();
-            await ref.set({ dia, opId, ha, valor });
+        function salvarLancamento(dia, opId, ha, valor) {
+            var ref = db.collection('lancamentos').doc();
+            return ref.set({ dia: dia, opId: opId, ha: ha, valor: valor });
         }
 
-        async function deletarLancamento(docId) {
-            await db.collection('lancamentos').doc(docId).delete();
+        function deletarLancamento(docId) {
+            return db.collection('lancamentos').doc(docId).delete();
         }
 
-        async function atualizarLancamento(docId, dia, opId, ha, valor) {
-            const ref = db.collection('lancamentos').doc(docId);
-            await ref.update({ ha, valor, dia, opId });
+        function atualizarLancamento(docId, dia, opId, ha, valor) {
+            var ref = db.collection('lancamentos').doc(docId);
+            return ref.update({ ha: ha, valor: valor, dia: dia, opId: opId });
         }
 
-        async function salvarObservacao(dia, texto) {
-            const ref = db.collection('observacoes').doc(String(dia));
-            await ref.set({ texto: texto });
+        function salvarObservacao(dia, texto) {
+            var ref = db.collection('observacoes').doc(String(dia));
+            return ref.set({ texto: texto });
         }
 
-        async function salvarConfiguracoes() {
-            const ref = db.collection('config').doc('app');
-            await ref.set({
+        function salvarConfiguracoes() {
+            var ref = db.collection('config').doc('app');
+            return ref.set({
                 currentDia: state.currentDia,
                 extraCounter: state.extraCounter,
                 updatedAt: new Date()
@@ -1102,67 +477,89 @@
         }
 
         // ============================================================
-        // CARREGAR DO FIREBASE
+        // CARREGAR DO FIREBASE - SEM ASYNC/AWAIT
         // ============================================================
 
-        async function carregarDoFirebase() {
-            try {
-                const opsSnapshot = await db.collection('operacoes').get();
-                const operacoes = [];
-                opsSnapshot.forEach(doc => {
-                    operacoes.push({ id: doc.id, ...doc.data() });
+        function carregarDoFirebase() {
+            // Carregar operações
+            db.collection('operacoes').get().then(function(opsSnapshot) {
+                var operacoes = [];
+                opsSnapshot.forEach(function(doc) {
+                    operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado,
+                        areaProjetada: doc.data().areaProjetada, extra: doc.data().extra || false });
                 });
 
                 if (operacoes.length === 0) {
-                    state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
-                    await salvarOperacoes();
-                    showToast('✅ Operações criadas no Firebase!', 'success');
+                    state.operacoes = OPERACOES_BASE.map(function(o) { return { id: o.id, nome: o.nome,
+                            projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
+                    salvarOperacoes().then(function() {
+                        showToast('✅ Operações criadas no Firebase!', 'success');
+                        carregarLancamentos();
+                    }).catch(function(err) {
+                        console.error('Erro ao criar operações:', err);
+                        carregarLancamentos();
+                    });
                 } else {
                     state.operacoes = operacoes;
+                    carregarLancamentos();
                 }
+            }).catch(function(error) {
+                console.error('Erro ao carregar operações:', error);
+                carregarLancamentos();
+            });
+        }
 
-                const lancSnapshot = await db.collection('lancamentos').get();
-                const lancamentos = {};
-                lancSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const dia = data.dia;
-                    const opId = data.opId;
+        function carregarLancamentos() {
+            db.collection('lancamentos').get().then(function(lancSnapshot) {
+                var lancamentos = {};
+                lancSnapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    var dia = data.dia;
+                    var opId = data.opId;
                     if (!lancamentos[dia]) lancamentos[dia] = {};
                     if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
                     lancamentos[dia][opId].ha += data.ha || 0;
                     lancamentos[dia][opId].valor += data.valor || 0;
                 });
                 state.lancamentos = lancamentos;
+                carregarObservacoes();
+            }).catch(function(error) {
+                console.error('Erro ao carregar lançamentos:', error);
+                carregarObservacoes();
+            });
+        }
 
-                const obsSnapshot = await db.collection('observacoes').get();
-                const observacoes = {};
-                obsSnapshot.forEach(doc => {
+        function carregarObservacoes() {
+            db.collection('observacoes').get().then(function(obsSnapshot) {
+                var observacoes = {};
+                obsSnapshot.forEach(function(doc) {
                     observacoes[doc.id] = doc.data().texto || '';
                 });
                 state.observacoes = observacoes;
+                carregarConfiguracoes();
+            }).catch(function(error) {
+                console.error('Erro ao carregar observações:', error);
+                carregarConfiguracoes();
+            });
+        }
 
-                const configDoc = await db.collection('config').doc('app').get();
+        function carregarConfiguracoes() {
+            db.collection('config').doc('app').get().then(function(configDoc) {
                 if (configDoc.exists) {
-                    const data = configDoc.data();
+                    var data = configDoc.data();
                     state.currentDia = data.currentDia || 1;
                     state.extraCounter = data.extraCounter || 0;
                 }
-
                 state.isLoaded = true;
                 atualizarStatusFirebase(true);
                 renderizarTudo();
                 atualizarUltimaAtualizacao();
-
                 iniciarListeners();
-
-                return true;
-
-            } catch (error) {
-                console.error('Erro ao carregar:', error);
-                atualizarStatusFirebase(false);
-                showToast('❌ Erro ao conectar com Firebase', 'error');
-                return false;
-            }
+            }).catch(function(error) {
+                console.error('Erro ao carregar configurações:', error);
+                state.isLoaded = true;
+                renderizarTudo();
+            });
         }
 
         // ============================================================
@@ -1173,25 +570,26 @@
             if (isListenerActive) return;
             isListenerActive = true;
 
-            db.collection('operacoes').onSnapshot((snapshot) => {
-                const operacoes = [];
-                snapshot.forEach(doc => {
-                    operacoes.push({ id: doc.id, ...doc.data() });
+            db.collection('operacoes').onSnapshot(function(snapshot) {
+                var operacoes = [];
+                snapshot.forEach(function(doc) {
+                    operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado,
+                        areaProjetada: doc.data().areaProjetada, extra: doc.data().extra || false });
                 });
                 if (operacoes.length > 0) {
                     state.operacoes = operacoes;
                     renderizarTudo();
                 }
-            }, (error) => {
+            }, function(error) {
                 console.error('Erro no listener de operações:', error);
             });
 
-            db.collection('lancamentos').onSnapshot((snapshot) => {
-                const lancamentos = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const dia = data.dia;
-                    const opId = data.opId;
+            db.collection('lancamentos').onSnapshot(function(snapshot) {
+                var lancamentos = {};
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    var dia = data.dia;
+                    var opId = data.opId;
                     if (!lancamentos[dia]) lancamentos[dia] = {};
                     if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
                     lancamentos[dia][opId].ha += data.ha || 0;
@@ -1199,29 +597,29 @@
                 });
                 state.lancamentos = lancamentos;
                 renderizarTudo();
-            }, (error) => {
+            }, function(error) {
                 console.error('Erro no listener de lançamentos:', error);
             });
 
-            db.collection('observacoes').onSnapshot((snapshot) => {
-                const observacoes = {};
-                snapshot.forEach(doc => {
+            db.collection('observacoes').onSnapshot(function(snapshot) {
+                var observacoes = {};
+                snapshot.forEach(function(doc) {
                     observacoes[doc.id] = doc.data().texto || '';
                 });
                 state.observacoes = observacoes;
                 renderizarDias();
-            }, (error) => {
+            }, function(error) {
                 console.error('Erro no listener de observações:', error);
             });
 
-            db.collection('config').doc('app').onSnapshot((doc) => {
+            db.collection('config').doc('app').onSnapshot(function(doc) {
                 if (doc.exists) {
-                    const data = doc.data();
+                    var data = doc.data();
                     state.currentDia = data.currentDia || 1;
                     state.extraCounter = data.extraCounter || 0;
                     renderizarDias();
                 }
-            }, (error) => {
+            }, function(error) {
                 console.error('Erro no listener de configurações:', error);
             });
         }
@@ -1232,11 +630,12 @@
 
         function renderizarSelect() {
             DOM.opSelect.innerHTML = '';
-            for (const op of state.operacoes) {
-                const opt = document.createElement('option');
+            for (var i = 0; i < state.operacoes.length; i++) {
+                var op = state.operacoes[i];
+                var opt = document.createElement('option');
                 opt.value = op.id;
-                const extraTag = op.extra ? ' ⭐' : '';
-                const areaStr = op.areaProjetada ? ` (${op.areaProjetada.toFixed(1)} ha)` : '';
+                var extraTag = op.extra ? ' ⭐' : '';
+                var areaStr = op.areaProjetada ? ' (' + op.areaProjetada.toFixed(1) + ' ha)' : '';
                 opt.textContent = op.nome + areaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
@@ -1244,168 +643,182 @@
 
         function renderizarDias() {
             DOM.diasContainer.innerHTML = '';
-            for (const dia of DIAS) {
-                const btn = document.createElement('button');
+            for (var i = 0; i < DIAS.length; i++) {
+                var dia = DIAS[i];
+                var btn = document.createElement('button');
                 btn.textContent = dia.label;
                 if (dia.numero === state.currentDia) btn.classList.add('active');
                 if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
-                btn.addEventListener('click', () => {
-                    state.currentDia = dia.numero;
-                    salvarConfiguracoes();
-                    renderizarTudo();
-                });
+                btn.addEventListener('click', function(d) {
+                    return function() {
+                        state.currentDia = d.numero;
+                        salvarConfiguracoes();
+                        renderizarTudo();
+                    };
+                }(dia));
                 DOM.diasContainer.appendChild(btn);
             }
-            DOM.diaAtualDisplay.textContent = DIAS.find(d => d.numero === state.currentDia)?.label || state.currentDia;
-            const totalDia = getRealizadoDia(state.currentDia);
-            const areaDia = getAreaDia(state.currentDia);
-            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)} | ${areaDia.toFixed(2)} ha`;
-            const obs = state.observacoes[state.currentDia] || '';
+            var diaAtual = DIAS.find(function(d) { return d.numero === state.currentDia; });
+            DOM.diaAtualDisplay.textContent = diaAtual ? diaAtual.label : state.currentDia;
+            var totalDia = getRealizadoDia(state.currentDia);
+            var areaDia = getAreaDia(state.currentDia);
+            DOM.infoLancamentoDia.textContent = 'R$ ' + formatMoney(totalDia) + ' | ' + areaDia.toFixed(2) + ' ha';
+            var obs = state.observacoes[state.currentDia] || '';
             DOM.obsInput.value = obs;
-            DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
+            DOM.obsExibir.textContent = obs ? '"' + obs + '"' : '';
             renderizarResumoDia();
         }
 
         function renderizarResumoDia() {
-            const dia = state.currentDia;
-            const lancs = state.lancamentos[dia] || {};
-            const diaLabel = DIAS.find(d => d.numero === dia)?.label || dia;
+            var dia = state.currentDia;
+            var lancs = state.lancamentos[dia] || {};
+            var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
+            DOM.resumoDiaData.textContent = diaLabel ? diaLabel.label : dia;
 
-            DOM.resumoDiaData.textContent = diaLabel;
+            var totalDia = 0;
+            var html = '';
 
-            let totalDia = 0;
-            let html = '';
-
-            for (const opId in lancs) {
-                const op = state.operacoes.find(o => o.id === opId);
-                const nome = op ? op.nome : 'Removida';
-                const ha = lancs[opId].ha || 0;
-                const valor = lancs[opId].valor || 0;
+            for (var opId in lancs) {
+                var op = state.operacoes.find(function(o) { return o.id === opId; });
+                var nome = op ? op.nome : 'Removida';
+                var ha = lancs[opId].ha || 0;
+                var valor = lancs[opId].valor || 0;
                 totalDia += valor;
-
-                html += `
-                    <div class="resumo-item">
-                        <span class="op-nome">${nome}</span>
-                        <span class="op-valor">${ha.toFixed(2)} ha = R$ ${formatMoney(valor)}</span>
-                    </div>
-                `;
+                html += '<div class="resumo-item"><span class="op-nome">' + nome + '</span><span class="op-valor">' + ha
+                    .toFixed(2) + ' ha = R$ ' + formatMoney(valor) + '</span></div>';
             }
 
-            DOM.resumoDiaTotal.textContent = `R$ ${formatMoney(totalDia)}`;
+            DOM.resumoDiaTotal.textContent = 'R$ ' + formatMoney(totalDia);
 
             if (Object.keys(lancs).length === 0) {
-                DOM.resumoDiaLista.innerHTML = `<div class="resumo-vazio">Nenhum lançamento neste dia</div>`;
+                DOM.resumoDiaLista.innerHTML = '<div class="resumo-vazio">Nenhum lançamento neste dia</div>';
             } else {
                 DOM.resumoDiaLista.innerHTML = html;
             }
         }
 
         function renderizarTabela() {
-            let html = '';
-            let totalRealizado = 0;
-            let totalArea = 0;
-            const totalProj = getTotalProjetado();
+            var html = '';
+            var totalRealizado = 0;
+            var totalArea = 0;
+            var totalProj = getTotalProjetado();
 
-            for (const op of state.operacoes) {
-                const realizado = getRealizadoOp(op.id);
-                const area = getAreaOp(op.id);
+            for (var i = 0; i < state.operacoes.length; i++) {
+                var op = state.operacoes[i];
+                var realizado = getRealizadoOp(op.id);
+                var area = getAreaOp(op.id);
                 totalRealizado += realizado;
                 totalArea += area;
-                const pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
-                const pctClamp = Math.min(pct, 100);
-                let classe = 'danger';
+                var pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
+                var pctClamp = Math.min(pct, 100);
+                var classe = 'danger';
                 if (pctClamp >= 90) classe = 'success';
                 else if (pctClamp >= 50) classe = 'warning';
                 if (op.extra) classe = 'extra';
 
-                const extraTag = op.extra ? `<span class="extra-tag">⭐ extra</span>` : '';
-
-                html += `<tr>
-                    <td>${op.nome} ${extraTag}</td>
-                    <td class="num">R$ ${formatMoney(op.projetado || 0)}</td>
-                    <td class="num">${area.toFixed(2)}</td>
-                    <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')">R$ ${formatMoney(realizado)}</td>
-                    <td class="num" style="width:65px;">
-                        ${pct.toFixed(1)}%
-                        <div class="progress-bar"><div class="progress-fill ${classe}" style="width:${pctClamp}%;"></div></div>
-                    </td>
-                </tr>`;
+                var extraTag = op.extra ? '<span class="extra-tag">⭐ extra</span>' : '';
+                html += '<tr><td>' + op.nome + ' ' + extraTag +
+                    '</td><td class="num">R$ ' + formatMoney(op.projetado || 0) +
+                    '</td><td class="num">' + area.toFixed(2) +
+                    '</td><td class="num" style="cursor:pointer;" onclick="editarValor(\'' + op.id +
+                    '\')">R$ ' + formatMoney(realizado) +
+                    '</td><td class="num" style="width:65px;">' + pct.toFixed(1) +
+                    '%<div class="progress-bar"><div class="progress-fill ' + classe +
+                    '" style="width:' + pctClamp + '%;"></div></div></td></tr>';
             }
 
-            const pctTotal = totalProj > 0 ? (totalRealizado / totalProj) * 100 : 0;
-            const totalAreaProj = state.operacoes.reduce((s, o) => s + (o.areaProjetada || 0), 0);
-            html += `<tr class="total-row">
-                <td><strong>TOTAL</strong></td>
-                <td class="num"><strong>R$ ${formatMoney(totalProj)}</strong></td>
-                <td class="num"><strong>${totalArea.toFixed(2)}</strong></td>
-                <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
-                <td class="num"><strong>${pctTotal.toFixed(1)}%</strong></td>
-            </tr>`;
+            var pctTotal = totalProj > 0 ? (totalRealizado / totalProj) * 100 : 0;
+            var totalAreaProj = state.operacoes.reduce(function(s, o) { return s + (o.areaProjetada || 0); }, 0);
+            html += '<tr class="total-row"><td><strong>TOTAL</strong></td><td class="num"><strong>R$ ' + formatMoney(
+                totalProj) +
+                '</strong></td><td class="num"><strong>' + totalArea.toFixed(2) +
+                '</strong></td><td class="num"><strong>R$ ' + formatMoney(totalRealizado) +
+                '</strong></td><td class="num"><strong>' + pctTotal.toFixed(1) + '%</strong></td></tr>';
             DOM.tbody.innerHTML = html;
         }
 
         function atualizarCards() {
-            const totalProj = getTotalProjetado();
-            const totalReal = getTotalRealizado();
-            const totalArea = getAreaTotal();
-            const metaDiaria = getMetaDiaria();
-            const pct = totalProj > 0 ? (totalReal / totalProj) * 100 : 0;
+            var totalProj = getTotalProjetado();
+            var totalReal = getTotalRealizado();
+            var totalArea = getAreaTotal();
+            var metaDiaria = getMetaDiaria();
+            var pct = totalProj > 0 ? (totalReal / totalProj) * 100 : 0;
 
             DOM.metaPeriodo.textContent = formatMoney(totalProj);
             DOM.realizadoTotal.textContent = formatMoney(totalReal);
             DOM.percentExecucao.textContent = pct.toFixed(1) + '%';
             DOM.percentExecucao.style.color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
             DOM.metaDiaria.textContent = formatMoney(metaDiaria);
-            DOM.areaRealizada.innerHTML = `${totalArea.toFixed(2)} <span class="unit">ha</span>`;
+            DOM.areaRealizada.innerHTML = totalArea.toFixed(2) + ' <span class="unit">ha</span>';
         }
 
         function renderizarGraficoEvolucao() {
-            const hasData = Object.keys(state.lancamentos).length > 0;
+            var hasData = Object.keys(state.lancamentos).length > 0;
             if (!hasData) {
-                DOM.graficoEvolucao.innerHTML = `<div class="vazio">Nenhum lançamento ainda.</div>`;
+                DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>';
                 return;
             }
 
-            const diasComLanc = Object.keys(state.lancamentos).map(Number).sort((a, b) => a - b);
-            const primeiroDia = Math.max(1, Math.min(...diasComLanc) - 1);
-            const ultimoDia = Math.min(31, Math.max(...diasComLanc) + 1);
-            const totalProj = getTotalProjetado();
+            var diasComLanc = Object.keys(state.lancamentos).map(Number).sort(function(a, b) { return a - b; });
+            var primeiroDia = Math.max(1, Math.min.apply(null, diasComLanc) - 1);
+            var ultimoDia = Math.min(31, Math.max.apply(null, diasComLanc) + 1);
+            var totalProj = getTotalProjetado();
 
-            let labels = [],
+            var labels = [],
                 projAcum = [],
                 realAcum = [];
-            for (let i = primeiroDia; i <= ultimoDia; i++) {
+            for (var i = primeiroDia; i <= ultimoDia; i++) {
                 labels.push(i);
                 projAcum.push(totalProj * (i / 31));
-                let real = 0;
-                for (let j = 1; j <= i; j++) real += getRealizadoDia(j);
+                var real = 0;
+                for (var j = 1; j <= i; j++) real += getRealizadoDia(j);
                 realAcum.push(real);
             }
 
-            const width = 500,
+            var width = 500,
                 height = 130,
                 pad = 25;
-            const maxVal = Math.max(...projAcum, ...realAcum, 100);
-            const scale = (v) => (v / maxVal) * (height - pad * 2) + pad;
+            var maxVal = Math.max.apply(null, projAcum.concat(realAcum));
+            maxVal = Math.max(maxVal, 100);
+            var scale = function(v) { return (v / maxVal) * (height - pad * 2) + pad; };
 
-            let svg =
-                `<svg viewBox="0 0 ${width} ${height}" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">`;
-            svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="#fafcff" rx="8"/>`;
-            svg +=
-                `<polyline points="${projAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />`;
-            svg +=
-                `<polyline points="${realAcum.map((v, i) => `${pad + (i / (labels.length - 1)) * (width - pad * 2)},${height - scale(v)}`).join(' ')}" fill="none" stroke="#2563eb" stroke-width="4" />`;
-            svg += realAcum.map((v, i) => {
-                const cx = pad + (i / (labels.length - 1)) * (width - pad * 2);
-                const cy = height - scale(v);
-                return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>`;
-            }).join('');
-            svg += labels.map((l, i) => {
-                const x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-                const label = DIAS.find(d => d.numero === l)?.label || l;
-                return `<text x="${x}" y="${height - 4}" font-size="7" fill="#64748b" text-anchor="middle">${label}</text>`;
-            }).join('');
-            svg += `</svg>`;
+            var svg = '<svg viewBox="0 0 ' + width + ' ' + height +
+                '" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">';
+            svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#fafcff" rx="8"/>';
+
+            var projPoints = '';
+            for (var i = 0; i < labels.length; i++) {
+                var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                var y = height - scale(projAcum[i]);
+                projPoints += x + ',' + y + ' ';
+            }
+            svg += '<polyline points="' + projPoints.trim() +
+                '" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />';
+
+            var realPoints = '';
+            for (var i = 0; i < labels.length; i++) {
+                var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                var y = height - scale(realAcum[i]);
+                realPoints += x + ',' + y + ' ';
+            }
+            svg += '<polyline points="' + realPoints.trim() +
+                '" fill="none" stroke="#2563eb" stroke-width="4" />';
+
+            for (var i = 0; i < labels.length; i++) {
+                var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                var y = height - scale(realAcum[i]);
+                svg += '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>';
+            }
+
+            for (var i = 0; i < labels.length; i++) {
+                var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
+                var label = DIAS.find(function(d) { return d.numero === labels[i]; });
+                var labelText = label ? label.label : labels[i];
+                svg += '<text x="' + x + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' +
+                    labelText + '</text>';
+            }
+
+            svg += '</svg>';
             DOM.graficoEvolucao.innerHTML = svg;
         }
 
@@ -1423,31 +836,29 @@
         // LANÇAMENTOS
         // ============================================================
 
-        async function lancarValor() {
+        function lancarValor() {
             if (state.isSaving) {
                 showToast('⏳ Aguarde...', 'warning');
                 return;
             }
 
-            const opId = DOM.opSelect.value;
-            if (!opId) return alert('Selecione uma operação.');
+            var opId = DOM.opSelect.value;
+            if (!opId) { alert('Selecione uma operação.'); return; }
 
-            const ha = parseFloat(DOM.valorHa.value) || 0;
-            if (ha <= 0) return alert('Digite uma área válida (ha > 0).');
+            var ha = parseFloat(DOM.valorHa.value) || 0;
+            if (ha <= 0) { alert('Digite uma área válida (ha > 0).'); return; }
 
-            const rha = parseFloat(DOM.valorRha.value) || 0;
-            if (rha <= 0) return alert('Digite o valor por hectare (R$/ha > 0).');
+            var rha = parseFloat(DOM.valorRha.value) || 0;
+            if (rha <= 0) { alert('Digite o valor por hectare (R$/ha > 0).'); return; }
 
-            const valorTotal = ha * rha;
-            const dia = state.currentDia;
+            var valorTotal = ha * rha;
+            var dia = state.currentDia;
 
             DOM.btnLancar.disabled = true;
             DOM.btnLancar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
             state.isSaving = true;
 
-            try {
-                await salvarLancamento(dia, opId, ha, valorTotal);
-
+            salvarLancamento(dia, opId, ha, valorTotal).then(function() {
                 if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
                 if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
                 state.lancamentos[dia][opId].ha += ha;
@@ -1458,142 +869,167 @@
                 DOM.totalDisplay.textContent = 'R$ 0,00';
 
                 renderizarTudo();
-                showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
-
-            } catch (error) {
-                console.error('Erro ao lançar:', error);
-                showToast('❌ Erro ao salvar lançamento', 'error');
-            } finally {
+                showToast('✅ Lançado: ' + ha.toFixed(2) + ' ha × R$ ' + formatMoney(rha) + ' = R$ ' + formatMoney(
+                    valorTotal));
                 DOM.btnLancar.disabled = false;
                 DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
                 state.isSaving = false;
-            }
+            }).catch(function(error) {
+                console.error('Erro ao lançar:', error);
+                showToast('❌ Erro ao salvar lançamento', 'error');
+                DOM.btnLancar.disabled = false;
+                DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
+                state.isSaving = false;
+            });
         }
 
-        async function resetarDia() {
-            const dia = state.currentDia;
-            if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
+        function resetarDia() {
+            var dia = state.currentDia;
+            if (!temLancamento(dia)) { alert('Nenhum lançamento para este dia.'); return; }
+            if (!confirm('Resetar lançamentos do dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(
+                    function(d) { return d.numero === dia; }).label : dia) + '?')) return;
 
-            const snapshot = await db.collection('lancamentos').where('dia', '==', dia).get();
-
-            if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
-
-            const batch = db.batch();
-            snapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-
-            delete state.lancamentos[dia];
-            renderizarTudo();
-            showToast(`🗑️ Dia ${DIAS.find(d => d.numero === dia)?.label} resetado`);
+            db.collection('lancamentos').where('dia', '==', dia).get().then(function(snapshot) {
+                var batch = db.batch();
+                snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+                return batch.commit();
+            }).then(function() {
+                delete state.lancamentos[dia];
+                renderizarTudo();
+                showToast('🗑️ Dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) {
+                    return d.numero === dia; }).label : dia) + ' resetado');
+            }).catch(function(error) {
+                console.error('Erro ao resetar dia:', error);
+                showToast('❌ Erro ao resetar dia', 'error');
+            });
         }
 
-        async function resetarCompleto() {
+        function resetarCompleto() {
             if (!confirm('Resetar TODOS os dados? Esta ação não pode ser desfeita!')) return;
             if (!confirm('Tem certeza absoluta?')) return;
 
-            try {
-                const collections = ['operacoes', 'lancamentos', 'observacoes'];
-                for (const collection of collections) {
-                    const snapshot = await db.collection(collection).get();
-                    const batch = db.batch();
-                    snapshot.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
+            var collections = ['operacoes', 'lancamentos', 'observacoes'];
+            var promises = collections.map(function(collection) {
+                return db.collection(collection).get().then(function(snapshot) {
+                    var batch = db.batch();
+                    snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+                    return batch.commit();
+                });
+            });
 
+            Promise.all(promises).then(function() {
                 state.lancamentos = {};
                 state.observacoes = {};
-                state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
+                state.operacoes = OPERACOES_BASE.map(function(o) { return { id: o.id, nome: o.nome,
+                        projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
                 state.extraCounter = 0;
                 state.currentDia = 1;
-
-                await salvarOperacoes();
-                await salvarConfiguracoes();
-
+                return salvarOperacoes();
+            }).then(function() {
+                return salvarConfiguracoes();
+            }).then(function() {
                 renderizarTudo();
                 showToast('🔄 Todos os dados foram resetados');
-
-            } catch (error) {
+            }).catch(function(error) {
                 console.error('Erro ao resetar:', error);
                 showToast('Erro ao resetar dados', 'error');
-            }
+            });
         }
 
         // ============================================================
         // EDIÇÃO
         // ============================================================
 
-        async function editarValor(opId) {
-            const dia = state.currentDia;
-            const lanc = state.lancamentos[dia]?.[opId];
+        function editarValor(opId) {
+            var dia = state.currentDia;
+            var lanc = state.lancamentos[dia] ? state.lancamentos[dia][opId] : null;
             if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) {
                 showToast('⚠️ Não há lançamento.', 'warning');
                 return;
             }
 
-            const snapshot = await db.collection('lancamentos')
-                .where('dia', '==', dia)
-                .where('opId', '==', opId)
-                .get();
+            db.collection('lancamentos').where('dia', '==', dia).where('opId', '==', opId).get().then(function(
+            snapshot) {
+                if (snapshot.empty) {
+                    showToast('⚠️ Lançamento não encontrado.', 'warning');
+                    return;
+                }
+                var doc = snapshot.docs[0];
+                editTarget = { docId: doc.id, dia: dia, opId: opId };
 
-            if (snapshot.empty) {
-                showToast('⚠️ Lançamento não encontrado.', 'warning');
-                return;
-            }
-
-            const doc = snapshot.docs[0];
-            editTarget = { docId: doc.id, dia, opId };
-
-            const opNome = state.operacoes.find(o => o.id === opId)?.nome || opId;
-            const diaLabel = DIAS.find(d => d.numero === dia)?.label || dia;
-
-            Modals.editInfo.textContent = `Dia: ${diaLabel} | Operação: ${opNome}`;
-            Modals.editHa.value = lanc.ha || 0;
-            Modals.editRha.value = lanc.valor / lanc.ha || 0;
-            Modals.editValor.value = lanc.valor || 0;
-            Modals.editDadosAdicionais.textContent = `📌 Atual: ${lanc.ha.toFixed(2)} ha | R$ ${formatMoney(lanc.valor)}`;
-            Modals.edit.classList.add('active');
+                var opNome = state.operacoes.find(function(o) { return o.id === opId; });
+                var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
+                Modals.editInfo.textContent = 'Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | Operação: ' + (opNome ?
+                    opNome.nome : opId);
+                Modals.editHa.value = lanc.ha || 0;
+                Modals.editRha.value = lanc.valor / lanc.ha || 0;
+                Modals.editValor.value = lanc.valor || 0;
+                Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' +
+                    formatMoney(lanc.valor || 0);
+                Modals.edit.classList.add('active');
+            }).catch(function(error) {
+                console.error('Erro ao editar:', error);
+                showToast('❌ Erro ao carregar edição', 'error');
+            });
         }
 
-        async function salvarEdicao() {
+        function salvarEdicao() {
             if (!editTarget) return;
-            const { docId, dia, opId } = editTarget;
+            var docId = editTarget.docId;
+            var dia = editTarget.dia;
+            var opId = editTarget.opId;
 
-            const ha = parseFloat(Modals.editHa.value) || 0;
-            const rha = parseFloat(Modals.editRha.value) || 0;
-            const valor = parseFloat(Modals.editValor.value) || 0;
+            var ha = parseFloat(Modals.editHa.value) || 0;
+            var rha = parseFloat(Modals.editRha.value) || 0;
+            var valor = parseFloat(Modals.editValor.value) || 0;
 
-            if (ha < 0 || rha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
+            if (ha < 0 || rha < 0 || valor < 0) { alert('Valores não podem ser negativos.'); return; }
 
             if (ha === 0 && valor === 0) {
-                await deletarLancamento(docId);
+                deletarLancamento(docId).then(function() {
+                    if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
+                        delete state.lancamentos[dia][opId];
+                        if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+                    }
+                    fecharModal();
+                    renderizarTudo();
+                    showToast('🗑️ Lançamento excluído');
+                }).catch(function(error) {
+                    console.error('Erro ao excluir:', error);
+                    showToast('❌ Erro ao excluir', 'error');
+                });
+            } else {
+                atualizarLancamento(docId, dia, opId, ha, valor).then(function() {
+                    if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                    state.lancamentos[dia][opId] = { ha: ha, valor: valor };
+                    fecharModal();
+                    renderizarTudo();
+                    showToast('💾 Atualizado: ' + ha.toFixed(2) + ' ha | R$ ' + formatMoney(valor));
+                }).catch(function(error) {
+                    console.error('Erro ao atualizar:', error);
+                    showToast('❌ Erro ao atualizar', 'error');
+                });
+            }
+        }
+
+        function excluirEdicao() {
+            if (!editTarget) return;
+            var docId = editTarget.docId;
+            var dia = editTarget.dia;
+            var opId = editTarget.opId;
+
+            deletarLancamento(docId).then(function() {
                 if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
                     delete state.lancamentos[dia][opId];
                     if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
                 }
-            } else {
-                await atualizarLancamento(docId, dia, opId, ha, valor);
-                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                state.lancamentos[dia][opId] = { ha, valor };
-            }
-
-            fecharModal();
-            renderizarTudo();
-            showToast(`💾 Atualizado: ${ha.toFixed(2)} ha | R$ ${formatMoney(valor)}`);
-        }
-
-        async function excluirEdicao() {
-            if (!editTarget) return;
-            const { docId, dia, opId } = editTarget;
-
-            await deletarLancamento(docId);
-            if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                delete state.lancamentos[dia][opId];
-                if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-            }
-
-            fecharModal();
-            renderizarTudo();
-            showToast('🗑️ Lançamento excluído');
+                fecharModal();
+                renderizarTudo();
+                showToast('🗑️ Lançamento excluído');
+            }).catch(function(error) {
+                console.error('Erro ao excluir:', error);
+                showToast('❌ Erro ao excluir', 'error');
+            });
         }
 
         function fecharModal() {
@@ -1606,18 +1042,24 @@
         // OBSERVAÇÕES
         // ============================================================
 
-        async function salvarObservacao() {
-            const texto = DOM.obsInput.value.trim();
-            const dia = state.currentDia;
+        function salvarObservacao() {
+            var texto = DOM.obsInput.value.trim();
+            var dia = state.currentDia;
             if (texto) {
                 state.observacoes[dia] = texto;
-                await salvarObservacao(dia, texto);
+                salvarObservacao(dia, texto).then(function() {
+                    renderizarDias();
+                    showToast('📝 Observação salva');
+                }).catch(function(error) {
+                    console.error('Erro ao salvar observação:', error);
+                    showToast('❌ Erro ao salvar observação', 'error');
+                });
             } else {
                 delete state.observacoes[dia];
-                await db.collection('observacoes').doc(String(dia)).delete().catch(() => {});
+                db.collection('observacoes').doc(String(dia)).delete().catch(function() {});
+                renderizarDias();
+                showToast('Observação removida');
             }
-            renderizarDias();
-            showToast(texto ? '📝 Observação salva' : 'Observação removida');
         }
 
         // ============================================================
@@ -1632,40 +1074,48 @@
         }
 
         function criarExtra() {
-            const nome = Modals.extraNome.value.trim();
-            if (!nome) return alert('Digite um nome para a operação.');
+            var nome = Modals.extraNome.value.trim();
+            if (!nome) { alert('Digite um nome para a operação.'); return; }
 
-            const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
-            const valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
+            var area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
+            var valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
 
             if (area === 0 && valor === 0) {
                 if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
             }
 
             state.extraCounter++;
-            const id = 'extra_' + state.extraCounter + '_' + Date.now();
+            var id = 'extra_' + state.extraCounter + '_' + Date.now();
             state.operacoes.push({
-                id,
-                nome,
+                id: id,
+                nome: nome,
                 projetado: valor || 0,
                 areaProjetada: area || 0,
                 extra: true
             });
 
-            await salvarOperacoes();
-            fecharModal();
-            renderizarTudo();
-            showToast(`✅ Operação extra "${nome}" criada!`);
+            salvarOperacoes().then(function() {
+                fecharModal();
+                renderizarTudo();
+                showToast('✅ Operação extra "' + nome + '" criada!');
+            }).catch(function(error) {
+                console.error('Erro ao criar operação extra:', error);
+                showToast('❌ Erro ao criar operação extra', 'error');
+            });
         }
 
         function removerExtra(id) {
-            const op = state.operacoes.find(o => o.id === id);
+            var op = state.operacoes.find(function(o) { return o.id === id; });
             if (!op) return;
-            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
-            state.operacoes = state.operacoes.filter(o => o.id !== id);
-            salvarOperacoes();
-            renderizarTudo();
-            showToast('🗑️ Operação extra removida');
+            if (!confirm('Remover operação extra "' + op.nome + '"?')) return;
+            state.operacoes = state.operacoes.filter(function(o) { return o.id !== id; });
+            salvarOperacoes().then(function() {
+                renderizarTudo();
+                showToast('🗑️ Operação extra removida');
+            }).catch(function(error) {
+                console.error('Erro ao remover operação extra:', error);
+                showToast('❌ Erro ao remover operação extra', 'error');
+            });
         }
 
         // ============================================================
@@ -1677,28 +1127,28 @@
             DOM.valorRha.addEventListener('input', calcularTotal);
 
             DOM.btnLancar.addEventListener('click', lancarValor);
-            DOM.valorRha.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
+            DOM.valorRha.addEventListener('keydown', function(e) { if (e.key === 'Enter') lancarValor(); });
 
             DOM.btnResetDia.addEventListener('click', resetarDia);
             DOM.resetCompleto.addEventListener('click', resetarCompleto);
             DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
-            DOM.obsInput.addEventListener('keydown', e => { if (e.key === 'Enter') salvarObservacao(); });
+            DOM.obsInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') salvarObservacao(); });
             DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
-            DOM.btnSync.addEventListener('click', () => {
+            DOM.btnSync.addEventListener('click', function() {
                 carregarDoFirebase();
                 showToast('Sincronizado!', 'success');
             });
 
             Modals.btnCriarExtra.addEventListener('click', criarExtra);
             Modals.btnCancelarExtra.addEventListener('click', fecharModal);
-            Modals.extra.addEventListener('click', e => { if (e.target === Modals.extra) fecharModal(); });
+            Modals.extra.addEventListener('click', function(e) { if (e.target === Modals.extra) fecharModal(); });
 
             Modals.editSalvar.addEventListener('click', salvarEdicao);
             Modals.editCancelar.addEventListener('click', fecharModal);
             Modals.editExcluir.addEventListener('click', excluirEdicao);
-            Modals.edit.addEventListener('click', e => { if (e.target === Modals.edit) fecharModal(); });
+            Modals.edit.addEventListener('click', function(e) { if (e.target === Modals.edit) fecharModal(); });
 
-            document.addEventListener('keydown', e => {
+            document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') fecharModal();
                 if (e.key === 'Enter' && Modals.edit.classList.contains('active')) salvarEdicao();
                 if (e.key === 'Enter' && Modals.extra.classList.contains('active')) criarExtra();
@@ -1714,18 +1164,14 @@
         // ============================================================
         // INIT
         // ============================================================
-        async function init() {
+        function init() {
             console.log('🚀 LB FLORESTAL iniciando...');
-
-            await carregarDoFirebase();
+            carregarDoFirebase();
             setupEvents();
-
             console.log('✅ LB FLORESTAL iniciado com sucesso!');
-            console.log(`📊 ${state.operacoes.length} operações carregadas`);
         }
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
-
 </body>
 </html>
