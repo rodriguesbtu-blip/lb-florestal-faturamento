@@ -230,9 +230,9 @@
 
     <script>
         // ============================================================
-        // CONFIGURAÇÃO FIREBASE
+        // FIREBASE CONFIG
         // ============================================================
-        const firebaseConfig = {
+        var firebaseConfig = {
             apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
             authDomain: "lb-florestal-faturamento.firebaseapp.com",
             projectId: "lb-florestal-faturamento",
@@ -242,13 +242,13 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        var db = firebase.firestore();
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
         // DADOS BASE
         // ============================================================
-        const OPERACOES_BASE = [
+        var OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
             { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
             { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78 },
@@ -262,32 +262,34 @@
             { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
         ];
 
-        const DIAS = [];
-        for (let i = 0; i < 31; i++) {
-            const data = new Date(2026, 6, 21 + i);
-            DIAS.push({ numero: i + 1, label: `${String(data.getDate()).padStart(2,'0')}/${String(data.getMonth()+1).padStart(2,'0')}` });
+        var DIAS = [];
+        for (var i = 0; i < 31; i++) {
+            var data = new Date(2026, 6, 21 + i);
+            DIAS.push({ numero: i + 1, label: (data.getDate() < 10 ? '0' : '') + data.getDate() + '/' + (data
+                    .getMonth() + 1 < 10 ? '0' : '') + (data.getMonth() + 1) });
         }
 
         // ============================================================
         // ESTADO
         // ============================================================
-        let state = {
+        var state = {
             operacoes: [],
             lancamentos: {},
             observacoes: {},
             currentDia: 1,
             extraCounter: 0,
             isLoaded: false,
-            isSaving: false
+            isSaving: false,
+            isRendering: false
         };
-        let editTarget = null;
-        let isListenerActive = false;
+        var editTarget = null;
+        var isListenerActive = false;
 
         // ============================================================
         // DOM
         // ============================================================
-        const $ = id => document.getElementById(id);
-        const DOM = {
+        var $ = function(id) { return document.getElementById(id); };
+        var DOM = {
             tbody: $('tbodyOperacoes'), metaPeriodo: $('metaPeriodo'), realizadoTotal: $('realizadoTotal'),
             percentExecucao: $('percentExecucao'), metaDiaria: $('metaDiaria'), areaRealizada: $('areaRealizada'),
             diaAtualDisplay: $('diaAtualDisplay'), diasContainer: $('diasContainer'), opSelect: $('opSelect'),
@@ -304,7 +306,7 @@
         // ============================================================
         // MODAIS
         // ============================================================
-        const Modals = {
+        var Modals = {
             edit: $('editModal'), extra: $('extraModal'), editInfo: $('editInfo'),
             editHa: $('editHa'), editRha: $('editRha'), editValor: $('editValor'),
             editDadosAdicionais: $('editDadosAdicionais'), editSalvar: $('editSalvar'),
@@ -316,14 +318,22 @@
         // ============================================================
         // HELPERS
         // ============================================================
-        function formatMoney(v) { return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+        function formatMoney(v) {
+            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
 
-        function getTotalProjetado() { return state.operacoes.reduce((s, o) => s + (o.projetado || 0), 0); }
+        function getTotalProjetado() {
+            var total = 0;
+            for (var i = 0; i < state.operacoes.length; i++) {
+                total += state.operacoes[i].projetado || 0;
+            }
+            return total;
+        }
 
         function getTotalRealizado() {
-            let total = 0;
-            for (const dia in state.lancamentos) {
-                for (const opId in state.lancamentos[dia]) {
+            var total = 0;
+            for (var dia in state.lancamentos) {
+                for (var opId in state.lancamentos[dia]) {
                     total += state.lancamentos[dia][opId].valor || 0;
                 }
             }
@@ -331,9 +341,9 @@
         }
 
         function getAreaTotal() {
-            let total = 0;
-            for (const dia in state.lancamentos) {
-                for (const opId in state.lancamentos[dia]) {
+            var total = 0;
+            for (var dia in state.lancamentos) {
+                for (var opId in state.lancamentos[dia]) {
                     total += state.lancamentos[dia][opId].ha || 0;
                 }
             }
@@ -341,8 +351,8 @@
         }
 
         function getRealizadoOp(opId) {
-            let total = 0;
-            for (const dia in state.lancamentos) {
+            var total = 0;
+            for (var dia in state.lancamentos) {
                 if (state.lancamentos[dia][opId]) {
                     total += state.lancamentos[dia][opId].valor || 0;
                 }
@@ -351,8 +361,8 @@
         }
 
         function getAreaOp(opId) {
-            let total = 0;
-            for (const dia in state.lancamentos) {
+            var total = 0;
+            for (var dia in state.lancamentos) {
                 if (state.lancamentos[dia][opId]) {
                     total += state.lancamentos[dia][opId].ha || 0;
                 }
@@ -360,40 +370,46 @@
             return total;
         }
 
-        function temLancamento(dia) { return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0; }
+        function temLancamento(dia) {
+            return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0;
+        }
 
         function getRealizadoDia(dia) {
-            const d = state.lancamentos[dia] || {};
-            let total = 0;
-            for (const opId in d) { total += d[opId].valor || 0; }
+            var d = state.lancamentos[dia] || {};
+            var total = 0;
+            for (var opId in d) {
+                total += d[opId].valor || 0;
+            }
             return total;
         }
 
         function getAreaDia(dia) {
-            const d = state.lancamentos[dia] || {};
-            let total = 0;
-            for (const opId in d) { total += d[opId].ha || 0; }
+            var d = state.lancamentos[dia] || {};
+            var total = 0;
+            for (var opId in d) {
+                total += d[opId].ha || 0;
+            }
             return total;
         }
 
         function getDiasRestantes() {
-            const hoje = new Date();
-            const fim = new Date(2026, 7, 20);
-            const diff = (fim - hoje) / (1000 * 60 * 60 * 24);
+            var hoje = new Date();
+            var fim = new Date(2026, 7, 20);
+            var diff = (fim - hoje) / (1000 * 60 * 60 * 24);
             return Math.max(0, Math.ceil(diff));
         }
 
         function getMetaDiaria() {
-            const restante = getTotalProjetado() - getTotalRealizado();
-            const dias = getDiasRestantes();
+            var restante = getTotalProjetado() - getTotalRealizado();
+            var dias = getDiasRestantes();
             return dias > 0 ? restante / dias : 0;
         }
 
         function showToast(msg, type) {
             type = type || 'success';
-            const toast = document.createElement('div');
+            var toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle',
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle',
                 info: 'fa-info-circle' };
             toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i> ' + msg;
             DOM.toastContainer.appendChild(toast);
@@ -477,7 +493,7 @@
         }
 
         // ============================================================
-        // CARREGAR DO FIREBASE - SEM ASYNC/AWAIT
+        // CARREGAR DO FIREBASE - SEM DUPLICAÇÃO
         // ============================================================
 
         function carregarDoFirebase() {
@@ -563,7 +579,7 @@
         }
 
         // ============================================================
-        // LISTENERS EM TEMPO REAL
+        // LISTENERS - COM CONTROLE DE DUPLICAÇÃO
         // ============================================================
 
         function iniciarListeners() {
@@ -571,6 +587,7 @@
             isListenerActive = true;
 
             db.collection('operacoes').onSnapshot(function(snapshot) {
+                if (state.isRendering) return;
                 var operacoes = [];
                 snapshot.forEach(function(doc) {
                     operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado,
@@ -585,6 +602,7 @@
             });
 
             db.collection('lancamentos').onSnapshot(function(snapshot) {
+                if (state.isRendering) return;
                 var lancamentos = {};
                 snapshot.forEach(function(doc) {
                     var data = doc.data();
@@ -602,6 +620,7 @@
             });
 
             db.collection('observacoes').onSnapshot(function(snapshot) {
+                if (state.isRendering) return;
                 var observacoes = {};
                 snapshot.forEach(function(doc) {
                     observacoes[doc.id] = doc.data().texto || '';
@@ -613,6 +632,7 @@
             });
 
             db.collection('config').doc('app').onSnapshot(function(doc) {
+                if (state.isRendering) return;
                 if (doc.exists) {
                     var data = doc.data();
                     state.currentDia = data.currentDia || 1;
@@ -728,7 +748,10 @@
             }
 
             var pctTotal = totalProj > 0 ? (totalRealizado / totalProj) * 100 : 0;
-            var totalAreaProj = state.operacoes.reduce(function(s, o) { return s + (o.areaProjetada || 0); }, 0);
+            var totalAreaProj = 0;
+            for (var i = 0; i < state.operacoes.length; i++) {
+                totalAreaProj += state.operacoes[i].areaProjetada || 0;
+            }
             html += '<tr class="total-row"><td><strong>TOTAL</strong></td><td class="num"><strong>R$ ' + formatMoney(
                 totalProj) +
                 '</strong></td><td class="num"><strong>' + totalArea.toFixed(2) +
@@ -753,7 +776,10 @@
         }
 
         function renderizarGraficoEvolucao() {
-            var hasData = Object.keys(state.lancamentos).length > 0;
+            var hasData = false;
+            for (var dia in state.lancamentos) {
+                if (Object.keys(state.lancamentos[dia]).length > 0) { hasData = true; break; }
+            }
             if (!hasData) {
                 DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>';
                 return;
@@ -823,6 +849,7 @@
         }
 
         function renderizarTudo() {
+            state.isRendering = true;
             renderizarSelect();
             renderizarDias();
             renderizarTabela();
@@ -830,6 +857,7 @@
             atualizarCards();
             atualizarUltimaAtualizacao();
             calcularTotal();
+            state.isRendering = false;
         }
 
         // ============================================================
