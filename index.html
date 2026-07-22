@@ -175,16 +175,6 @@
         .lancamento-area input[type="number"] {
             width: 120px;
         }
-        .lancamento-area .rha-display {
-            font-weight: 700;
-            color: #2e7d32;
-            font-size: 16px;
-            min-width: 100px;
-            text-align: center;
-            background: #d1fae5;
-            padding: 6px 16px;
-            border-radius: 8px;
-        }
         .lancamento-area .total-display {
             font-weight: 700;
             color: #1a56db;
@@ -570,10 +560,6 @@
             .lancamento-area input {
                 width: 100% !important;
             }
-            .lancamento-area .rha-display,
-            .lancamento-area .total-display {
-                text-align: center;
-            }
         }
         @media (max-width: 480px) {
             .cards {
@@ -642,9 +628,10 @@
             <div class="lancamento-area">
                 <label for="opSelect">Operação:</label>
                 <select id="opSelect"></select>
-                <span class="rha-display" id="rhaDisplay">R$ 0,00/ha</span>
                 <label for="valorHa">Área (ha):</label>
                 <input type="number" id="valorHa" step="0.01" placeholder="0,00">
+                <label for="valorRha">R$/ha:</label>
+                <input type="number" id="valorRha" step="0.01" placeholder="0,00">
                 <span class="total-display" id="totalDisplay">R$ 0,00</span>
                 <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
                 <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar dia</button>
@@ -657,7 +644,7 @@
                 <span class="obs-exibir" id="obsExibir"></span>
             </div>
             <div style="font-size:11px; color:#64748b; margin-top:6px;">
-                💡 Selecione a operação, digite a área (ha) e o valor total é calculado automaticamente
+                💡 Digite a área (ha) e o valor por hectare (R$/ha). O total é calculado automaticamente!
             </div>
         </div>
 
@@ -669,8 +656,8 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">R$/ha</th><th class="num">Área</th><th class="num">Realizado (R$)</th><th class="num">%</th></tr></thead>
-                    <tbody id="tbodyOperacoes"><tr><td colspan="6" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody>
+                    <thead><tr><th>Operação</th><th class="num">Projetado (R$)</th><th class="num">Área</th><th class="num">Realizado (R$)</th><th class="num">%</th></tr></thead>
+                    <tbody id="tbodyOperacoes"><tr><td colspan="5" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -701,6 +688,8 @@
             <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
             <label>Área (ha):</label>
             <input type="number" id="editHa" step="0.01">
+            <label>R$/ha:</label>
+            <input type="number" id="editRha" step="0.01">
             <label>Valor Total (R$):</label>
             <input type="number" id="editValor" step="0.01">
             <div class="dados-adicionais" id="editDadosAdicionais"></div>
@@ -721,8 +710,8 @@
             <input type="text" id="extraNome" placeholder="Ex: Adubação Extra...">
             <label>Área projetada (ha):</label>
             <input type="number" id="extraArea" step="0.01" placeholder="0,00">
-            <label>Valor por hectare (R$/ha):</label>
-            <input type="number" id="extraValorHa" step="0.01" placeholder="0,00">
+            <label>Valor projetado (R$):</label>
+            <input type="number" id="extraValor" step="0.01" placeholder="0,00">
             <div class="btn-group">
                 <button class="btn-primary" id="btnCriarExtra">✅ Criar</button>
                 <button class="btn-secondary" id="btnCancelarExtra">Cancelar</button>
@@ -751,26 +740,20 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS BASE COM R$/HA CORRETOS
+        // DADOS BASE
         // ============================================================
         const OPERACOES_BASE = [
-            { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06,
-                valorHa: 254.03 },
-            { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45,
-                valorHa: 272.56 },
-            { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78,
-                valorHa: 435.26 },
-            { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40, valorHa: 238.58 },
-            { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30, valorHa: 249.48 },
-            { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28, valorHa: 291.54 },
-            { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24,
-                valorHa: 659.08 },
-            { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68, valorHa: 598.22 },
-            { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00,
-                valorHa: 421.63 },
-            { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47,
-                valorHa: 119.09 },
-            { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44, valorHa: 792.91 }
+            { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
+            { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
+            { id: 'barraProtegida', nome: '1ª Barra Protegida', projetado: 170090.90, areaProjetada: 390.78 },
+            { id: 'calcarioN1', nome: 'Calcário N1', projetado: 28009.29, areaProjetada: 117.40 },
+            { id: 'calcarioN2', nome: 'Calcário N2', projetado: 23525.96, areaProjetada: 94.30 },
+            { id: 'calcarioN3', nome: 'Calcário N3', projetado: 81.63, areaProjetada: 0.28 },
+            { id: 'capinaManual', nome: 'Capina Química Manual Média', projetado: 102974.66, areaProjetada: 156.24 },
+            { id: 'irrigacaoN1', nome: 'Irrigação Nível 1', projetado: 204399.80, areaProjetada: 341.68 },
+            { id: 'irrigacaoReplantio', nome: 'Irrigação de Replantio', projetado: 25719.43, areaProjetada: 61.00 },
+            { id: 'combateFormiga', nome: 'Combate Formiga 1 Rua', projetado: 81751.71, areaProjetada: 686.47 },
+            { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
         ];
 
         const DIAS = [];
@@ -808,9 +791,9 @@
             diaAtualDisplay: $('diaAtualDisplay'),
             diasContainer: $('diasContainer'),
             opSelect: $('opSelect'),
-            rhaDisplay: $('rhaDisplay'),
-            totalDisplay: $('totalDisplay'),
             valorHa: $('valorHa'),
+            valorRha: $('valorRha'),
+            totalDisplay: $('totalDisplay'),
             btnLancar: $('btnLancar'),
             btnResetDia: $('btnResetDia'),
             resetCompleto: $('resetCompleto'),
@@ -822,8 +805,7 @@
             btnAbrirExtra: $('btnAbrirExtra'),
             btnSync: $('btnSync'),
             lastUpdate: $('lastUpdate'),
-            toastContainer: $('toastContainer'),
-            extraValorHa: $('extraValorHa')
+            toastContainer: $('toastContainer')
         };
 
         // ============================================================
@@ -834,6 +816,7 @@
             extra: $('extraModal'),
             editInfo: $('editInfo'),
             editHa: $('editHa'),
+            editRha: $('editRha'),
             editValor: $('editValor'),
             editDadosAdicionais: $('editDadosAdicionais'),
             editSalvar: $('editSalvar'),
@@ -841,6 +824,7 @@
             editExcluir: $('editExcluir'),
             extraNome: $('extraNome'),
             extraArea: $('extraArea'),
+            extraValor: $('extraValor'),
             btnCriarExtra: $('btnCriarExtra'),
             btnCancelarExtra: $('btnCancelarExtra')
         };
@@ -909,9 +893,13 @@
             return total;
         }
 
-        function getValorHa(opId) {
-            const op = state.operacoes.find(o => o.id === opId);
-            return op ? op.valorHa || 0 : 0;
+        function getAreaDia(dia) {
+            const d = state.lancamentos[dia] || {};
+            let total = 0;
+            for (const opId in d) {
+                total += d[opId].ha || 0;
+            }
+            return total;
         }
 
         function getDiasRestantes() {
@@ -946,6 +934,18 @@
         }
 
         // ============================================================
+        // CÁLCULO AUTOMÁTICO
+        // ============================================================
+
+        function calcularTotalAutomatico() {
+            const ha = parseFloat(DOM.valorHa.value) || 0;
+            const rha = parseFloat(DOM.valorRha.value) || 0;
+            const total = ha * rha;
+            DOM.totalDisplay.textContent = `R$ ${formatMoney(total)}`;
+            return total;
+        }
+
+        // ============================================================
         // FIREBASE - CRUD
         // ============================================================
 
@@ -960,10 +960,8 @@
                 if (operacoes.length > 0) {
                     state.operacoes = operacoes;
                 } else {
-                    // FORÇAR CRIAÇÃO DOS DADOS NO FIREBASE
                     state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
                     await salvarOperacoes();
-                    showToast('✅ Operações cadastradas no Firebase!', 'success');
                 }
 
                 const lancSnapshot = await db.collection('lancamentos').get();
@@ -1100,23 +1098,6 @@
         }
 
         // ============================================================
-        // CÁLCULO AUTOMÁTICO
-        // ============================================================
-
-        function calcularTotalAutomatico() {
-            const opId = DOM.opSelect.value;
-            const ha = parseFloat(DOM.valorHa.value) || 0;
-            const valorHa = getValorHa(opId);
-
-            DOM.rhaDisplay.textContent = `R$ ${formatMoney(valorHa)}/ha`;
-
-            const total = ha * valorHa;
-            DOM.totalDisplay.textContent = `R$ ${formatMoney(total)}`;
-
-            return total;
-        }
-
-        // ============================================================
         // RENDERIZAÇÃO
         // ============================================================
 
@@ -1127,8 +1108,7 @@
                 opt.value = op.id;
                 const extraTag = op.extra ? ' ⭐' : '';
                 const areaStr = op.areaProjetada ? ` (${op.areaProjetada.toFixed(1)} ha)` : '';
-                const valorHaStr = op.valorHa ? ` - R$ ${formatMoney(op.valorHa)}/ha` : '';
-                opt.textContent = op.nome + areaStr + valorHaStr + extraTag;
+                opt.textContent = op.nome + areaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
             calcularTotalAutomatico();
@@ -1150,7 +1130,8 @@
             }
             DOM.diaAtualDisplay.textContent = DIAS.find(d => d.numero === state.currentDia)?.label || state.currentDia;
             const totalDia = getRealizadoDia(state.currentDia);
-            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)}`;
+            const areaDia = getAreaDia(state.currentDia);
+            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)} | ${areaDia.toFixed(2)} ha`;
             const obs = state.observacoes[state.currentDia] || '';
             DOM.obsInput.value = obs;
             DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
@@ -1175,12 +1156,10 @@
                 if (op.extra) classe = 'extra';
 
                 const extraTag = op.extra ? `<span class="extra-tag">⭐ extra</span>` : '';
-                const valorHa = op.valorHa || 0;
 
                 html += `<tr>
                     <td>${op.nome} ${extraTag}</td>
                     <td class="num">R$ ${formatMoney(op.projetado || 0)}</td>
-                    <td class="num">R$ ${formatMoney(valorHa)}</td>
                     <td class="num">${area.toFixed(2)}</td>
                     <td class="num" style="cursor:pointer;" onclick="editarValor('${op.id}')">R$ ${formatMoney(realizado)}</td>
                     <td class="num" style="width:65px;">
@@ -1195,7 +1174,6 @@
             html += `<tr class="total-row">
                 <td><strong>TOTAL</strong></td>
                 <td class="num"><strong>R$ ${formatMoney(totalProj)}</strong></td>
-                <td class="num"><strong>-</strong></td>
                 <td class="num"><strong>${totalArea.toFixed(2)}</strong></td>
                 <td class="num"><strong>R$ ${formatMoney(totalRealizado)}</strong></td>
                 <td class="num"><strong>${pctTotal.toFixed(1)}%</strong></td>
@@ -1282,16 +1260,14 @@
         // OPERAÇÕES EXTRA
         // ============================================================
 
-        function criarOperacaoExtra(nome, area, valorHa) {
+        function criarOperacaoExtra(nome, area, valor) {
             state.extraCounter++;
             const id = 'extra_' + state.extraCounter + '_' + Date.now();
-            const projetado = area * valorHa;
             state.operacoes.push({
                 id,
                 nome,
-                projetado: projetado || 0,
+                projetado: valor || 0,
                 areaProjetada: area || 0,
-                valorHa: valorHa || 0,
                 extra: true
             });
             salvarOperacoes();
@@ -1310,7 +1286,7 @@
         }
 
         // ============================================================
-        // LANÇAMENTOS
+        // LANÇAMENTOS - VOCÊ DIGITA O R$/HA!
         // ============================================================
 
         async function lancarValor() {
@@ -1320,13 +1296,10 @@
             const ha = parseFloat(DOM.valorHa.value) || 0;
             if (ha <= 0) return alert('Digite uma área válida (ha > 0).');
 
-            const valorHa = getValorHa(opId);
-            if (valorHa <= 0) {
-                showToast('⚠️ Operação sem R$/ha cadastrado!', 'warning');
-                return;
-            }
+            const rha = parseFloat(DOM.valorRha.value) || 0;
+            if (rha <= 0) return alert('Digite o valor por hectare (R$/ha > 0).');
 
-            const valorTotal = ha * valorHa;
+            const valorTotal = ha * rha;
 
             const dia = state.currentDia;
 
@@ -1338,9 +1311,11 @@
             state.lancamentos[dia][opId].valor += valorTotal;
 
             DOM.valorHa.value = '';
+            DOM.valorRha.value = '';
+            DOM.totalDisplay.textContent = 'R$ 0,00';
 
             renderizarTudo();
-            showToast(`✅ Lançado: ${ha.toFixed(2)} ha = R$ ${formatMoney(valorTotal)}`);
+            showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
         }
 
         async function resetarDia() {
@@ -1390,6 +1365,7 @@
 
             Modals.editInfo.textContent = `Dia: ${diaLabel} | Operação: ${opNome}`;
             Modals.editHa.value = lanc.ha || 0;
+            Modals.editRha.value = lanc.valor / lanc.ha || 0;
             Modals.editValor.value = lanc.valor || 0;
             Modals.editDadosAdicionais.textContent = `📌 Atual: ${lanc.ha.toFixed(2)} ha | R$ ${formatMoney(lanc.valor)}`;
             Modals.edit.classList.add('active');
@@ -1400,9 +1376,10 @@
             const { docId, dia, opId } = editTarget;
 
             const ha = parseFloat(Modals.editHa.value) || 0;
+            const rha = parseFloat(Modals.editRha.value) || 0;
             const valor = parseFloat(Modals.editValor.value) || 0;
 
-            if (ha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
+            if (ha < 0 || rha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
 
             if (ha === 0 && valor === 0) {
                 await deletarLancamento(docId);
@@ -1466,7 +1443,7 @@
         function abrirExtraModal() {
             Modals.extraNome.value = '';
             Modals.extraArea.value = '';
-            Modals.extraValorHa.value = '';
+            Modals.extraValor.value = '';
             Modals.extra.classList.add('active');
         }
 
@@ -1475,13 +1452,13 @@
             if (!nome) return alert('Digite um nome para a operação.');
 
             const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
-            const valorHa = parseFloat(Modals.extraValorHa.value.replace(',', '.')) || 0;
+            const valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
 
-            if (area === 0 && valorHa === 0) {
+            if (area === 0 && valor === 0) {
                 if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
             }
 
-            criarOperacaoExtra(nome, area, valorHa);
+            criarOperacaoExtra(nome, area, valor);
             fecharModal();
         }
 
@@ -1525,11 +1502,11 @@
         // ============================================================
 
         function setupEvents() {
-            DOM.opSelect.addEventListener('change', calcularTotalAutomatico);
             DOM.valorHa.addEventListener('input', calcularTotalAutomatico);
+            DOM.valorRha.addEventListener('input', calcularTotalAutomatico);
 
             DOM.btnLancar.addEventListener('click', lancarValor);
-            DOM.valorHa.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
+            DOM.valorRha.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
 
             DOM.btnResetDia.addEventListener('click', resetarDia);
             DOM.resetCompleto.addEventListener('click', resetarCompleto);
