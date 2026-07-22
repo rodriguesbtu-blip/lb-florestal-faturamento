@@ -104,7 +104,7 @@
         }
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
             margin-bottom: 18px;
         }
@@ -247,11 +247,6 @@
             margin-left: 6px;
             font-weight: 600;
         }
-        .op-nome .r-ha {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 400;
-        }
         .num {
             text-align: right;
             font-variant-numeric: tabular-nums;
@@ -321,41 +316,35 @@
             background: #fff;
         }
         .lancamento-area select {
-            min-width: 130px;
+            min-width: 160px;
         }
         .lancamento-area input[type="number"] {
-            width: 80px;
+            width: 100px;
         }
         .lancamento-area .rha-display {
             font-weight: 700;
             color: #2e7d32;
             font-size: 14px;
-            min-width: 80px;
+            min-width: 90px;
             text-align: center;
+            background: #d1fae5;
+            padding: 4px 12px;
+            border-radius: 6px;
         }
         .lancamento-area .total-display {
             font-weight: 700;
             color: #1a56db;
             font-size: 16px;
-            min-width: 100px;
+            min-width: 120px;
             text-align: center;
             background: #dbeafe;
             padding: 4px 12px;
             border-radius: 6px;
         }
-        .lancamento-area button {
-            padding: 4px 16px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 600;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.15s;
-            white-space: nowrap;
-        }
         .lancamento-area .btn-primary {
             background: #0a1628;
             color: #fff;
+            padding: 6px 20px;
         }
         .lancamento-area .btn-primary:hover {
             background: #1a3a5c;
@@ -887,7 +876,7 @@
                 <label for="opSelect">Operação:</label>
                 <select id="opSelect"></select>
                 <span class="rha-display" id="rhaDisplay">R$ 0,00/ha</span>
-                <label for="valorHa">ha:</label>
+                <label for="valorHa">Área (ha):</label>
                 <input type="number" id="valorHa" step="0.01" placeholder="0,00">
                 <span class="total-display" id="totalDisplay">R$ 0,00</span>
                 <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
@@ -1005,7 +994,7 @@
         <div class="modal-content">
             <h3>✏️ Editar Lançamento</h3>
             <div class="info-text" id="editInfo">Dia: - | Operação: -</div>
-            <label>Hectares (ha):</label>
+            <label>Área (ha):</label>
             <input type="number" id="editHa" step="0.01">
             <label>Valor Total (R$):</label>
             <input type="number" id="editValor" step="0.01">
@@ -1029,9 +1018,7 @@
             <input type="number" id="extraArea" step="0.01" placeholder="0,00">
             <label>Valor por hectare (R$/ha):</label>
             <input type="number" id="extraValorHa" step="0.01" placeholder="0,00">
-            <label>Valor projetado total (R$):</label>
-            <input type="number" id="extraValor" step="0.01" placeholder="0,00">
-            <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 Deixe área ou valor em branco se não souber ainda</div>
+            <div style="font-size:11px; color:#64748b; margin-top:6px;">💡 O valor projetado total será calculado automaticamente</div>
             <div class="btn-group">
                 <button class="btn-primary" id="btnCriarExtra">✅ Criar</button>
                 <button class="btn-secondary" id="btnCancelarExtra">Cancelar</button>
@@ -1103,8 +1090,6 @@
 
         let editTarget = null;
         let unsubscribeListeners = [];
-        let chartEvolucao = null;
-        let chartRanking = null;
 
         // ============================================================
         // DOM
@@ -1123,7 +1108,6 @@
             rhaDisplay: $('rhaDisplay'),
             totalDisplay: $('totalDisplay'),
             valorHa: $('valorHa'),
-            valorR$: $('valorR$'),
             btnLancar: $('btnLancar'),
             btnResetDia: $('btnResetDia'),
             resetCompleto: $('resetCompleto'),
@@ -1263,13 +1247,6 @@
             const restante = getTotalProjetado() - getTotalRealizado();
             const dias = getDiasRestantes();
             return dias > 0 ? restante / dias : 0;
-        }
-
-        function getProjecao() {
-            const diasTrabalhados = Object.keys(state.lancamentos).length;
-            const mediaDiaria = diasTrabalhados > 0 ? getTotalRealizado() / diasTrabalhados : 0;
-            const diasTotais = 31;
-            return mediaDiaria * diasTotais;
         }
 
         function showToast(msg, type = 'success') {
@@ -1477,10 +1454,8 @@
             const ha = parseFloat(DOM.valorHa.value) || 0;
             const valorHa = getValorHa(opId);
 
-            // Atualizar display do R$/ha
             DOM.rhaDisplay.textContent = `R$ ${formatMoney(valorHa)}/ha`;
 
-            // Calcular total
             const total = ha * valorHa;
             DOM.totalDisplay.textContent = `R$ ${formatMoney(total)}`;
 
@@ -1501,7 +1476,6 @@
                 opt.textContent = op.nome + areaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
-            // Atualizar R$/ha do primeiro
             calcularTotalAutomatico();
         }
 
@@ -1527,7 +1501,6 @@
             DOM.obsInput.value = obs;
             DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
 
-            // Resumo do dia
             renderizarResumoDia();
         }
 
@@ -1691,7 +1664,6 @@
         }
 
         function renderizarRanking() {
-            // Calcular ranking por operação
             const ranking = state.operacoes.map(op => {
                 const realizado = getRealizadoOp(op.id);
                 return { ...op, realizado };
@@ -1749,13 +1721,14 @@
         // OPERAÇÕES EXTRA
         // ============================================================
 
-        function criarOperacaoExtra(nome, area, valorHa, valorTotal) {
+        function criarOperacaoExtra(nome, area, valorHa) {
             state.extraCounter++;
             const id = 'extra_' + state.extraCounter + '_' + Date.now();
+            const projetado = area * valorHa;
             state.operacoes.push({
                 id,
                 nome,
-                projetado: valorTotal || (area * valorHa) || 0,
+                projetado: projetado || 0,
                 areaProjetada: area || 0,
                 valorHa: valorHa || 0,
                 extra: true
@@ -1929,8 +1902,8 @@
         function abrirExtraModal() {
             Modals.extraNome.value = '';
             Modals.extraArea.value = '';
-            Modals.extraValor.value = '';
             Modals.extraValorHa.value = '';
+            Modals.extraValor.value = '';
             Modals.extra.classList.add('active');
         }
 
@@ -1940,13 +1913,12 @@
 
             const area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
             const valorHa = parseFloat(Modals.extraValorHa.value.replace(',', '.')) || 0;
-            const valorTotal = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
 
-            if (area === 0 && valorTotal === 0 && valorHa === 0) {
+            if (area === 0 && valorHa === 0) {
                 if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
             }
 
-            criarOperacaoExtra(nome, area, valorHa, valorTotal);
+            criarOperacaoExtra(nome, area, valorHa);
             fecharModal();
         }
 
@@ -1990,7 +1962,6 @@
         // ============================================================
 
         function setupEvents() {
-            // Cálculo automático ao mudar operação ou área
             DOM.opSelect.addEventListener('change', calcularTotalAutomatico);
             DOM.valorHa.addEventListener('input', calcularTotalAutomatico);
 
