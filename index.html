@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
     </script>
     <style>
+        /* ESTILOS COMPLETOS - MANTIDOS */
         * {
             margin: 0;
             padding: 0;
@@ -70,6 +71,25 @@
             border-radius: 40px;
             font-size: 13px;
             font-weight: 600;
+        }
+        .header .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .header .status-indicator .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .header .status-indicator .dot.online {
+            background: #4caf50;
+        }
+        .header .status-indicator .dot.offline {
+            background: #94a3b8;
         }
         .cards {
             display: grid;
@@ -407,6 +427,18 @@
         .footer button:hover {
             background: #f1f4f8;
         }
+        .footer .sync-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .footer .sync-status .dot.synced {
+            background: #4caf50;
+        }
+        .footer .sync-status .dot.error {
+            background: #dc3545;
+        }
         .modal-custom {
             display: none;
             position: fixed;
@@ -596,7 +628,11 @@
             </div>
             <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                 <span class="badge-periodo">📅 21/07 a 20/08/2026</span>
-                <button class="btn btn-sm btn-outline-secondary" id="btnSync"><i class="fas fa-sync"></i></button>
+                <div class="status-indicator">
+                    <span class="dot online" id="statusDot"></span>
+                    <span id="statusText">Conectado</span>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" id="btnSync"><i class="fas fa-sync"></i> Sincronizar</button>
             </div>
         </div>
 
@@ -654,7 +690,11 @@
 
         <div class="footer">
             <span><i class="fas fa-database"></i> Dados salvos no Firebase</span>
-            <div>
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <div class="sync-status">
+                    <span class="dot synced" id="syncDot"></span>
+                    <span id="syncStatusText">Sincronizado</span>
+                </div>
                 <span id="lastUpdate">Atualizado agora</span>
                 <button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar</button>
             </div>
@@ -702,7 +742,7 @@
 
     <script>
         // ============================================================
-        // FIREBASE
+        // CONFIGURAÇÃO FIREBASE
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
@@ -718,7 +758,7 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS BASE COM PROJETADO
+        // DADOS BASE
         // ============================================================
         const OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
@@ -783,7 +823,11 @@
             btnAbrirExtra: $('btnAbrirExtra'),
             btnSync: $('btnSync'),
             lastUpdate: $('lastUpdate'),
-            toastContainer: $('toastContainer')
+            toastContainer: $('toastContainer'),
+            statusDot: $('statusDot'),
+            statusText: $('statusText'),
+            syncDot: $('syncDot'),
+            syncStatusText: $('syncStatusText')
         };
 
         // ============================================================
@@ -871,6 +915,15 @@
             return total;
         }
 
+        function getAreaDia(dia) {
+            const d = state.lancamentos[dia] || {};
+            let total = 0;
+            for (const opId in d) {
+                total += d[opId].ha || 0;
+            }
+            return total;
+        }
+
         function getDiasRestantes() {
             const hoje = new Date();
             const fim = new Date(2026, 7, 20);
@@ -902,6 +955,20 @@
             DOM.lastUpdate.textContent = `Atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
         }
 
+        function atualizarStatusFirebase(connected) {
+            if (connected) {
+                DOM.statusDot.className = 'dot online';
+                DOM.statusText.textContent = 'Conectado';
+                DOM.syncDot.className = 'dot synced';
+                DOM.syncStatusText.textContent = 'Sincronizado';
+            } else {
+                DOM.statusDot.className = 'dot offline';
+                DOM.statusText.textContent = 'Offline';
+                DOM.syncDot.className = 'dot error';
+                DOM.syncStatusText.textContent = 'Offline';
+            }
+        }
+
         // ============================================================
         // CÁLCULO AUTOMÁTICO
         // ============================================================
@@ -914,20 +981,49 @@
         }
 
         // ============================================================
-        // FIREBASE - FORÇA CRIAÇÃO DAS OPERAÇÕES
+        // FIREBASE CRUD
         // ============================================================
 
-        async function criarOperacoesPadrao() {
-            console.log('📦 Criando operações padrão no Firebase...');
+        async function salvarOperacoes() {
             const batch = db.batch();
-            for (const op of OPERACOES_BASE) {
+            for (const op of state.operacoes) {
                 const ref = db.collection('operacoes').doc(op.id);
                 batch.set(ref, { ...op });
             }
             await batch.commit();
-            console.log('✅ Operações criadas com sucesso!');
-            showToast('✅ Operações cadastradas no Firebase!', 'success');
         }
+
+        async function salvarLancamento(dia, opId, ha, valor) {
+            const ref = db.collection('lancamentos').doc();
+            await ref.set({ dia, opId, ha, valor });
+        }
+
+        async function deletarLancamento(docId) {
+            await db.collection('lancamentos').doc(docId).delete();
+        }
+
+        async function atualizarLancamento(docId, dia, opId, ha, valor) {
+            const ref = db.collection('lancamentos').doc(docId);
+            await ref.update({ ha, valor, dia, opId });
+        }
+
+        async function salvarObservacao(dia, texto) {
+            const ref = db.collection('observacoes').doc(String(dia));
+            await ref.set({ texto: texto });
+        }
+
+        async function salvarConfiguracoes() {
+            const ref = db.collection('config').doc('app');
+            await ref.set({
+                currentDia: state.currentDia,
+                extraCounter: state.extraCounter,
+                updatedAt: new Date()
+            }, { merge: true });
+        }
+
+        // ============================================================
+        // CARREGAR DO FIREBASE
+        // ============================================================
 
         async function carregarDoFirebase() {
             try {
@@ -939,16 +1035,13 @@
                 });
 
                 if (operacoes.length === 0) {
-                    // SE NÃO TIVER OPERAÇÕES, CRIA!
-                    await criarOperacoesPadrao();
-                    // Recarregar depois de criar
-                    const newOps = await db.collection('operacoes').get();
-                    newOps.forEach(doc => {
-                        operacoes.push({ id: doc.id, ...doc.data() });
-                    });
+                    // Criar operações padrão
+                    state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
+                    await salvarOperacoes();
+                    showToast('✅ Operações criadas no Firebase!', 'success');
+                } else {
+                    state.operacoes = operacoes;
                 }
-
-                state.operacoes = operacoes;
 
                 // 2. Carregar lançamentos
                 const lancSnapshot = await db.collection('lancamentos').get();
@@ -981,34 +1074,83 @@
                 }
 
                 state.isLoaded = true;
+                atualizarStatusFirebase(true);
                 renderizarTudo();
                 atualizarUltimaAtualizacao();
+
+                // Iniciar listeners
+                iniciarListeners();
+
                 return true;
 
             } catch (error) {
                 console.error('Erro ao carregar:', error);
-                showToast('❌ Erro ao carregar dados', 'error');
+                atualizarStatusFirebase(false);
+                showToast('❌ Erro ao conectar com Firebase', 'error');
                 return false;
             }
         }
 
-        async function salvarLancamento(dia, opId, ha, valor) {
-            // Verificar duplicidade
-            const existing = await db.collection('lancamentos')
-                .where('dia', '==', dia)
-                .where('opId', '==', opId)
-                .where('ha', '==', ha)
-                .where('valor', '==', valor)
-                .get();
+        // ============================================================
+        // LISTENERS EM TEMPO REAL
+        // ============================================================
 
-            if (!existing.empty) {
-                showToast('⚠️ Lançamento já existe!', 'warning');
-                return false;
-            }
+        function iniciarListeners() {
+            // Listener para operações
+            db.collection('operacoes').onSnapshot((snapshot) => {
+                const operacoes = [];
+                snapshot.forEach(doc => {
+                    operacoes.push({ id: doc.id, ...doc.data() });
+                });
+                if (operacoes.length > 0) {
+                    state.operacoes = operacoes;
+                    renderizarTudo();
+                }
+            }, (error) => {
+                console.error('Erro no listener de operações:', error);
+            });
 
-            const ref = db.collection('lancamentos').doc();
-            await ref.set({ dia, opId, ha, valor });
-            return true;
+            // Listener para lançamentos
+            db.collection('lancamentos').onSnapshot((snapshot) => {
+                const lancamentos = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dia = data.dia;
+                    const opId = data.opId;
+                    if (!lancamentos[dia]) lancamentos[dia] = {};
+                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                    lancamentos[dia][opId].ha += data.ha || 0;
+                    lancamentos[dia][opId].valor += data.valor || 0;
+                });
+                state.lancamentos = lancamentos;
+                renderizarTudo();
+            }, (error) => {
+                console.error('Erro no listener de lançamentos:', error);
+            });
+
+            // Listener para observações
+            db.collection('observacoes').onSnapshot((snapshot) => {
+                const observacoes = {};
+                snapshot.forEach(doc => {
+                    observacoes[doc.id] = doc.data().texto || '';
+                });
+                state.observacoes = observacoes;
+                renderizarDias();
+            }, (error) => {
+                console.error('Erro no listener de observações:', error);
+            });
+
+            // Listener para configurações
+            db.collection('config').doc('app').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    state.currentDia = data.currentDia || 1;
+                    state.extraCounter = data.extraCounter || 0;
+                    renderizarDias();
+                }
+            }, (error) => {
+                console.error('Erro no listener de configurações:', error);
+            });
         }
 
         // ============================================================
@@ -1036,6 +1178,7 @@
                 if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
                 btn.addEventListener('click', () => {
                     state.currentDia = dia.numero;
+                    salvarConfiguracoes();
                     renderizarTudo();
                 });
                 DOM.diasContainer.appendChild(btn);
@@ -1195,21 +1338,19 @@
             state.isSaving = true;
 
             try {
-                const saved = await salvarLancamento(dia, opId, ha, valorTotal);
+                await salvarLancamento(dia, opId, ha, valorTotal);
 
-                if (saved) {
-                    if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                    if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
-                    state.lancamentos[dia][opId].ha += ha;
-                    state.lancamentos[dia][opId].valor += valorTotal;
+                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                state.lancamentos[dia][opId].ha += ha;
+                state.lancamentos[dia][opId].valor += valorTotal;
 
-                    DOM.valorHa.value = '';
-                    DOM.valorRha.value = '';
-                    DOM.totalDisplay.textContent = 'R$ 0,00';
+                DOM.valorHa.value = '';
+                DOM.valorRha.value = '';
+                DOM.totalDisplay.textContent = 'R$ 0,00';
 
-                    renderizarTudo();
-                    showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
-                }
+                renderizarTudo();
+                showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
 
             } catch (error) {
                 console.error('Erro ao lançar:', error);
@@ -1268,13 +1409,13 @@
             if (ha < 0 || rha < 0 || valor < 0) return alert('Valores não podem ser negativos.');
 
             if (ha === 0 && valor === 0) {
-                await db.collection('lancamentos').doc(docId).delete();
+                await deletarLancamento(docId);
                 if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
                     delete state.lancamentos[dia][opId];
                     if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
                 }
             } else {
-                await db.collection('lancamentos').doc(docId).update({ ha, valor, dia, opId });
+                await atualizarLancamento(docId, dia, opId, ha, valor);
                 if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
                 state.lancamentos[dia][opId] = { ha, valor };
             }
@@ -1282,6 +1423,21 @@
             fecharModal();
             renderizarTudo();
             showToast(`💾 Atualizado: ${ha.toFixed(2)} ha | R$ ${formatMoney(valor)}`);
+        }
+
+        async function excluirEdicao() {
+            if (!editTarget) return;
+            const { docId, dia, opId } = editTarget;
+
+            await deletarLancamento(docId);
+            if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
+                delete state.lancamentos[dia][opId];
+                if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+            }
+
+            fecharModal();
+            renderizarTudo();
+            showToast('🗑️ Lançamento excluído');
         }
 
         function fecharModal() {
@@ -1299,7 +1455,7 @@
             const dia = state.currentDia;
             if (texto) {
                 state.observacoes[dia] = texto;
-                await db.collection('observacoes').doc(String(dia)).set({ texto: texto });
+                await salvarObservacao(dia, texto);
             } else {
                 delete state.observacoes[dia];
                 await db.collection('observacoes').doc(String(dia)).delete().catch(() => {});
@@ -1309,7 +1465,7 @@
         }
 
         // ============================================================
-        // EXTRA
+        // EXTRA MODAL
         // ============================================================
 
         function abrirExtraModal() {
@@ -1340,15 +1496,20 @@
                 extra: true
             });
 
-            // Salvar no Firebase
-            const batch = db.batch();
-            const ref = db.collection('operacoes').doc(id);
-            batch.set(ref, state.operacoes[state.operacoes.length - 1]);
-            batch.commit();
-
+            await salvarOperacoes();
             fecharModal();
             renderizarTudo();
             showToast(`✅ Operação extra "${nome}" criada!`);
+        }
+
+        function removerExtra(id) {
+            const op = state.operacoes.find(o => o.id === id);
+            if (!op) return;
+            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
+            state.operacoes = state.operacoes.filter(o => o.id !== id);
+            salvarOperacoes();
+            renderizarTudo();
+            showToast('🗑️ Operação extra removida');
         }
 
         // ============================================================
@@ -1391,8 +1552,8 @@
                 state.extraCounter = 0;
                 state.currentDia = 1;
 
-                // Recriar operações base
-                await criarOperacoesPadrao();
+                await salvarOperacoes();
+                await salvarConfiguracoes();
 
                 renderizarTudo();
                 showToast('🔄 Todos os dados foram resetados');
@@ -1430,18 +1591,7 @@
 
             Modals.editSalvar.addEventListener('click', salvarEdicao);
             Modals.editCancelar.addEventListener('click', fecharModal);
-            Modals.editExcluir.addEventListener('click', () => {
-                if (!editTarget) return;
-                const { docId, dia, opId } = editTarget;
-                db.collection('lancamentos').doc(docId).delete();
-                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                    delete state.lancamentos[dia][opId];
-                    if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-                }
-                fecharModal();
-                renderizarTudo();
-                showToast('🗑️ Lançamento excluído');
-            });
+            Modals.editExcluir.addEventListener('click', excluirEdicao);
             Modals.edit.addEventListener('click', e => { if (e.target === Modals.edit) fecharModal(); });
 
             document.addEventListener('keydown', e => {
@@ -1455,6 +1605,7 @@
         // GLOBAIS
         // ============================================================
         window.editarValor = editarValor;
+        window.removerExtra = removerExtra;
 
         // ============================================================
         // INIT
