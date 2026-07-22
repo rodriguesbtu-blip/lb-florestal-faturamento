@@ -11,6 +11,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
     </script>
     <style>
+        /* ============================================================
+        ESTILOS
+        ============================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -161,18 +164,20 @@
             font-size: 13px;
             color: #334155;
         }
-        .lancamento-area select,
-        .lancamento-area input {
+        .lancamento-area select {
+            min-width: 200px;
             padding: 6px 12px;
             border-radius: 8px;
             border: 1px solid #d1d9e6;
             font-size: 14px;
             background: #fff;
         }
-        .lancamento-area select {
-            min-width: 200px;
-        }
         .lancamento-area input[type="number"] {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d9e6;
+            font-size: 14px;
+            background: #fff;
             width: 120px;
         }
         .lancamento-area .total-display {
@@ -194,9 +199,15 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
+            transition: all 0.2s;
         }
         .lancamento-area .btn-primary:hover {
             background: #1a3a5c;
+        }
+        .lancamento-area .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         .lancamento-area .btn-reset {
             background: transparent;
@@ -724,7 +735,7 @@
 
     <script>
         // ============================================================
-        // CONFIGURAÇÃO FIREBASE
+        // FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
@@ -771,7 +782,8 @@
             observacoes: {},
             currentDia: 1,
             extraCounter: 0,
-            isLoaded: false
+            isLoaded: false,
+            isSaving: false
         };
 
         let editTarget = null;
@@ -893,15 +905,6 @@
             return total;
         }
 
-        function getAreaDia(dia) {
-            const d = state.lancamentos[dia] || {};
-            let total = 0;
-            for (const opId in d) {
-                total += d[opId].ha || 0;
-            }
-            return total;
-        }
-
         function getDiasRestantes() {
             const hoje = new Date();
             const fim = new Date(2026, 7, 20);
@@ -937,7 +940,7 @@
         // CÁLCULO AUTOMÁTICO
         // ============================================================
 
-        function calcularTotalAutomatico() {
+        function calcularTotal() {
             const ha = parseFloat(DOM.valorHa.value) || 0;
             const rha = parseFloat(DOM.valorRha.value) || 0;
             const total = ha * rha;
@@ -1111,7 +1114,6 @@
                 opt.textContent = op.nome + areaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
-            calcularTotalAutomatico();
         }
 
         function renderizarDias() {
@@ -1253,43 +1255,20 @@
             renderizarGraficoEvolucao();
             atualizarCards();
             atualizarUltimaAtualizacao();
-            calcularTotalAutomatico();
+            calcularTotal();
         }
 
         // ============================================================
-        // OPERAÇÕES EXTRA
-        // ============================================================
-
-        function criarOperacaoExtra(nome, area, valor) {
-            state.extraCounter++;
-            const id = 'extra_' + state.extraCounter + '_' + Date.now();
-            state.operacoes.push({
-                id,
-                nome,
-                projetado: valor || 0,
-                areaProjetada: area || 0,
-                extra: true
-            });
-            salvarOperacoes();
-            renderizarTudo();
-            showToast(`✅ Operação extra "${nome}" criada!`);
-        }
-
-        function removerExtra(id) {
-            const op = state.operacoes.find(o => o.id === id);
-            if (!op) return;
-            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
-            state.operacoes = state.operacoes.filter(o => o.id !== id);
-            salvarOperacoes();
-            renderizarTudo();
-            showToast('🗑️ Operação extra removida');
-        }
-
-        // ============================================================
-        // LANÇAMENTOS - VOCÊ DIGITA O R$/HA!
+        // LANÇAMENTOS - COM PREVENÇÃO DE DUPLICAÇÃO
         // ============================================================
 
         async function lancarValor() {
+            // Evitar duplicação
+            if (state.isSaving) {
+                showToast('⏳ Aguarde... Salvando lançamento', 'warning');
+                return;
+            }
+
             const opId = DOM.opSelect.value;
             if (!opId) return alert('Selecione uma operação.');
 
@@ -1303,36 +1282,34 @@
 
             const dia = state.currentDia;
 
-            await salvarLancamento(dia, opId, ha, valorTotal);
+            // Desabilitar botão
+            DOM.btnLancar.disabled = true;
+            DOM.btnLancar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            state.isSaving = true;
 
-            if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-            if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
-            state.lancamentos[dia][opId].ha += ha;
-            state.lancamentos[dia][opId].valor += valorTotal;
+            try {
+                await salvarLancamento(dia, opId, ha, valorTotal);
 
-            DOM.valorHa.value = '';
-            DOM.valorRha.value = '';
-            DOM.totalDisplay.textContent = 'R$ 0,00';
+                if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
+                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0 };
+                state.lancamentos[dia][opId].ha += ha;
+                state.lancamentos[dia][opId].valor += valorTotal;
 
-            renderizarTudo();
-            showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
-        }
+                DOM.valorHa.value = '';
+                DOM.valorRha.value = '';
+                DOM.totalDisplay.textContent = 'R$ 0,00';
 
-        async function resetarDia() {
-            const dia = state.currentDia;
-            if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
+                renderizarTudo();
+                showToast(`✅ Lançado: ${ha.toFixed(2)} ha × R$ ${formatMoney(rha)} = R$ ${formatMoney(valorTotal)}`);
 
-            const snapshot = await db.collection('lancamentos').where('dia', '==', dia).get();
-
-            if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
-
-            const batch = db.batch();
-            snapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-
-            delete state.lancamentos[dia];
-            renderizarTudo();
-            showToast(`🗑️ Dia ${DIAS.find(d => d.numero === dia)?.label} resetado`);
+            } catch (error) {
+                console.error('Erro ao lançar:', error);
+                showToast('❌ Erro ao salvar lançamento', 'error');
+            } finally {
+                DOM.btnLancar.disabled = false;
+                DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
+                state.isSaving = false;
+            }
         }
 
         // ============================================================
@@ -1462,9 +1439,51 @@
             fecharModal();
         }
 
+        function criarOperacaoExtra(nome, area, valor) {
+            state.extraCounter++;
+            const id = 'extra_' + state.extraCounter + '_' + Date.now();
+            state.operacoes.push({
+                id,
+                nome,
+                projetado: valor || 0,
+                areaProjetada: area || 0,
+                extra: true
+            });
+            salvarOperacoes();
+            renderizarTudo();
+            showToast(`✅ Operação extra "${nome}" criada!`);
+        }
+
+        function removerExtra(id) {
+            const op = state.operacoes.find(o => o.id === id);
+            if (!op) return;
+            if (!confirm(`Remover operação extra "${op.nome}"?`)) return;
+            state.operacoes = state.operacoes.filter(o => o.id !== id);
+            salvarOperacoes();
+            renderizarTudo();
+            showToast('🗑️ Operação extra removida');
+        }
+
         // ============================================================
-        // RESET COMPLETO
+        // RESET
         // ============================================================
+
+        async function resetarDia() {
+            const dia = state.currentDia;
+            if (!temLancamento(dia)) return alert('Nenhum lançamento para este dia.');
+
+            const snapshot = await db.collection('lancamentos').where('dia', '==', dia).get();
+
+            if (!confirm(`Resetar lançamentos do dia ${DIAS.find(d => d.numero === dia)?.label || dia}?`)) return;
+
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+
+            delete state.lancamentos[dia];
+            renderizarTudo();
+            showToast(`🗑️ Dia ${DIAS.find(d => d.numero === dia)?.label} resetado`);
+        }
 
         async function resetarCompleto() {
             if (!confirm('Resetar TODOS os dados? Esta ação não pode ser desfeita!')) return;
@@ -1502,8 +1521,8 @@
         // ============================================================
 
         function setupEvents() {
-            DOM.valorHa.addEventListener('input', calcularTotalAutomatico);
-            DOM.valorRha.addEventListener('input', calcularTotalAutomatico);
+            DOM.valorHa.addEventListener('input', calcularTotal);
+            DOM.valorRha.addEventListener('input', calcularTotal);
 
             DOM.btnLancar.addEventListener('click', lancarValor);
             DOM.valorRha.addEventListener('keydown', e => { if (e.key === 'Enter') lancarValor(); });
