@@ -751,7 +751,7 @@
         db.settings({ timestampsInSnapshots: true });
 
         // ============================================================
-        // DADOS BASE
+        // DADOS BASE COM R$/HA CORRETOS
         // ============================================================
         const OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06,
@@ -909,15 +909,6 @@
             return total;
         }
 
-        function getAreaDia(dia) {
-            const d = state.lancamentos[dia] || {};
-            let total = 0;
-            for (const opId in d) {
-                total += d[opId].ha || 0;
-            }
-            return total;
-        }
-
         function getValorHa(opId) {
             const op = state.operacoes.find(o => o.id === opId);
             return op ? op.valorHa || 0 : 0;
@@ -969,8 +960,10 @@
                 if (operacoes.length > 0) {
                     state.operacoes = operacoes;
                 } else {
+                    // FORÇAR CRIAÇÃO DOS DADOS NO FIREBASE
                     state.operacoes = OPERACOES_BASE.map(o => ({ ...o }));
                     await salvarOperacoes();
+                    showToast('✅ Operações cadastradas no Firebase!', 'success');
                 }
 
                 const lancSnapshot = await db.collection('lancamentos').get();
@@ -1134,7 +1127,8 @@
                 opt.value = op.id;
                 const extraTag = op.extra ? ' ⭐' : '';
                 const areaStr = op.areaProjetada ? ` (${op.areaProjetada.toFixed(1)} ha)` : '';
-                opt.textContent = op.nome + areaStr + extraTag;
+                const valorHaStr = op.valorHa ? ` - R$ ${formatMoney(op.valorHa)}/ha` : '';
+                opt.textContent = op.nome + areaStr + valorHaStr + extraTag;
                 DOM.opSelect.appendChild(opt);
             }
             calcularTotalAutomatico();
@@ -1156,8 +1150,7 @@
             }
             DOM.diaAtualDisplay.textContent = DIAS.find(d => d.numero === state.currentDia)?.label || state.currentDia;
             const totalDia = getRealizadoDia(state.currentDia);
-            const areaDia = getAreaDia(state.currentDia);
-            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)} | ${areaDia.toFixed(2)} ha`;
+            DOM.infoLancamentoDia.textContent = `R$ ${formatMoney(totalDia)}`;
             const obs = state.observacoes[state.currentDia] || '';
             DOM.obsInput.value = obs;
             DOM.obsExibir.textContent = obs ? `"${obs}"` : '';
@@ -1328,9 +1321,12 @@
             if (ha <= 0) return alert('Digite uma área válida (ha > 0).');
 
             const valorHa = getValorHa(opId);
-            const valorTotal = ha * valorHa;
+            if (valorHa <= 0) {
+                showToast('⚠️ Operação sem R$/ha cadastrado!', 'warning');
+                return;
+            }
 
-            if (valorTotal <= 0) return alert('Valor total inválido.');
+            const valorTotal = ha * valorHa;
 
             const dia = state.currentDia;
 
