@@ -19,13 +19,19 @@
         .header .logo .icon{width:40px;height:40px;background:#2e7d32;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff}
         .header .logo h1{font-size:20px;font-weight:700}
         .header .logo h1 small{font-size:13px;font-weight:400;color:#64748b}
-        .header .badge-periodo{background:#dbeafe;color:#1e4b8a;padding:4px 16px;border-radius:40px;font-size:13px;font-weight:600}
+        .badge-periodo{background:#dbeafe;color:#1e4b8a;padding:4px 16px;border-radius:40px;font-size:13px;font-weight:600;white-space:nowrap}
+        .periodo-control{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+        .btn-periodo{background:#f1f4f8;border:none;border-radius:6px;padding:4px 10px;font-size:14px;cursor:pointer;color:#475569;transition:all .2s}
+        .btn-periodo:hover{background:#e2e8f0}
+        .btn-periodo:active{transform:scale(.95)}
         .header .status-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b}
         .header .status-indicator .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
         .header .status-indicator .dot.online{background:#4caf50}
         .header .status-indicator .dot.offline{background:#94a3b8}
         .header .btn-config{background:#f1f4f8;border:none;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer}
         .header .btn-config:hover{background:#e2e8f0}
+        .periodo-selector-wrap select{background:#f1f4f8;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:12px;color:#475569;cursor:pointer;max-width:200px}
+        .periodo-selector-wrap select:hover{background:#e2e8f0}
         .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
         .card-dash{background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #e9eef3;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
         .card-dash .label{font-size:11px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.3px}
@@ -75,10 +81,6 @@
         .progress-fill.warning{background:#f59e0b}
         .progress-fill.danger{background:#dc3545}
         .total-row td{font-weight:700;border-top:2px solid #cbd5e1;padding-top:8px}
-        
-        /* ============================================================
-        RESUMO DO DIA - ESTILO PLANILHA
-        ============================================================ */
         .resumo-dia{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #e9eef3;box-shadow:0 2px 6px rgba(0,0,0,0.04);margin-bottom:16px}
         .resumo-dia .resumo-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
         .resumo-dia .resumo-header h3{font-size:16px;font-weight:600}
@@ -104,7 +106,6 @@
         .resumo-dia .btn-sm-action.delete{color:#dc3545}
         .resumo-dia .btn-sm-action.delete:hover{background:#fee2e2}
         .resumo-dia .resumo-vazio{color:#94a3b8;font-style:italic;text-align:center;padding:16px 0;font-size:13px}
-
         .grafico-evolucao{min-height:150px;background:#fafcff;border-radius:10px;padding:4px}
         .vazio{color:#94a3b8;font-style:italic;text-align:center;padding:30px 0;font-size:13px}
         .footer{background:#fff;border-radius:14px;padding:12px 20px;border:1px solid #e9eef3;margin-top:16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:12px;color:#64748b;gap:8px}
@@ -152,6 +153,8 @@
         .edit-btn:hover{background:#bfdbfe}
         .resultado-positivo{color:#16a34a}
         .resultado-negativo{color:#dc3545}
+        .header-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        @media(max-width:768px){.header-controls{justify-content:center;width:100%}}
     </style>
 </head>
 <body>
@@ -161,8 +164,17 @@
                 <div class="icon">LB</div>
                 <h1>LB FLORESTAL <small>Gestão de Faturamento</small></h1>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <span class="badge-periodo">📅 21/07 a 20/08/2026</span>
+            <div class="header-controls">
+                <div class="periodo-control">
+                    <button class="btn-periodo" id="btnPeriodoAnterior" title="Período anterior"><i class="fas fa-chevron-left"></i></button>
+                    <span class="badge-periodo" id="periodoDisplay">📅 21/07 a 20/08/2026</span>
+                    <button class="btn-periodo" id="btnPeriodoProximo" title="Próximo período"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="periodo-selector-wrap">
+                    <select id="periodoSelector" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
                 <div class="status-indicator">
                     <span class="dot online" id="statusDot"></span>
                     <span id="statusText">Conectado</span>
@@ -211,9 +223,6 @@
             </div>
         </div>
 
-        <!-- ============================================================
-        RESUMO DO DIA - ESTILO PLANILHA
-        ============================================================ -->
         <div class="resumo-dia" id="resumoDia">
             <div class="resumo-header">
                 <h3><i class="fas fa-calendar-day"></i> Resumo do Dia <span id="resumoDiaData" style="font-weight:400;font-size:14px;color:#64748b;">-</span></h3>
@@ -249,7 +258,6 @@
             </div>
         </div>
 
-        <!-- OPERAÇÕES -->
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2>
@@ -263,7 +271,6 @@
             </div>
         </div>
 
-        <!-- GRÁFICO -->
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2>
@@ -271,13 +278,12 @@
             <div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
         </div>
 
-        <!-- FOOTER -->
         <div class="footer">
             <span><i class="fas fa-database"></i> Dados salvos no Firebase</span>
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
                 <div class="sync-status"><span class="dot synced" id="syncDot"></span><span id="syncStatusText">Sincronizado</span></div>
                 <span id="lastUpdate">Atualizado agora</span>
-                <button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar</button>
+                <button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar Período</button>
             </div>
         </div>
     </div>
@@ -394,22 +400,132 @@
             { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
         ];
 
-        var DIAS = [];
-        for (var i = 0; i < 31; i++) {
-            var data = new Date(2026, 6, 21 + i);
-            DIAS.push({ numero: i + 1, label: (data.getDate() < 10 ? '0' : '') + data.getDate() + '/' + (data
-                    .getMonth() + 1 < 10 ? '0' : '') + (data.getMonth() + 1) });
-        }
-
-        // ============================================================
-        // CUSTOS PADRÃO
-        // ============================================================
         var CUSTOS_PADRAO = {
             TF: 503.00,
             MAQ: 2300.00,
             PIPA: 2500.00,
             APOIO: 2200.00
         };
+
+        // ============================================================
+        // GERENCIAMENTO DE PERÍODOS
+        // ============================================================
+        var periodState = {
+            currentYear: 2026,
+            currentMonth: 6, // 6 = Julho (0-indexado)
+            startDay: 21,
+            endDay: 20
+        };
+
+        var DIAS = [];
+
+        function gerarDiasDoPeriodo(year, month) {
+            var dias = [];
+            var startDate = new Date(year, month, 21);
+            var endDate = new Date(year, month + 1, 20);
+            
+            var current = new Date(startDate);
+            var dayCount = 1;
+            
+            while (current <= endDate) {
+                var dia = {
+                    numero: dayCount,
+                    label: (current.getDate() < 10 ? '0' : '') + current.getDate() + '/' + 
+                           (current.getMonth() + 1 < 10 ? '0' : '') + (current.getMonth() + 1),
+                    date: new Date(current),
+                    diaMes: current.getDate(),
+                    mes: current.getMonth()
+                };
+                dias.push(dia);
+                dayCount++;
+                current.setDate(current.getDate() + 1);
+            }
+            
+            return dias;
+        }
+
+        function getPeriodoLabel(year, month) {
+            var meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            var mesAtual = meses[month];
+            var mesProximo = meses[(month + 1) % 12];
+            var anoProximo = month === 11 ? year + 1 : year;
+            return `📅 21/${mesAtual} a 20/${mesProximo}/${anoProximo}`;
+        }
+
+        function getPeriodoPath() {
+            return `periodos/${periodState.currentYear}_${String(periodState.currentMonth + 1).padStart(2, '0')}`;
+        }
+
+        function getPeriodoKey() {
+            return `${periodState.currentYear}_${String(periodState.currentMonth + 1).padStart(2, '0')}`;
+        }
+
+        function gerarPeriodosDisponiveis() {
+            var periodos = [];
+            var anoAtual = new Date().getFullYear();
+            var mesAtual = new Date().getMonth();
+            
+            for (var i = -24; i <= 24; i++) {
+                var mes = mesAtual + i;
+                var ano = anoAtual;
+                if (mes > 11) {
+                    mes = mes - 12;
+                    ano = anoAtual + Math.floor((mesAtual + i) / 12);
+                } else if (mes < 0) {
+                    mes = mes + 12;
+                    ano = anoAtual - Math.floor(Math.abs(mesAtual + i) / 12) - 1;
+                }
+                if (mes >= 0 && mes <= 11) {
+                    periodos.push({ year: ano, month: mes });
+                }
+            }
+            return periodos;
+        }
+
+        function atualizarPeriodoSelector() {
+            var selector = document.getElementById('periodoSelector');
+            var periodos = gerarPeriodosDisponiveis();
+            var currentKey = getPeriodoKey();
+            
+            selector.innerHTML = '';
+            for (var i = 0; i < periodos.length; i++) {
+                var p = periodos[i];
+                var key = `${p.year}_${String(p.month + 1).padStart(2, '0')}`;
+                var opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = getPeriodoLabel(p.year, p.month);
+                if (key === currentKey) {
+                    opt.selected = true;
+                }
+                selector.appendChild(opt);
+            }
+        }
+
+        function irParaPeriodo(year, month) {
+            periodState.currentYear = year;
+            periodState.currentMonth = month;
+            DIAS = gerarDiasDoPeriodo(year, month);
+            document.getElementById('periodoDisplay').textContent = getPeriodoLabel(year, month);
+            atualizarPeriodoSelector();
+            state.currentDia = 1;
+            carregarDoFirebase();
+        }
+
+        function navegarPeriodo(direcao) {
+            var newMonth = periodState.currentMonth + direcao;
+            var newYear = periodState.currentYear;
+            
+            if (newMonth > 11) {
+                newMonth = 0;
+                newYear++;
+            } else if (newMonth < 0) {
+                newMonth = 11;
+                newYear--;
+            }
+            
+            irParaPeriodo(newYear, newMonth);
+        }
 
         // ============================================================
         // ESTADO
@@ -632,7 +748,7 @@
 
         function getDiasRestantes() {
             var hoje = new Date();
-            var fim = new Date(2026, 7, 20);
+            var fim = new Date(periodState.currentYear, periodState.currentMonth + 1, 20);
             var diff = (fim - hoje) / (1000 * 60 * 60 * 24);
             return Math.max(0, Math.ceil(diff));
         }
@@ -688,7 +804,7 @@
         }
 
         // ============================================================
-        // FIREBASE CRUD
+        // FIREBASE CRUD COM PERÍODO
         // ============================================================
         function salvarOperacoes() {
             var batch = db.batch();
@@ -702,7 +818,7 @@
         }
 
         function salvarLancamento(dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
-            var ref = db.collection('lancamentos').doc();
+            var ref = db.collection(getPeriodoPath()).collection('lancamentos').doc();
             return ref.set({
                 dia: dia,
                 opId: opId,
@@ -712,7 +828,8 @@
                 maq: maq || 0,
                 pipa: pipa || 0,
                 apoio: apoio || 0,
-                custo: custo || 0
+                custo: custo || 0,
+                periodo: getPeriodoKey()
             });
         }
 
@@ -738,11 +855,11 @@
         }
 
         function deletarLancamento(docId) {
-            return db.collection('lancamentos').doc(docId).delete();
+            return db.collection(getPeriodoPath()).collection('lancamentos').doc(docId).delete();
         }
 
         function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
-            var ref = db.collection('lancamentos').doc(docId);
+            var ref = db.collection(getPeriodoPath()).collection('lancamentos').doc(docId);
             return ref.update({
                 ha: ha,
                 valor: valor,
@@ -757,7 +874,7 @@
         }
 
         function salvarObservacao(dia, texto) {
-            var ref = db.collection('observacoes').doc(String(dia));
+            var ref = db.collection(getPeriodoPath()).collection('observacoes').doc(String(dia));
             return ref.set({ texto: texto });
         }
 
@@ -766,6 +883,7 @@
             return ref.set({
                 currentDia: state.currentDia,
                 extraCounter: state.extraCounter,
+                periodo: getPeriodoKey(),
                 updatedAt: new Date()
             }, { merge: true });
         }
@@ -795,11 +913,11 @@
                             projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
                     return salvarOperacoes().then(function() {
                         showToast('✅ Operações criadas no Firebase!', 'success');
-                        return db.collection('lancamentos').get();
+                        return db.collection(getPeriodoPath()).collection('lancamentos').get();
                     });
                 } else {
                     state.operacoes = operacoes;
-                    return db.collection('lancamentos').get();
+                    return db.collection(getPeriodoPath()).collection('lancamentos').get();
                 }
             }).then(function(lancSnapshot) {
                 var lancamentos = {};
@@ -819,7 +937,7 @@
                     lancamentos[dia][opId].apoio += data.apoio || 0;
                 });
                 state.lancamentos = lancamentos;
-                return db.collection('observacoes').get();
+                return db.collection(getPeriodoPath()).collection('observacoes').get();
             }).then(function(obsSnapshot) {
                 var observacoes = {};
                 obsSnapshot.forEach(function(doc) {
@@ -990,28 +1108,33 @@
 
             if (!confirm('Tem certeza que deseja excluir este lançamento?')) return;
 
-            db.collection('lancamentos').where('dia', '==', dia).where('opId', '==', opId).get().then(function(
-            snapshot) {
-                if (snapshot.empty) {
-                    showToast('⚠️ Lançamento não encontrado.', 'warning');
-                    return;
-                }
-                var batch = db.batch();
-                snapshot.forEach(function(doc) {
-                    batch.delete(doc.ref);
+            db.collection(getPeriodoPath()).collection('lancamentos')
+                .where('dia', '==', dia)
+                .where('opId', '==', opId)
+                .get()
+                .then(function(snapshot) {
+                    if (snapshot.empty) {
+                        showToast('⚠️ Lançamento não encontrado.', 'warning');
+                        return;
+                    }
+                    var batch = db.batch();
+                    snapshot.forEach(function(doc) {
+                        batch.delete(doc.ref);
+                    });
+                    return batch.commit();
+                })
+                .then(function() {
+                    if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
+                        delete state.lancamentos[dia][opId];
+                        if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
+                    }
+                    renderizarTudo();
+                    showToast('🗑️ Lançamento excluído com sucesso!', 'success');
+                })
+                .catch(function(error) {
+                    console.error('Erro ao excluir:', error);
+                    showToast('❌ Erro ao excluir lançamento', 'error');
                 });
-                return batch.commit();
-            }).then(function() {
-                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                    delete state.lancamentos[dia][opId];
-                    if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-                }
-                renderizarTudo();
-                showToast('🗑️ Lançamento excluído com sucesso!', 'success');
-            }).catch(function(error) {
-                console.error('Erro ao excluir:', error);
-                showToast('❌ Erro ao excluir lançamento', 'error');
-            });
         };
 
         function renderizarTabela() {
@@ -1288,28 +1411,38 @@
             if (!confirm('Resetar lançamentos do dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(
                     function(d) { return d.numero === dia; }).label : dia) + '?')) return;
 
-            db.collection('lancamentos').where('dia', '==', dia).get().then(function(snapshot) {
-                var batch = db.batch();
-                snapshot.forEach(function(doc) { batch.delete(doc.ref); });
-                return batch.commit();
-            }).then(function() {
-                delete state.lancamentos[dia];
-                renderizarTudo();
-                showToast('🗑️ Dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) {
-                    return d.numero === dia; }).label : dia) + ' resetado');
-            }).catch(function(error) {
-                console.error('Erro ao resetar dia:', error);
-                showToast('❌ Erro ao resetar dia', 'error');
-            });
+            db.collection(getPeriodoPath()).collection('lancamentos')
+                .where('dia', '==', dia)
+                .get()
+                .then(function(snapshot) {
+                    var batch = db.batch();
+                    snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+                    return batch.commit();
+                })
+                .then(function() {
+                    delete state.lancamentos[dia];
+                    renderizarTudo();
+                    showToast('🗑️ Dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) {
+                        return d.numero === dia; }).label : dia) + ' resetado');
+                })
+                .catch(function(error) {
+                    console.error('Erro ao resetar dia:', error);
+                    showToast('❌ Erro ao resetar dia', 'error');
+                });
         }
 
         function resetarCompleto() {
-            if (!confirm('Resetar TODOS os dados? Esta ação não pode ser desfeita!')) return;
+            if (!confirm('Resetar TODOS os dados do período atual? Esta ação não pode ser desfeita!')) return;
             if (!confirm('Tem certeza absoluta?')) return;
 
-            var collections = ['operacoes', 'lancamentos', 'observacoes'];
+            var periodoPath = getPeriodoPath();
+            var collections = [
+                db.collection(periodoPath).collection('lancamentos'),
+                db.collection(periodoPath).collection('observacoes')
+            ];
+
             var promises = collections.map(function(collection) {
-                return db.collection(collection).get().then(function(snapshot) {
+                return collection.get().then(function(snapshot) {
                     var batch = db.batch();
                     snapshot.forEach(function(doc) { batch.delete(doc.ref); });
                     return batch.commit();
@@ -1319,16 +1452,9 @@
             Promise.all(promises).then(function() {
                 state.lancamentos = {};
                 state.observacoes = {};
-                state.operacoes = OPERACOES_BASE.map(function(o) { return { id: o.id, nome: o.nome,
-                        projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
-                state.extraCounter = 0;
                 state.currentDia = 1;
-                return salvarOperacoes();
-            }).then(function() {
-                return salvarConfiguracoes();
-            }).then(function() {
                 renderizarTudo();
-                showToast('🔄 Todos os dados foram resetados');
+                showToast('🔄 Todos os dados do período foram resetados');
             }).catch(function(error) {
                 console.error('Erro ao resetar:', error);
                 showToast('Erro ao resetar dados', 'error');
@@ -1388,49 +1514,53 @@
                 return;
             }
 
-            db.collection('lancamentos').where('dia', '==', dia).where('opId', '==', opId).get().then(function(
-            snapshot) {
-                if (snapshot.empty) {
-                    showToast('⚠️ Lançamento não encontrado no Firebase.', 'warning');
-                    return;
-                }
-                var doc = snapshot.docs[0];
-                editTarget = { docId: doc.id, dia: dia, opId: opId };
+            db.collection(getPeriodoPath()).collection('lancamentos')
+                .where('dia', '==', dia)
+                .where('opId', '==', opId)
+                .get()
+                .then(function(snapshot) {
+                    if (snapshot.empty) {
+                        showToast('⚠️ Lançamento não encontrado no Firebase.', 'warning');
+                        return;
+                    }
+                    var doc = snapshot.docs[0];
+                    editTarget = { docId: doc.id, dia: dia, opId: opId };
 
-                var opNome = state.operacoes.find(function(o) { return o.id === opId; });
-                var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
+                    var opNome = state.operacoes.find(function(o) { return o.id === opId; });
+                    var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
 
-                Modals.editInfo.textContent = '📅 Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | 📋 Operação: ' + (opNome ?
-                    opNome.nome : opId);
+                    Modals.editInfo.textContent = '📅 Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | 📋 Operação: ' + (opNome ?
+                        opNome.nome : opId);
 
-                Modals.editHa.value = lanc.ha || 0;
-                Modals.editRha.value = lanc.valor / lanc.ha || 0;
-                Modals.editTF.value = lanc.tf || 0;
-                Modals.editMAQ.value = lanc.maq || 0;
-                Modals.editPIPA.value = lanc.pipa || 0;
-                Modals.editAPOIO.value = lanc.apoio || 0;
-                Modals.editValor.value = lanc.valor || 0;
+                    Modals.editHa.value = lanc.ha || 0;
+                    Modals.editRha.value = lanc.valor / lanc.ha || 0;
+                    Modals.editTF.value = lanc.tf || 0;
+                    Modals.editMAQ.value = lanc.maq || 0;
+                    Modals.editPIPA.value = lanc.pipa || 0;
+                    Modals.editAPOIO.value = lanc.apoio || 0;
+                    Modals.editValor.value = lanc.valor || 0;
 
-                atualizarPreviewEdicao();
+                    atualizarPreviewEdicao();
 
-                Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' +
-                    formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) +
-                    ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) +
-                    ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
+                    Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' +
+                        formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) +
+                        ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) +
+                        ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
 
-                Modals.edit.classList.add('active');
+                    Modals.edit.classList.add('active');
 
-                Modals.editHa.oninput = atualizarPreviewEdicao;
-                Modals.editRha.oninput = atualizarPreviewEdicao;
-                Modals.editTF.oninput = atualizarPreviewEdicao;
-                Modals.editMAQ.oninput = atualizarPreviewEdicao;
-                Modals.editPIPA.oninput = atualizarPreviewEdicao;
-                Modals.editAPOIO.oninput = atualizarPreviewEdicao;
+                    Modals.editHa.oninput = atualizarPreviewEdicao;
+                    Modals.editRha.oninput = atualizarPreviewEdicao;
+                    Modals.editTF.oninput = atualizarPreviewEdicao;
+                    Modals.editMAQ.oninput = atualizarPreviewEdicao;
+                    Modals.editPIPA.oninput = atualizarPreviewEdicao;
+                    Modals.editAPOIO.oninput = atualizarPreviewEdicao;
 
-            }).catch(function(error) {
-                console.error('Erro ao editar:', error);
-                showToast('❌ Erro ao carregar edição', 'error');
-            });
+                })
+                .catch(function(error) {
+                    console.error('Erro ao editar:', error);
+                    showToast('❌ Erro ao carregar edição', 'error');
+                });
         };
 
         function salvarEdicao() {
@@ -1538,7 +1668,7 @@
                 });
             } else {
                 delete state.observacoes[dia];
-                db.collection('observacoes').doc(String(dia)).delete().catch(function() {});
+                db.collection(getPeriodoPath()).collection('observacoes').doc(String(dia)).delete().catch(function() {});
                 renderizarDias();
                 showToast('Observação removida');
             }
@@ -1605,12 +1735,23 @@
         // ============================================================
 
         function setupEvents() {
+            document.getElementById('btnPeriodoAnterior').addEventListener('click', function() {
+                navegarPeriodo(-1);
+            });
+            document.getElementById('btnPeriodoProximo').addEventListener('click', function() {
+                navegarPeriodo(1);
+            });
+            document.getElementById('periodoSelector').addEventListener('change', function() {
+                var parts = this.value.split('_');
+                if (parts.length === 2) {
+                    irParaPeriodo(parseInt(parts[0]), parseInt(parts[1]) - 1);
+                }
+            });
+
             DOM.valorHa.addEventListener('input', calcularTotal);
             DOM.valorRha.addEventListener('input', calcularTotal);
-
             DOM.btnLancar.addEventListener('click', lancarValor);
             DOM.valorRha.addEventListener('keydown', function(e) { if (e.key === 'Enter') lancarValor(); });
-
             DOM.btnResetDia.addEventListener('click', resetarDia);
             DOM.resetCompleto.addEventListener('click', resetarCompleto);
             DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
@@ -1618,7 +1759,7 @@
             DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
             DOM.btnSync.addEventListener('click', function() {
                 carregarDoFirebase();
-                showToast('Sincronizado!', 'success');
+                showToast('🔄 Dados sincronizados!', 'success');
             });
 
             DOM.btnConfig.addEventListener('click', abrirConfig);
@@ -1656,6 +1797,11 @@
         // ============================================================
         function init() {
             console.log('🚀 LB FLORESTAL iniciando...');
+            
+            DIAS = gerarDiasDoPeriodo(2026, 6);
+            document.getElementById('periodoDisplay').textContent = getPeriodoLabel(2026, 6);
+            atualizarPeriodoSelector();
+            
             carregarDoFirebase();
             setupEvents();
             console.log('✅ LB FLORESTAL iniciado com sucesso!');
