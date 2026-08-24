@@ -367,9 +367,6 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // ============================================================
-        // FIREBASE CONFIG
-        // ============================================================
         var firebaseConfig = {
             apiKey: "AIzaSyDIbtNDi0XwrI9NaEuF4fUksT-BQksi0D8",
             authDomain: "lb-florestal-faturamento.firebaseapp.com",
@@ -383,9 +380,6 @@
         var db = firebase.firestore();
         db.settings({ timestampsInSnapshots: true });
 
-        // ============================================================
-        // DADOS BASE
-        // ============================================================
         var OPERACOES_BASE = [
             { id: 'preEmergente', nome: 'Pré-Emergente Área Total', projetado: 60728.41, areaProjetada: 239.06 },
             { id: 'preEmergente2', nome: '2º Pré-Emergente Área Total', projetado: 138310.57, areaProjetada: 507.45 },
@@ -400,85 +394,51 @@
             { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
         ];
 
-        var CUSTOS_PADRAO = {
-            TF: 503.00,
-            MAQ: 2300.00,
-            PIPA: 2500.00,
-            APOIO: 2200.00
-        };
+        var CUSTOS_PADRAO = { TF: 503.00, MAQ: 2300.00, PIPA: 2500.00, APOIO: 2200.00 };
 
-        // ============================================================
-        // GERENCIAMENTO DE PERÍODOS
-        // ============================================================
-        var periodState = {
-            currentYear: 2026,
-            currentMonth: 6, // 6 = Julho (0-indexado)
-            startDay: 21,
-            endDay: 20
-        };
-
+        var periodState = { currentYear: 2026, currentMonth: 6, startDay: 21, endDay: 20 };
         var DIAS = [];
 
         function gerarDiasDoPeriodo(year, month) {
             var dias = [];
             var startDate = new Date(year, month, 21);
             var endDate = new Date(year, month + 1, 20);
-            
             var current = new Date(startDate);
             var dayCount = 1;
-            
             while (current <= endDate) {
-                var dia = {
-                    numero: dayCount,
-                    label: (current.getDate() < 10 ? '0' : '') + current.getDate() + '/' + 
-                           (current.getMonth() + 1 < 10 ? '0' : '') + (current.getMonth() + 1),
-                    date: new Date(current),
-                    diaMes: current.getDate(),
-                    mes: current.getMonth()
-                };
+                var dia = { numero: dayCount, label: (current.getDate() < 10 ? '0' : '') + current.getDate() + '/' + (current.getMonth() + 1 < 10 ? '0' : '') + (current.getMonth() + 1), date: new Date(current), diaMes: current.getDate(), mes: current.getMonth() };
                 dias.push(dia);
                 dayCount++;
                 current.setDate(current.getDate() + 1);
             }
-            
             return dias;
         }
 
         function getPeriodoLabel(year, month) {
-            var meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            var meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
             var mesAtual = meses[month];
             var mesProximo = meses[(month + 1) % 12];
             var anoProximo = month === 11 ? year + 1 : year;
-            return `📅 21/${mesAtual} a 20/${mesProximo}/${anoProximo}`;
+            return '📅 21/' + mesAtual + ' a 20/' + mesProximo + '/' + anoProximo;
         }
 
         function getPeriodoPath() {
-            return `periodos/${periodState.currentYear}_${String(periodState.currentMonth + 1).padStart(2, '0')}`;
+            return 'periodos/' + periodState.currentYear + '_' + String(periodState.currentMonth + 1).padStart(2, '0');
         }
 
         function getPeriodoKey() {
-            return `${periodState.currentYear}_${String(periodState.currentMonth + 1).padStart(2, '0')}`;
+            return periodState.currentYear + '_' + String(periodState.currentMonth + 1).padStart(2, '0');
         }
 
         function gerarPeriodosDisponiveis() {
             var periodos = [];
             var anoAtual = new Date().getFullYear();
             var mesAtual = new Date().getMonth();
-            
             for (var i = -24; i <= 24; i++) {
                 var mes = mesAtual + i;
                 var ano = anoAtual;
-                if (mes > 11) {
-                    mes = mes - 12;
-                    ano = anoAtual + Math.floor((mesAtual + i) / 12);
-                } else if (mes < 0) {
-                    mes = mes + 12;
-                    ano = anoAtual - Math.floor(Math.abs(mesAtual + i) / 12) - 1;
-                }
-                if (mes >= 0 && mes <= 11) {
-                    periodos.push({ year: ano, month: mes });
-                }
+                if (mes > 11) { mes = mes - 12; ano = anoAtual + Math.floor((mesAtual + i) / 12); } else if (mes < 0) { mes = mes + 12; ano = anoAtual - Math.floor(Math.abs(mesAtual + i) / 12) - 1; }
+                if (mes >= 0 && mes <= 11) { periodos.push({ year: ano, month: mes }); }
             }
             return periodos;
         }
@@ -487,17 +447,14 @@
             var selector = document.getElementById('periodoSelector');
             var periodos = gerarPeriodosDisponiveis();
             var currentKey = getPeriodoKey();
-            
             selector.innerHTML = '';
             for (var i = 0; i < periodos.length; i++) {
                 var p = periodos[i];
-                var key = `${p.year}_${String(p.month + 1).padStart(2, '0')}`;
+                var key = p.year + '_' + String(p.month + 1).padStart(2, '0');
                 var opt = document.createElement('option');
                 opt.value = key;
                 opt.textContent = getPeriodoLabel(p.year, p.month);
-                if (key === currentKey) {
-                    opt.selected = true;
-                }
+                if (key === currentKey) { opt.selected = true; }
                 selector.appendChild(opt);
             }
         }
@@ -515,386 +472,121 @@
         function navegarPeriodo(direcao) {
             var newMonth = periodState.currentMonth + direcao;
             var newYear = periodState.currentYear;
-            
-            if (newMonth > 11) {
-                newMonth = 0;
-                newYear++;
-            } else if (newMonth < 0) {
-                newMonth = 11;
-                newYear--;
-            }
-            
+            if (newMonth > 11) { newMonth = 0; newYear++; } else if (newMonth < 0) { newMonth = 11; newYear--; }
             irParaPeriodo(newYear, newMonth);
         }
 
-        // ============================================================
-        // ESTADO
-        // ============================================================
-        var state = {
-            operacoes: [],
-            lancamentos: {},
-            observacoes: {},
-            custos: { TF: 503, MAQ: 2300, PIPA: 2500, APOIO: 2200 },
-            currentDia: 1,
-            extraCounter: 0,
-            isLoaded: false,
-            isSaving: false,
-            isLoading: false
-        };
+        var state = { operacoes: [], lancamentos: {}, observacoes: {}, custos: { TF: 503, MAQ: 2300, PIPA: 2500, APOIO: 2200 }, currentDia: 1, extraCounter: 0, isLoaded: false, isSaving: false, isLoading: false };
         var editTarget = null;
 
-        // ============================================================
-        // DOM
-        // ============================================================
         var $ = function(id) { return document.getElementById(id); };
-        var DOM = {
-            tbody: $('tbodyOperacoes'), metaPeriodo: $('metaPeriodo'), realizadoTotal: $('realizadoTotal'),
-            resultadoTotal: $('resultadoTotal'), margemTotal: $('margemTotal'),
-            areaRealizada: $('areaRealizada'), diaAtualDisplay: $('diaAtualDisplay'),
-            diasContainer: $('diasContainer'), opSelect: $('opSelect'),
-            valorHa: $('valorHa'), valorRha: $('valorRha'), totalDisplay: $('totalDisplay'),
-            tfQtd: $('tfQtd'), maqQtd: $('maqQtd'), pipaQtd: $('pipaQtd'), apoioQtd: $('apoioQtd'),
-            btnLancar: $('btnLancar'), btnResetDia: $('btnResetDia'), resetCompleto: $('resetCompleto'),
-            graficoEvolucao: $('graficoEvolucao'), infoLancamentoDia: $('infoLancamentoDia'),
-            obsInput: $('obsInput'), btnSalvarObs: $('btnSalvarObs'), obsExibir: $('obsExibir'),
-            btnAbrirExtra: $('btnAbrirExtra'), btnSync: $('btnSync'), lastUpdate: $('lastUpdate'),
-            toastContainer: $('toastContainer'), statusDot: $('statusDot'), statusText: $('statusText'),
-            syncDot: $('syncDot'), syncStatusText: $('syncStatusText'),
-            resumoDiaData: $('resumoDiaData'), resumoDiaBody: $('resumoDiaBody'),
-            resumoDiaReceita: $('resumoDiaReceita'), resumoDiaCusto: $('resumoDiaCusto'),
-            resumoDiaResultado: $('resumoDiaResultado'),
-            btnConfig: $('btnConfig'), configModal: $('configModal'),
-            btnSalvarConfig: $('btnSalvarConfig'), btnFecharConfig: $('btnFecharConfig')
-        };
+        var DOM = { tbody: $('tbodyOperacoes'), metaPeriodo: $('metaPeriodo'), realizadoTotal: $('realizadoTotal'), resultadoTotal: $('resultadoTotal'), margemTotal: $('margemTotal'), areaRealizada: $('areaRealizada'), diaAtualDisplay: $('diaAtualDisplay'), diasContainer: $('diasContainer'), opSelect: $('opSelect'), valorHa: $('valorHa'), valorRha: $('valorRha'), totalDisplay: $('totalDisplay'), tfQtd: $('tfQtd'), maqQtd: $('maqQtd'), pipaQtd: $('pipaQtd'), apoioQtd: $('apoioQtd'), btnLancar: $('btnLancar'), btnResetDia: $('btnResetDia'), resetCompleto: $('resetCompleto'), graficoEvolucao: $('graficoEvolucao'), infoLancamentoDia: $('infoLancamentoDia'), obsInput: $('obsInput'), btnSalvarObs: $('btnSalvarObs'), obsExibir: $('obsExibir'), btnAbrirExtra: $('btnAbrirExtra'), btnSync: $('btnSync'), lastUpdate: $('lastUpdate'), toastContainer: $('toastContainer'), statusDot: $('statusDot'), statusText: $('statusText'), syncDot: $('syncDot'), syncStatusText: $('syncStatusText'), resumoDiaData: $('resumoDiaData'), resumoDiaBody: $('resumoDiaBody'), resumoDiaReceita: $('resumoDiaReceita'), resumoDiaCusto: $('resumoDiaCusto'), resumoDiaResultado: $('resumoDiaResultado'), btnConfig: $('btnConfig'), configModal: $('configModal'), btnSalvarConfig: $('btnSalvarConfig'), btnFecharConfig: $('btnFecharConfig') };
 
-        // ============================================================
-        // MODAIS
-        // ============================================================
-        var Modals = {
-            edit: $('editModal'), extra: $('extraModal'), config: $('configModal'),
-            editInfo: $('editInfo'), editHa: $('editHa'), editRha: $('editRha'),
-            editTF: $('editTF'), editMAQ: $('editMAQ'), editPIPA: $('editPIPA'), editAPOIO: $('editAPOIO'),
-            editValor: $('editValor'), editPreview: $('editPreview'),
-            editDadosAdicionais: $('editDadosAdicionais'),
-            editSalvar: $('editSalvar'), editCancelar: $('editCancelar'), editExcluir: $('editExcluir'),
-            extraNome: $('extraNome'), extraArea: $('extraArea'), extraValor: $('extraValor'),
-            btnCriarExtra: $('btnCriarExtra'), btnCancelarExtra: $('btnCancelarExtra')
-        };
+        var Modals = { edit: $('editModal'), extra: $('extraModal'), config: $('configModal'), editInfo: $('editInfo'), editHa: $('editHa'), editRha: $('editRha'), editTF: $('editTF'), editMAQ: $('editMAQ'), editPIPA: $('editPIPA'), editAPOIO: $('editAPOIO'), editValor: $('editValor'), editPreview: $('editPreview'), editDadosAdicionais: $('editDadosAdicionais'), editSalvar: $('editSalvar'), editCancelar: $('editCancelar'), editExcluir: $('editExcluir'), extraNome: $('extraNome'), extraArea: $('extraArea'), extraValor: $('extraValor'), btnCriarExtra: $('btnCriarExtra'), btnCancelarExtra: $('btnCancelarExtra') };
 
-        // ============================================================
-        // HELPERS
-        // ============================================================
-        function formatMoney(v) {
-            return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
+        function formatMoney(v) { return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
-        function getTotalProjetado() {
-            var total = 0;
-            for (var i = 0; i < state.operacoes.length; i++) {
-                total += state.operacoes[i].projetado || 0;
-            }
-            return total;
-        }
+        function getTotalProjetado() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += state.operacoes[i].projetado || 0; } return total; }
 
-        function getCustoRecursos(tf, maq, pipa, apoio) {
-            var c = state.custos;
-            return (tf * c.TF) + (maq * c.MAQ) + (pipa * c.PIPA) + (apoio * c.APOIO);
-        }
+        function getCustoRecursos(tf, maq, pipa, apoio) { var c = state.custos; return (tf * c.TF) + (maq * c.MAQ) + (pipa * c.PIPA) + (apoio * c.APOIO); }
 
-        function getReceitaTotal() {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                for (var opId in state.lancamentos[dia]) {
-                    total += state.lancamentos[dia][opId].valor || 0;
-                }
-            }
-            return total;
-        }
+        function getReceitaTotal() { var total = 0; for (var dia in state.lancamentos) { for (var opId in state.lancamentos[dia]) { total += state.lancamentos[dia][opId].valor || 0; } } return total; }
 
-        function getCustoTotal() {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                for (var opId in state.lancamentos[dia]) {
-                    total += state.lancamentos[dia][opId].custo || 0;
-                }
-            }
-            return total;
-        }
+        function getCustoTotal() { var total = 0; for (var dia in state.lancamentos) { for (var opId in state.lancamentos[dia]) { total += state.lancamentos[dia][opId].custo || 0; } } return total; }
 
-        function getResultadoTotal() {
-            return getReceitaTotal() - getCustoTotal();
-        }
+        function getResultadoTotal() { return getReceitaTotal() - getCustoTotal(); }
 
-        function getMargemTotal() {
-            var receita = getReceitaTotal();
-            if (receita === 0) return 0;
-            return (getResultadoTotal() / receita) * 100;
-        }
+        function getMargemTotal() { var receita = getReceitaTotal(); if (receita === 0) return 0; return (getResultadoTotal() / receita) * 100; }
 
-        function getAreaTotal() {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                for (var opId in state.lancamentos[dia]) {
-                    total += state.lancamentos[dia][opId].ha || 0;
-                }
-            }
-            return total;
-        }
+        function getAreaTotal() { var total = 0; for (var dia in state.lancamentos) { for (var opId in state.lancamentos[dia]) { total += state.lancamentos[dia][opId].ha || 0; } } return total; }
 
-        function getRealizadoOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].valor || 0;
-                }
-            }
-            return total;
-        }
+        function getRealizadoOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].valor || 0; } } return total; }
 
-        function getAreaOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].ha || 0;
-                }
-            }
-            return total;
-        }
+        function getAreaOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].ha || 0; } } return total; }
 
-        function getCustoOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].custo || 0;
-                }
-            }
-            return total;
-        }
+        function getCustoOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].custo || 0; } } return total; }
 
-        function getTfOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].tf || 0;
-                }
-            }
-            return total;
-        }
+        function getTfOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].tf || 0; } } return total; }
 
-        function getMaqOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].maq || 0;
-                }
-            }
-            return total;
-        }
+        function getMaqOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].maq || 0; } } return total; }
 
-        function getPipaOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].pipa || 0;
-                }
-            }
-            return total;
-        }
+        function getPipaOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].pipa || 0; } } return total; }
 
-        function getApoioOp(opId) {
-            var total = 0;
-            for (var dia in state.lancamentos) {
-                if (state.lancamentos[dia][opId]) {
-                    total += state.lancamentos[dia][opId].apoio || 0;
-                }
-            }
-            return total;
-        }
+        function getApoioOp(opId) { var total = 0; for (var dia in state.lancamentos) { if (state.lancamentos[dia][opId]) { total += state.lancamentos[dia][opId].apoio || 0; } } return total; }
 
-        function temLancamento(dia) {
-            return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0;
-        }
+        function temLancamento(dia) { return state.lancamentos[dia] && Object.keys(state.lancamentos[dia]).length > 0; }
 
-        function getRealizadoDia(dia) {
-            var d = state.lancamentos[dia] || {};
-            var total = 0;
-            for (var opId in d) {
-                total += d[opId].valor || 0;
-            }
-            return total;
-        }
+        function getRealizadoDia(dia) { var d = state.lancamentos[dia] || {}; var total = 0; for (var opId in d) { total += d[opId].valor || 0; } return total; }
 
-        function getCustoDia(dia) {
-            var d = state.lancamentos[dia] || {};
-            var total = 0;
-            for (var opId in d) {
-                total += d[opId].custo || 0;
-            }
-            return total;
-        }
+        function getCustoDia(dia) { var d = state.lancamentos[dia] || {}; var total = 0; for (var opId in d) { total += d[opId].custo || 0; } return total; }
 
-        function getAreaDia(dia) {
-            var d = state.lancamentos[dia] || {};
-            var total = 0;
-            for (var opId in d) {
-                total += d[opId].ha || 0;
-            }
-            return total;
-        }
+        function getAreaDia(dia) { var d = state.lancamentos[dia] || {}; var total = 0; for (var opId in d) { total += d[opId].ha || 0; } return total; }
 
-        function getObsDia(dia) {
-            return state.observacoes[dia] || '';
-        }
+        function getObsDia(dia) { return state.observacoes[dia] || ''; }
 
-        function getDiasRestantes() {
-            var hoje = new Date();
-            var fim = new Date(periodState.currentYear, periodState.currentMonth + 1, 20);
-            var diff = (fim - hoje) / (1000 * 60 * 60 * 24);
-            return Math.max(0, Math.ceil(diff));
-        }
+        function getDiasRestantes() { var hoje = new Date(); var fim = new Date(periodState.currentYear, periodState.currentMonth + 1, 20); var diff = (fim - hoje) / (1000 * 60 * 60 * 24); return Math.max(0, Math.ceil(diff)); }
 
-        function getMetaDiaria() {
-            var restante = getTotalProjetado() - getReceitaTotal();
-            var dias = getDiasRestantes();
-            return dias > 0 ? restante / dias : 0;
-        }
+        function getMetaDiaria() { var restante = getTotalProjetado() - getReceitaTotal(); var dias = getDiasRestantes(); return dias > 0 ? restante / dias : 0; }
 
         function showToast(msg, type) {
             type = type || 'success';
             var toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle',
-                info: 'fa-info-circle' };
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
             toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i> ' + msg;
             DOM.toastContainer.appendChild(toast);
-            setTimeout(function() {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(20px)';
-                setTimeout(function() { toast.remove(); }, 300);
-            }, 3500);
+            setTimeout(function() { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
         }
 
-        function atualizarUltimaAtualizacao() {
-            DOM.lastUpdate.textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
-        }
+        function atualizarUltimaAtualizacao() { DOM.lastUpdate.textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR'); }
 
         function atualizarStatusFirebase(connected) {
-            if (connected) {
-                DOM.statusDot.className = 'dot online';
-                DOM.statusText.textContent = 'Conectado';
-                DOM.syncDot.className = 'dot synced';
-                DOM.syncStatusText.textContent = 'Sincronizado';
-            } else {
-                DOM.statusDot.className = 'dot offline';
-                DOM.statusText.textContent = 'Offline';
-                DOM.syncDot.className = 'dot error';
-                DOM.syncStatusText.textContent = 'Offline';
-            }
+            if (connected) { DOM.statusDot.className = 'dot online'; DOM.statusText.textContent = 'Conectado'; DOM.syncDot.className = 'dot synced'; DOM.syncStatusText.textContent = 'Sincronizado'; } else { DOM.statusDot.className = 'dot offline'; DOM.statusText.textContent = 'Offline'; DOM.syncDot.className = 'dot error'; DOM.syncStatusText.textContent = 'Offline'; }
         }
 
-        // ============================================================
-        // CÁLCULO AUTOMÁTICO
-        // ============================================================
-        function calcularTotal() {
-            var ha = parseFloat(DOM.valorHa.value) || 0;
-            var rha = parseFloat(DOM.valorRha.value) || 0;
-            var total = ha * rha;
-            DOM.totalDisplay.textContent = 'R$ ' + formatMoney(total);
-            return total;
-        }
+        function calcularTotal() { var ha = parseFloat(DOM.valorHa.value) || 0; var rha = parseFloat(DOM.valorRha.value) || 0; var total = ha * rha; DOM.totalDisplay.textContent = 'R$ ' + formatMoney(total); return total; }
 
-        // ============================================================
-        // FIREBASE CRUD COM PERÍODO
-        // ============================================================
         function salvarOperacoes() {
             var batch = db.batch();
             for (var i = 0; i < state.operacoes.length; i++) {
                 var op = state.operacoes[i];
                 var ref = db.collection('operacoes').doc(op.id);
-                batch.set(ref, { id: op.id, nome: op.nome, projetado: op.projetado, areaProjetada: op.areaProjetada,
-                    extra: op.extra || false });
+                batch.set(ref, { id: op.id, nome: op.nome, projetado: op.projetado, areaProjetada: op.areaProjetada, extra: op.extra || false });
             }
             return batch.commit();
         }
 
         function salvarLancamento(dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
             var ref = db.collection(getPeriodoPath()).collection('lancamentos').doc();
-            return ref.set({
-                dia: dia,
-                opId: opId,
-                ha: ha,
-                valor: valor,
-                tf: tf || 0,
-                maq: maq || 0,
-                pipa: pipa || 0,
-                apoio: apoio || 0,
-                custo: custo || 0,
-                periodo: getPeriodoKey()
-            });
+            return ref.set({ dia: dia, opId: opId, ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, custo: custo || 0, periodo: getPeriodoKey() });
         }
 
-        function salvarCustos(custos) {
-            return db.collection('config').doc('custos').set(custos);
-        }
+        function salvarCustos(custos) { return db.collection('config').doc('custos').set(custos); }
 
         function carregarCustos() {
             return db.collection('config').doc('custos').get().then(function(doc) {
-                if (doc.exists) {
-                    var data = doc.data();
-                    state.custos.TF = data.TF || CUSTOS_PADRAO.TF;
-                    state.custos.MAQ = data.MAQ || CUSTOS_PADRAO.MAQ;
-                    state.custos.PIPA = data.PIPA || CUSTOS_PADRAO.PIPA;
-                    state.custos.APOIO = data.APOIO || CUSTOS_PADRAO.APOIO;
-                } else {
-                    state.custos = { TF: CUSTOS_PADRAO.TF, MAQ: CUSTOS_PADRAO.MAQ, PIPA: CUSTOS_PADRAO.PIPA,
-                    APOIO: CUSTOS_PADRAO.APOIO };
-                    salvarCustos(state.custos);
-                }
+                if (doc.exists) { var data = doc.data(); state.custos.TF = data.TF || CUSTOS_PADRAO.TF; state.custos.MAQ = data.MAQ || CUSTOS_PADRAO.MAQ; state.custos.PIPA = data.PIPA || CUSTOS_PADRAO.PIPA; state.custos.APOIO = data.APOIO || CUSTOS_PADRAO.APOIO; } else { state.custos = { TF: CUSTOS_PADRAO.TF, MAQ: CUSTOS_PADRAO.MAQ, PIPA: CUSTOS_PADRAO.PIPA, APOIO: CUSTOS_PADRAO.APOIO }; salvarCustos(state.custos); }
                 return state.custos;
             });
         }
 
-        function deletarLancamento(docId) {
-            return db.collection(getPeriodoPath()).collection('lancamentos').doc(docId).delete();
-        }
+        function deletarLancamento(docId) { return db.collection(getPeriodoPath()).collection('lancamentos').doc(docId).delete(); }
 
         function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
             var ref = db.collection(getPeriodoPath()).collection('lancamentos').doc(docId);
-            return ref.update({
-                ha: ha,
-                valor: valor,
-                tf: tf || 0,
-                maq: maq || 0,
-                pipa: pipa || 0,
-                apoio: apoio || 0,
-                custo: custo || 0,
-                dia: dia,
-                opId: opId
-            });
+            return ref.update({ ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, custo: custo || 0, dia: dia, opId: opId });
         }
 
-        function salvarObservacao(dia, texto) {
-            var ref = db.collection(getPeriodoPath()).collection('observacoes').doc(String(dia));
-            return ref.set({ texto: texto });
-        }
+        function salvarObservacao(dia, texto) { var ref = db.collection(getPeriodoPath()).collection('observacoes').doc(String(dia)); return ref.set({ texto: texto }); }
 
         function salvarConfiguracoes() {
             var ref = db.collection('config').doc('app');
-            return ref.set({
-                currentDia: state.currentDia,
-                extraCounter: state.extraCounter,
-                periodo: getPeriodoKey(),
-                updatedAt: new Date()
-            }, { merge: true });
+            return ref.set({ currentDia: state.currentDia, extraCounter: state.extraCounter, periodo: getPeriodoKey(), updatedAt: new Date() }, { merge: true });
         }
 
-        // ============================================================
-        // CARREGAR DO FIREBASE
-        // ============================================================
         function carregarDoFirebase() {
             if (state.isLoading) return;
             state.isLoading = true;
-
             carregarCustos().then(function(custos) {
                 $('custo_TF').value = custos.TF;
                 $('custo_MAQ').value = custos.MAQ;
@@ -903,22 +595,11 @@
                 return db.collection('operacoes').get();
             }).then(function(opsSnapshot) {
                 var operacoes = [];
-                opsSnapshot.forEach(function(doc) {
-                    operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado,
-                        areaProjetada: doc.data().areaProjetada, extra: doc.data().extra || false });
-                });
-
+                opsSnapshot.forEach(function(doc) { operacoes.push({ id: doc.id, nome: doc.data().nome, projetado: doc.data().projetado, areaProjetada: doc.data().areaProjetada, extra: doc.data().extra || false }); });
                 if (operacoes.length === 0) {
-                    state.operacoes = OPERACOES_BASE.map(function(o) { return { id: o.id, nome: o.nome,
-                            projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
-                    return salvarOperacoes().then(function() {
-                        showToast('✅ Operações criadas no Firebase!', 'success');
-                        return db.collection(getPeriodoPath()).collection('lancamentos').get();
-                    });
-                } else {
-                    state.operacoes = operacoes;
-                    return db.collection(getPeriodoPath()).collection('lancamentos').get();
-                }
+                    state.operacoes = OPERACOES_BASE.map(function(o) { return { id: o.id, nome: o.nome, projetado: o.projetado, areaProjetada: o.areaProjetada, extra: false }; });
+                    return salvarOperacoes().then(function() { showToast('✅ Operações criadas no Firebase!', 'success'); return db.collection(getPeriodoPath()).collection('lancamentos').get(); });
+                } else { state.operacoes = operacoes; return db.collection(getPeriodoPath()).collection('lancamentos').get(); }
             }).then(function(lancSnapshot) {
                 var lancamentos = {};
                 lancSnapshot.forEach(function(doc) {
@@ -926,8 +607,7 @@
                     var dia = data.dia;
                     var opId = data.opId;
                     if (!lancamentos[dia]) lancamentos[dia] = {};
-                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0,
-                        maq: 0, pipa: 0, apoio: 0 };
+                    if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0 };
                     lancamentos[dia][opId].ha += data.ha || 0;
                     lancamentos[dia][opId].valor += data.valor || 0;
                     lancamentos[dia][opId].custo += data.custo || 0;
@@ -940,17 +620,11 @@
                 return db.collection(getPeriodoPath()).collection('observacoes').get();
             }).then(function(obsSnapshot) {
                 var observacoes = {};
-                obsSnapshot.forEach(function(doc) {
-                    observacoes[doc.id] = doc.data().texto || '';
-                });
+                obsSnapshot.forEach(function(doc) { observacoes[doc.id] = doc.data().texto || ''; });
                 state.observacoes = observacoes;
                 return db.collection('config').doc('app').get();
             }).then(function(configDoc) {
-                if (configDoc.exists) {
-                    var data = configDoc.data();
-                    state.currentDia = data.currentDia || 1;
-                    state.extraCounter = data.extraCounter || 0;
-                }
+                if (configDoc.exists) { var data = configDoc.data(); state.currentDia = data.currentDia || 1; state.extraCounter = data.extraCounter || 0; }
                 state.isLoaded = true;
                 state.isLoading = false;
                 atualizarStatusFirebase(true);
@@ -964,10 +638,6 @@
                 renderizarTudo();
             });
         }
-
-        // ============================================================
-        // RENDERIZAÇÃO
-        // ============================================================
 
         function renderizarSelect() {
             DOM.opSelect.innerHTML = '';
@@ -990,13 +660,7 @@
                 btn.textContent = dia.label;
                 if (dia.numero === state.currentDia) btn.classList.add('active');
                 if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
-                btn.addEventListener('click', function(d) {
-                    return function() {
-                        state.currentDia = d.numero;
-                        salvarConfiguracoes();
-                        renderizarTudo();
-                    };
-                }(dia));
+                btn.addEventListener('click', function(d) { return function() { state.currentDia = d.numero; salvarConfiguracoes(); renderizarTudo(); }; }(dia));
                 DOM.diasContainer.appendChild(btn);
             }
             var diaAtual = DIAS.find(function(d) { return d.numero === state.currentDia; });
@@ -1007,21 +671,14 @@
             renderizarResumoDia();
         }
 
-        // ============================================================
-        // RESUMO DO DIA - ESTILO PLANILHA
-        // ============================================================
         function renderizarResumoDia() {
             var dia = state.currentDia;
             var lancs = state.lancamentos[dia] || {};
             var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
-            var obs = getObsDia(dia);
-
             DOM.resumoDiaData.textContent = diaLabel ? diaLabel.label : dia;
-
             var totalReceita = 0;
             var totalCusto = 0;
             var html = '';
-
             if (Object.keys(lancs).length === 0) {
                 DOM.resumoDiaBody.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr>';
                 DOM.resumoDiaReceita.textContent = '0,00';
@@ -1029,7 +686,6 @@
                 DOM.resumoDiaResultado.innerHTML = '📊 Resultado: R$ 0,00';
                 return;
             }
-
             for (var opId in lancs) {
                 var op = state.operacoes.find(function(o) { return o.id === opId; });
                 var nome = op ? op.nome : 'Removida';
@@ -1044,112 +700,46 @@
                 var margem = valor > 0 ? (resultado / valor) * 100 : 0;
                 totalReceita += valor;
                 totalCusto += custo;
-
                 var corResultado = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
                 var sinalResultado = resultado >= 0 ? '+' : '';
                 var classeMargem = margem >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-
                 var dataLabel = diaLabel ? diaLabel.label : dia;
-
-                html += '<tr>' +
-                    '<td>' + dataLabel + '</td>' +
-                    '<td>' + nome + '</td>' +
-                    '<td class="text-right">' + ha.toFixed(2) + '</td>' +
-                    '<td class="text-right">R$ ' + formatMoney(valor) + '</td>' +
-                    '<td class="text-right">' + tf + '</td>' +
-                    '<td class="text-right">' + maq + '</td>' +
-                    '<td class="text-right">' + pipa + '</td>' +
-                    '<td class="text-right">' + apoio + '</td>' +
-                    '<td class="text-right">R$ ' + formatMoney(custo) + '</td>' +
-                    '<td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) +
-                    '</td>' +
-                    '<td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td>' +
-                    '<td>' + (op && op.extra ? '⭐ Extra' : '') + '</td>' +
-                    '<td class="text-center">' +
-                    '<button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> ' +
-                    '<button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button>' +
-                    '</td>' +
-                    '</tr>';
+                html += '<tr><td>' + dataLabel + '</td><td>' + nome + '</td><td class="text-right">' + ha.toFixed(2) + '</td><td class="text-right">R$ ' + formatMoney(valor) + '</td><td class="text-right">' + tf + '</td><td class="text-right">' + maq + '</td><td class="text-right">' + pipa + '</td><td class="text-right">' + apoio + '</td><td class="text-right">R$ ' + formatMoney(custo) + '</td><td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) + '</td><td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td><td>' + (op && op.extra ? '⭐ Extra' : '') + '</td><td class="text-center"><button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> <button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>';
             }
-
             var resultadoDia = totalReceita - totalCusto;
             var corTotal = resultadoDia >= 0 ? 'resultado-positivo' : 'resultado-negativo';
             var sinalTotal = resultadoDia >= 0 ? '+' : '';
-
-            html += '<tr class="total-row">' +
-                '<td colspan="3"><strong>TOTAL</strong></td>' +
-                '<td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td>' +
-                '<td colspan="5"></td>' +
-                '<td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td>' +
-                '<td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) +
-                '</strong></td>' +
-                '<td class="text-right"></td>' +
-                '<td colspan="2"></td>' +
-                '</tr>';
-
+            html += '<tr class="total-row"><td colspan="3"><strong>TOTAL</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td colspan="5"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
             DOM.resumoDiaBody.innerHTML = html;
-
             DOM.resumoDiaReceita.textContent = formatMoney(totalReceita);
             DOM.resumoDiaCusto.textContent = formatMoney(totalCusto);
-            DOM.resumoDiaResultado.innerHTML = '📊 Resultado: <span class="' + corTotal + '">' + sinalTotal + 'R$ ' +
-                formatMoney(resultadoDia) + '</span>';
+            DOM.resumoDiaResultado.innerHTML = '📊 Resultado: <span class="' + corTotal + '">' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</span>';
         }
 
-        // ============================================================
-        // FUNÇÃO PARA EXCLUIR LANÇAMENTO DIRETO DO RESUMO
-        // ============================================================
         window.excluirLancamento = function(opId) {
             var dia = state.currentDia;
             var lanc = state.lancamentos[dia] ? state.lancamentos[dia][opId] : null;
-            if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) {
-                showToast('⚠️ Não há lançamento para excluir.', 'warning');
-                return;
-            }
-
+            if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) { showToast('⚠️ Não há lançamento para excluir.', 'warning'); return; }
             if (!confirm('Tem certeza que deseja excluir este lançamento?')) return;
-
-            db.collection(getPeriodoPath()).collection('lancamentos')
-                .where('dia', '==', dia)
-                .where('opId', '==', opId)
-                .get()
-                .then(function(snapshot) {
-                    if (snapshot.empty) {
-                        showToast('⚠️ Lançamento não encontrado.', 'warning');
-                        return;
-                    }
-                    var batch = db.batch();
-                    snapshot.forEach(function(doc) {
-                        batch.delete(doc.ref);
-                    });
-                    return batch.commit();
-                })
-                .then(function() {
-                    if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                        delete state.lancamentos[dia][opId];
-                        if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-                    }
-                    renderizarTudo();
-                    showToast('🗑️ Lançamento excluído com sucesso!', 'success');
-                })
-                .catch(function(error) {
-                    console.error('Erro ao excluir:', error);
-                    showToast('❌ Erro ao excluir lançamento', 'error');
-                });
+            db.collection(getPeriodoPath()).collection('lancamentos').where('dia', '==', dia).where('opId', '==', opId).get().then(function(snapshot) {
+                if (snapshot.empty) { showToast('⚠️ Lançamento não encontrado.', 'warning'); return; }
+                var batch = db.batch();
+                snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+                return batch.commit();
+            }).then(function() {
+                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) { delete state.lancamentos[dia][opId]; if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia]; }
+                renderizarTudo();
+                showToast('🗑️ Lançamento excluído com sucesso!', 'success');
+            }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir lançamento', 'error'); });
         };
 
         function renderizarTabela() {
             var html = '';
             var totalProj = getTotalProjetado();
-
             for (var i = 0; i < state.operacoes.length; i++) {
                 var op = state.operacoes[i];
                 var realizado = getRealizadoOp(op.id);
-                var area = getAreaOp(op.id);
                 var custo = getCustoOp(op.id);
-                var tf = getTfOp(op.id);
-                var maq = getMaqOp(op.id);
-                var pipa = getPipaOp(op.id);
-                var apoio = getApoioOp(op.id);
                 var resultado = realizado - custo;
                 var margem = realizado > 0 ? (resultado / realizado) * 100 : 0;
                 var pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
@@ -1158,47 +748,20 @@
                 if (pctClamp >= 90) classe = 'success';
                 else if (pctClamp >= 50) classe = 'warning';
                 if (op.extra) classe = 'extra';
-
                 var corResultado = resultado >= 0 ? 'green' : 'red';
                 var sinal = resultado >= 0 ? '+' : '';
                 var corMargem = margem >= 0 ? 'green' : 'red';
-
                 var extraTag = op.extra ? '<span class="extra-tag">⭐ extra</span>' : '';
                 var clickFunc = "editarValor('" + op.id + "')";
-
-                html += '<tr>' +
-                    '<td>' + op.nome + ' ' + extraTag + '</td>' +
-                    '<td class="num">R$ ' + formatMoney(op.projetado || 0) + '</td>' +
-                    '<td class="num clickable" onclick="' + clickFunc + '" title="Clique para editar">R$ ' + formatMoney(
-                    realizado) + '</td>' +
-                    '<td class="num">R$ ' + formatMoney(custo) + '</td>' +
-                    '<td class="num"><span class="' + corResultado + '">' + sinal + 'R$ ' + formatMoney(resultado) +
-                    '</span></td>' +
-                    '<td class="num"><span class="' + corMargem + '">' + margem.toFixed(1) + '%</span></td>' +
-                    '<td class="num" style="width:60px;">' + pct.toFixed(1) +
-                    '%<div class="progress-bar"><div class="progress-fill ' + classe +
-                    '" style="width:' + pctClamp + '%;"></div></div></td>' +
-                    '<td class="num"><button class="edit-btn" onclick="' + clickFunc + '"><i class="fas fa-edit"></i></button></td>' +
-                    '</tr>';
+                html += '<tr><td>' + op.nome + ' ' + extraTag + '</td><td class="num">R$ ' + formatMoney(op.projetado || 0) + '</td><td class="num clickable" onclick="' + clickFunc + '" title="Clique para editar">R$ ' + formatMoney(realizado) + '</td><td class="num">R$ ' + formatMoney(custo) + '</td><td class="num"><span class="' + corResultado + '">' + sinal + 'R$ ' + formatMoney(resultado) + '</span></td><td class="num"><span class="' + corMargem + '">' + margem.toFixed(1) + '%</span></td><td class="num" style="width:60px;">' + pct.toFixed(1) + '%<div class="progress-bar"><div class="progress-fill ' + classe + '" style="width:' + pctClamp + '%;"></div></div></td><td class="num"><button class="edit-btn" onclick="' + clickFunc + '"><i class="fas fa-edit"></i></button></td></tr>';
             }
-
             var totalReceita = getReceitaTotal();
             var totalCusto = getCustoTotal();
             var totalResultado = totalReceita - totalCusto;
             var totalMargem = totalReceita > 0 ? (totalResultado / totalReceita) * 100 : 0;
             var corTotal = totalResultado >= 0 ? 'green' : 'red';
             var sinalTotal = totalResultado >= 0 ? '+' : '';
-
-            html += '<tr class="total-row"><td><strong>TOTAL</strong></td>' +
-                '<td class="num"><strong>R$ ' + formatMoney(totalProj) + '</strong></td>' +
-                '<td class="num"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td>' +
-                '<td class="num"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td>' +
-                '<td class="num"><strong class="' + corTotal + '">' + sinalTotal + 'R$ ' + formatMoney(totalResultado) +
-                '</strong></td>' +
-                '<td class="num"><strong class="' + corTotal + '">' + totalMargem.toFixed(1) + '%</strong></td>' +
-                '<td class="num"><strong>' + (totalProj > 0 ? ((totalReceita / totalProj) * 100).toFixed(1) : 0) +
-                '%</strong></td>' +
-                '<td></td></tr>';
+            html += '<tr class="total-row"><td><strong>TOTAL</strong></td><td class="num"><strong>R$ ' + formatMoney(totalProj) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + sinalTotal + 'R$ ' + formatMoney(totalResultado) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + totalMargem.toFixed(1) + '%</strong></td><td class="num"><strong>' + (totalProj > 0 ? ((totalReceita / totalProj) * 100).toFixed(1) : 0) + '%</strong></td><td></td></tr>';
             DOM.tbody.innerHTML = html;
         }
 
@@ -1209,39 +772,25 @@
             var totalResultado = totalReceita - totalCusto;
             var totalMargem = totalReceita > 0 ? (totalResultado / totalReceita) * 100 : 0;
             var totalArea = getAreaTotal();
-            var metaDiaria = getMetaDiaria();
-            var pct = totalProj > 0 ? (totalReceita / totalProj) * 100 : 0;
-
             DOM.metaPeriodo.textContent = formatMoney(totalProj);
             DOM.realizadoTotal.textContent = formatMoney(totalReceita);
-
             var cor = totalResultado >= 0 ? '#16a34a' : '#dc3545';
             var sinal = totalResultado >= 0 ? '+' : '';
-            DOM.resultadoTotal.innerHTML = '<span class="currency">R$</span> <span style="color:' + cor + ';">' + sinal +
-                formatMoney(totalResultado) + '</span>';
-
+            DOM.resultadoTotal.innerHTML = '<span class="currency">R$</span> <span style="color:' + cor + ';">' + sinal + formatMoney(totalResultado) + '</span>';
             var corMargem = totalMargem >= 0 ? '#16a34a' : '#dc3545';
             DOM.margemTotal.textContent = totalMargem.toFixed(1) + '%';
             DOM.margemTotal.style.color = corMargem;
-
             DOM.areaRealizada.innerHTML = totalArea.toFixed(2) + ' <span class="unit">ha</span>';
         }
 
         function renderizarGraficoEvolucao() {
             var hasData = false;
-            for (var dia in state.lancamentos) {
-                if (Object.keys(state.lancamentos[dia]).length > 0) { hasData = true; break; }
-            }
-            if (!hasData) {
-                DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>';
-                return;
-            }
-
+            for (var dia in state.lancamentos) { if (Object.keys(state.lancamentos[dia]).length > 0) { hasData = true; break; } }
+            if (!hasData) { DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>'; return; }
             var diasComLanc = Object.keys(state.lancamentos).map(Number).sort(function(a, b) { return a - b; });
             var primeiroDia = Math.max(1, Math.min.apply(null, diasComLanc) - 1);
             var ultimoDia = Math.min(31, Math.max.apply(null, diasComLanc) + 1);
             var totalProj = getTotalProjetado();
-
             var labels = [],
                 projAcum = [],
                 realAcum = [];
@@ -1252,50 +801,39 @@
                 for (var j = 1; j <= i; j++) real += getRealizadoDia(j);
                 realAcum.push(real);
             }
-
             var width = 500,
                 height = 130,
                 pad = 25;
             var maxVal = Math.max.apply(null, projAcum.concat(realAcum));
             maxVal = Math.max(maxVal, 100);
             var scale = function(v) { return (v / maxVal) * (height - pad * 2) + pad; };
-
-            var svg = '<svg viewBox="0 0 ' + width + ' ' + height +
-                '" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">';
+            var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">';
             svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#fafcff" rx="8"/>';
-
             var projPoints = '';
             for (var i = 0; i < labels.length; i++) {
                 var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
                 var y = height - scale(projAcum[i]);
                 projPoints += x + ',' + y + ' ';
             }
-            svg += '<polyline points="' + projPoints.trim() +
-                '" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />';
-
+            svg += '<polyline points="' + projPoints.trim() + '" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />';
             var realPoints = '';
             for (var i = 0; i < labels.length; i++) {
                 var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
                 var y = height - scale(realAcum[i]);
                 realPoints += x + ',' + y + ' ';
             }
-            svg += '<polyline points="' + realPoints.trim() +
-                '" fill="none" stroke="#2563eb" stroke-width="4" />';
-
+            svg += '<polyline points="' + realPoints.trim() + '" fill="none" stroke="#2563eb" stroke-width="4" />';
             for (var i = 0; i < labels.length; i++) {
                 var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
                 var y = height - scale(realAcum[i]);
                 svg += '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>';
             }
-
             for (var i = 0; i < labels.length; i++) {
                 var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
                 var label = DIAS.find(function(d) { return d.numero === labels[i]; });
                 var labelText = label ? label.label : labels[i];
-                svg += '<text x="' + x + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' +
-                    labelText + '</text>';
+                svg += '<text x="' + x + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' + labelText + '</text>';
             }
-
             svg += '</svg>';
             DOM.graficoEvolucao.innerHTML = svg;
         }
@@ -1310,9 +848,6 @@
             calcularTotal();
         }
 
-        // ============================================================
-        // FUNÇÃO PARA ATUALIZAR PREVIEW DA EDIÇÃO
-        // ============================================================
         function atualizarPreviewEdicao() {
             var ha = parseFloat(Modals.editHa.value) || 0;
             var rha = parseFloat(Modals.editRha.value) || 0;
@@ -1320,58 +855,36 @@
             var maq = parseInt(Modals.editMAQ.value) || 0;
             var pipa = parseInt(Modals.editPIPA.value) || 0;
             var apoio = parseInt(Modals.editAPOIO.value) || 0;
-
             var receita = ha * rha;
             var custo = getCustoRecursos(tf, maq, pipa, apoio);
             var resultado = receita - custo;
             var margem = receita > 0 ? (resultado / receita) * 100 : 0;
             var cor = resultado >= 0 ? '#16a34a' : '#dc3545';
             var sinal = resultado >= 0 ? '+' : '';
-
-            Modals.editPreview.innerHTML =
-                '<span class="rec">Receita: R$ ' + formatMoney(receita) + '</span> | ' +
-                '<span class="cus">Custo: R$ ' + formatMoney(custo) + '</span> | ' +
-                '<span class="res" style="color:' + cor + ';">Resultado: ' + sinal + 'R$ ' + formatMoney(resultado) +
-                '</span> | ' +
-                'Margem: ' + margem.toFixed(1) + '%';
+            Modals.editPreview.innerHTML = '<span class="rec">Receita: R$ ' + formatMoney(receita) + '</span> | <span class="cus">Custo: R$ ' + formatMoney(custo) + '</span> | <span class="res" style="color:' + cor + ';">Resultado: ' + sinal + 'R$ ' + formatMoney(resultado) + '</span> | Margem: ' + margem.toFixed(1) + '%';
         }
 
-        // ============================================================
-        // LANÇAMENTOS
-        // ============================================================
-
         function lancarValor() {
-            if (state.isSaving) {
-                showToast('⏳ Aguarde...', 'warning');
-                return;
-            }
-
+            if (state.isSaving) { showToast('⏳ Aguarde...', 'warning'); return; }
             var opId = DOM.opSelect.value;
             if (!opId) { alert('Selecione uma operação.'); return; }
-
             var ha = parseFloat(DOM.valorHa.value) || 0;
             if (ha <= 0) { alert('Digite uma área válida (ha > 0).'); return; }
-
             var rha = parseFloat(DOM.valorRha.value) || 0;
             if (rha <= 0) { alert('Digite o valor por hectare (R$/ha > 0).'); return; }
-
             var tf = parseInt(DOM.tfQtd.value) || 0;
             var maq = parseInt(DOM.maqQtd.value) || 0;
             var pipa = parseInt(DOM.pipaQtd.value) || 0;
             var apoio = parseInt(DOM.apoioQtd.value) || 0;
-
             var valorTotal = ha * rha;
             var custo = getCustoRecursos(tf, maq, pipa, apoio);
             var dia = state.currentDia;
-
             DOM.btnLancar.disabled = true;
             DOM.btnLancar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
             state.isSaving = true;
-
             salvarLancamento(dia, opId, ha, valorTotal, tf, maq, pipa, apoio, custo).then(function() {
                 if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0,
-                    tf: 0, maq: 0, pipa: 0, apoio: 0 };
+                if (!state.lancamentos[dia][opId]) state.lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0 };
                 state.lancamentos[dia][opId].ha += ha;
                 state.lancamentos[dia][opId].valor += valorTotal;
                 state.lancamentos[dia][opId].custo += custo;
@@ -1379,7 +892,6 @@
                 state.lancamentos[dia][opId].maq += maq;
                 state.lancamentos[dia][opId].pipa += pipa;
                 state.lancamentos[dia][opId].apoio += apoio;
-
                 DOM.valorHa.value = '';
                 DOM.valorRha.value = '';
                 DOM.tfQtd.value = '';
@@ -1387,12 +899,10 @@
                 DOM.pipaQtd.value = '';
                 DOM.apoioQtd.value = '';
                 DOM.totalDisplay.textContent = 'R$ 0,00';
-
                 renderizarTudo();
                 var resultado = valorTotal - custo;
                 var sinal = resultado >= 0 ? '+' : '';
-                showToast('✅ ' + ha.toFixed(2) + ' ha × R$ ' + formatMoney(rha) + ' = R$ ' + formatMoney(valorTotal) +
-                    ' | Custo: R$ ' + formatMoney(custo) + ' | ' + sinal + 'R$ ' + formatMoney(resultado));
+                showToast('✅ ' + ha.toFixed(2) + ' ha × R$ ' + formatMoney(rha) + ' = R$ ' + formatMoney(valorTotal) + ' | Custo: R$ ' + formatMoney(custo) + ' | ' + sinal + 'R$ ' + formatMoney(resultado));
                 DOM.btnLancar.disabled = false;
                 DOM.btnLancar.innerHTML = '<i class="fas fa-check"></i> Lançar';
                 state.isSaving = false;
@@ -1408,39 +918,23 @@
         function resetarDia() {
             var dia = state.currentDia;
             if (!temLancamento(dia)) { alert('Nenhum lançamento para este dia.'); return; }
-            if (!confirm('Resetar lançamentos do dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(
-                    function(d) { return d.numero === dia; }).label : dia) + '?')) return;
-
-            db.collection(getPeriodoPath()).collection('lancamentos')
-                .where('dia', '==', dia)
-                .get()
-                .then(function(snapshot) {
-                    var batch = db.batch();
-                    snapshot.forEach(function(doc) { batch.delete(doc.ref); });
-                    return batch.commit();
-                })
-                .then(function() {
-                    delete state.lancamentos[dia];
-                    renderizarTudo();
-                    showToast('🗑️ Dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) {
-                        return d.numero === dia; }).label : dia) + ' resetado');
-                })
-                .catch(function(error) {
-                    console.error('Erro ao resetar dia:', error);
-                    showToast('❌ Erro ao resetar dia', 'error');
-                });
+            if (!confirm('Resetar lançamentos do dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) { return d.numero === dia; }).label : dia) + '?')) return;
+            db.collection(getPeriodoPath()).collection('lancamentos').where('dia', '==', dia).get().then(function(snapshot) {
+                var batch = db.batch();
+                snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+                return batch.commit();
+            }).then(function() {
+                delete state.lancamentos[dia];
+                renderizarTudo();
+                showToast('🗑️ Dia ' + (DIAS.find(function(d) { return d.numero === dia; }) ? DIAS.find(function(d) { return d.numero === dia; }).label : dia) + ' resetado');
+            }).catch(function(error) { console.error('Erro ao resetar dia:', error); showToast('❌ Erro ao resetar dia', 'error'); });
         }
 
         function resetarCompleto() {
             if (!confirm('Resetar TODOS os dados do período atual? Esta ação não pode ser desfeita!')) return;
             if (!confirm('Tem certeza absoluta?')) return;
-
             var periodoPath = getPeriodoPath();
-            var collections = [
-                db.collection(periodoPath).collection('lancamentos'),
-                db.collection(periodoPath).collection('observacoes')
-            ];
-
+            var collections = [db.collection(periodoPath).collection('lancamentos'), db.collection(periodoPath).collection('observacoes')];
             var promises = collections.map(function(collection) {
                 return collection.get().then(function(snapshot) {
                     var batch = db.batch();
@@ -1448,22 +942,14 @@
                     return batch.commit();
                 });
             });
-
             Promise.all(promises).then(function() {
                 state.lancamentos = {};
                 state.observacoes = {};
                 state.currentDia = 1;
                 renderizarTudo();
                 showToast('🔄 Todos os dados do período foram resetados');
-            }).catch(function(error) {
-                console.error('Erro ao resetar:', error);
-                showToast('Erro ao resetar dados', 'error');
-            });
+            }).catch(function(error) { console.error('Erro ao resetar:', error); showToast('Erro ao resetar dados', 'error'); });
         }
-
-        // ============================================================
-        // CONFIGURAÇÃO DE CUSTOS
-        // ============================================================
 
         function abrirConfig() {
             $('custo_TF').value = state.custos.TF;
@@ -1473,94 +959,47 @@
             DOM.configModal.classList.add('active');
         }
 
-        function fecharConfig() {
-            DOM.configModal.classList.remove('active');
-        }
+        function fecharConfig() { DOM.configModal.classList.remove('active'); }
 
         function salvarConfig() {
-            var custos = {
-                TF: parseFloat($('custo_TF').value) || 0,
-                MAQ: parseFloat($('custo_MAQ').value) || 0,
-                PIPA: parseFloat($('custo_PIPA').value) || 0,
-                APOIO: parseFloat($('custo_APOIO').value) || 0
-            };
-
-            if (custos.TF <= 0 || custos.MAQ <= 0 || custos.PIPA <= 0 || custos.APOIO <= 0) {
-                showToast('⚠️ Todos os custos devem ser maiores que zero!', 'warning');
-                return;
-            }
-
+            var custos = { TF: parseFloat($('custo_TF').value) || 0, MAQ: parseFloat($('custo_MAQ').value) || 0, PIPA: parseFloat($('custo_PIPA').value) || 0, APOIO: parseFloat($('custo_APOIO').value) || 0 };
+            if (custos.TF <= 0 || custos.MAQ <= 0 || custos.PIPA <= 0 || custos.APOIO <= 0) { showToast('⚠️ Todos os custos devem ser maiores que zero!', 'warning'); return; }
             state.custos = custos;
             salvarCustos(custos).then(function() {
                 fecharConfig();
                 showToast('✅ Custos atualizados com sucesso!', 'success');
                 renderizarTudo();
-            }).catch(function(error) {
-                console.error('Erro ao salvar custos:', error);
-                showToast('❌ Erro ao salvar custos', 'error');
-            });
+            }).catch(function(error) { console.error('Erro ao salvar custos:', error); showToast('❌ Erro ao salvar custos', 'error'); });
         }
-
-        // ============================================================
-        // EDIÇÃO COMPLETA - FUNÇÃO GLOBAL
-        // ============================================================
 
         window.editarValor = function(opId) {
             var dia = state.currentDia;
             var lanc = state.lancamentos[dia] ? state.lancamentos[dia][opId] : null;
-
-            if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) {
-                showToast('⚠️ Não há lançamento para esta operação no dia atual.', 'warning');
-                return;
-            }
-
-            db.collection(getPeriodoPath()).collection('lancamentos')
-                .where('dia', '==', dia)
-                .where('opId', '==', opId)
-                .get()
-                .then(function(snapshot) {
-                    if (snapshot.empty) {
-                        showToast('⚠️ Lançamento não encontrado no Firebase.', 'warning');
-                        return;
-                    }
-                    var doc = snapshot.docs[0];
-                    editTarget = { docId: doc.id, dia: dia, opId: opId };
-
-                    var opNome = state.operacoes.find(function(o) { return o.id === opId; });
-                    var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
-
-                    Modals.editInfo.textContent = '📅 Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | 📋 Operação: ' + (opNome ?
-                        opNome.nome : opId);
-
-                    Modals.editHa.value = lanc.ha || 0;
-                    Modals.editRha.value = lanc.valor / lanc.ha || 0;
-                    Modals.editTF.value = lanc.tf || 0;
-                    Modals.editMAQ.value = lanc.maq || 0;
-                    Modals.editPIPA.value = lanc.pipa || 0;
-                    Modals.editAPOIO.value = lanc.apoio || 0;
-                    Modals.editValor.value = lanc.valor || 0;
-
-                    atualizarPreviewEdicao();
-
-                    Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' +
-                        formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) +
-                        ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) +
-                        ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
-
-                    Modals.edit.classList.add('active');
-
-                    Modals.editHa.oninput = atualizarPreviewEdicao;
-                    Modals.editRha.oninput = atualizarPreviewEdicao;
-                    Modals.editTF.oninput = atualizarPreviewEdicao;
-                    Modals.editMAQ.oninput = atualizarPreviewEdicao;
-                    Modals.editPIPA.oninput = atualizarPreviewEdicao;
-                    Modals.editAPOIO.oninput = atualizarPreviewEdicao;
-
-                })
-                .catch(function(error) {
-                    console.error('Erro ao editar:', error);
-                    showToast('❌ Erro ao carregar edição', 'error');
-                });
+            if (!lanc || (lanc.ha === 0 && lanc.valor === 0)) { showToast('⚠️ Não há lançamento para esta operação no dia atual.', 'warning'); return; }
+            db.collection(getPeriodoPath()).collection('lancamentos').where('dia', '==', dia).where('opId', '==', opId).get().then(function(snapshot) {
+                if (snapshot.empty) { showToast('⚠️ Lançamento não encontrado no Firebase.', 'warning'); return; }
+                var doc = snapshot.docs[0];
+                editTarget = { docId: doc.id, dia: dia, opId: opId };
+                var opNome = state.operacoes.find(function(o) { return o.id === opId; });
+                var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
+                Modals.editInfo.textContent = '📅 Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | 📋 Operação: ' + (opNome ? opNome.nome : opId);
+                Modals.editHa.value = lanc.ha || 0;
+                Modals.editRha.value = lanc.valor / lanc.ha || 0;
+                Modals.editTF.value = lanc.tf || 0;
+                Modals.editMAQ.value = lanc.maq || 0;
+                Modals.editPIPA.value = lanc.pipa || 0;
+                Modals.editAPOIO.value = lanc.apoio || 0;
+                Modals.editValor.value = lanc.valor || 0;
+                atualizarPreviewEdicao();
+                Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' + formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) + ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) + ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
+                Modals.edit.classList.add('active');
+                Modals.editHa.oninput = atualizarPreviewEdicao;
+                Modals.editRha.oninput = atualizarPreviewEdicao;
+                Modals.editTF.oninput = atualizarPreviewEdicao;
+                Modals.editMAQ.oninput = atualizarPreviewEdicao;
+                Modals.editPIPA.oninput = atualizarPreviewEdicao;
+                Modals.editAPOIO.oninput = atualizarPreviewEdicao;
+            }).catch(function(error) { console.error('Erro ao editar:', error); showToast('❌ Erro ao carregar edição', 'error'); });
         };
 
         function salvarEdicao() {
@@ -1568,7 +1007,6 @@
             var docId = editTarget.docId;
             var dia = editTarget.dia;
             var opId = editTarget.opId;
-
             var ha = parseFloat(Modals.editHa.value) || 0;
             var rha = parseFloat(Modals.editRha.value) || 0;
             var tf = parseInt(Modals.editTF.value) || 0;
@@ -1576,51 +1014,27 @@
             var pipa = parseInt(Modals.editPIPA.value) || 0;
             var apoio = parseInt(Modals.editAPOIO.value) || 0;
             var valor = parseFloat(Modals.editValor.value) || 0;
-
-            if (ha > 0 && rha > 0 && valor === 0) {
-                valor = ha * rha;
-            }
-
-            if (ha < 0 || rha < 0 || valor < 0 || tf < 0 || maq < 0 || pipa < 0 || apoio < 0) {
-                alert('Valores não podem ser negativos.');
-                return;
-            }
-
+            if (ha > 0 && rha > 0 && valor === 0) { valor = ha * rha; }
+            if (ha < 0 || rha < 0 || valor < 0 || tf < 0 || maq < 0 || pipa < 0 || apoio < 0) { alert('Valores não podem ser negativos.'); return; }
             var custo = getCustoRecursos(tf, maq, pipa, apoio);
-
-            if (valor === 0 && ha > 0 && rha > 0) {
-                valor = ha * rha;
-            }
-
+            if (valor === 0 && ha > 0 && rha > 0) { valor = ha * rha; }
             if (ha === 0 && valor === 0) {
                 deletarLancamento(docId).then(function() {
-                    if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                        delete state.lancamentos[dia][opId];
-                        if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-                    }
+                    if (state.lancamentos[dia] && state.lancamentos[dia][opId]) { delete state.lancamentos[dia][opId]; if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia]; }
                     fecharModal();
                     renderizarTudo();
                     showToast('🗑️ Lançamento excluído');
-                }).catch(function(error) {
-                    console.error('Erro ao excluir:', error);
-                    showToast('❌ Erro ao excluir', 'error');
-                });
+                }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir', 'error'); });
             } else {
                 atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo).then(function() {
                     if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-                    state.lancamentos[dia][opId] = { ha: ha, valor: valor, custo: custo, tf: tf, maq: maq,
-                        pipa: pipa, apoio: apoio };
+                    state.lancamentos[dia][opId] = { ha: ha, valor: valor, custo: custo, tf: tf, maq: maq, pipa: pipa, apoio: apoio };
                     fecharModal();
                     renderizarTudo();
                     var resultado = valor - custo;
                     var sinal = resultado >= 0 ? '+' : '';
-                    showToast('💾 Atualizado: ' + ha.toFixed(2) + ' ha | R$ ' + formatMoney(valor) +
-                        ' | Custo: R$ ' + formatMoney(custo) +
-                        ' | ' + sinal + 'R$ ' + formatMoney(resultado));
-                }).catch(function(error) {
-                    console.error('Erro ao atualizar:', error);
-                    showToast('❌ Erro ao atualizar', 'error');
-                });
+                    showToast('💾 Atualizado: ' + ha.toFixed(2) + ' ha | R$ ' + formatMoney(valor) + ' | Custo: R$ ' + formatMoney(custo) + ' | ' + sinal + 'R$ ' + formatMoney(resultado));
+                }).catch(function(error) { console.error('Erro ao atualizar:', error); showToast('❌ Erro ao atualizar', 'error'); });
             }
         }
 
@@ -1629,43 +1043,22 @@
             var docId = editTarget.docId;
             var dia = editTarget.dia;
             var opId = editTarget.opId;
-
             deletarLancamento(docId).then(function() {
-                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) {
-                    delete state.lancamentos[dia][opId];
-                    if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia];
-                }
+                if (state.lancamentos[dia] && state.lancamentos[dia][opId]) { delete state.lancamentos[dia][opId]; if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia]; }
                 fecharModal();
                 renderizarTudo();
                 showToast('🗑️ Lançamento excluído');
-            }).catch(function(error) {
-                console.error('Erro ao excluir:', error);
-                showToast('❌ Erro ao excluir', 'error');
-            });
+            }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir', 'error'); });
         }
 
-        function fecharModal() {
-            Modals.edit.classList.remove('active');
-            Modals.extra.classList.remove('active');
-            editTarget = null;
-        }
-
-        // ============================================================
-        // OBSERVAÇÕES
-        // ============================================================
+        function fecharModal() { Modals.edit.classList.remove('active'); Modals.extra.classList.remove('active'); editTarget = null; }
 
         function salvarObservacao() {
             var texto = DOM.obsInput.value.trim();
             var dia = state.currentDia;
             if (texto) {
                 state.observacoes[dia] = texto;
-                salvarObservacao(dia, texto).then(function() {
-                    renderizarDias();
-                    showToast('📝 Observação salva');
-                }).catch(function(error) {
-                    console.error('Erro ao salvar observação:', error);
-                    showToast('❌ Erro ao salvar observação', 'error');
-                });
+                salvarObservacao(dia, texto).then(function() { renderizarDias(); showToast('📝 Observação salva'); }).catch(function(error) { console.error('Erro ao salvar observação:', error); showToast('❌ Erro ao salvar observação', 'error'); });
             } else {
                 delete state.observacoes[dia];
                 db.collection(getPeriodoPath()).collection('observacoes').doc(String(dia)).delete().catch(function() {});
@@ -1674,46 +1067,22 @@
             }
         }
 
-        // ============================================================
-        // EXTRA MODAL
-        // ============================================================
-
-        function abrirExtraModal() {
-            Modals.extraNome.value = '';
-            Modals.extraArea.value = '';
-            Modals.extraValor.value = '';
-            Modals.extra.classList.add('active');
-        }
+        function abrirExtraModal() { Modals.extraNome.value = ''; Modals.extraArea.value = ''; Modals.extraValor.value = ''; Modals.extra.classList.add('active'); }
 
         function criarExtra() {
             var nome = Modals.extraNome.value.trim();
             if (!nome) { alert('Digite um nome para a operação.'); return; }
-
             var area = parseFloat(Modals.extraArea.value.replace(',', '.')) || 0;
             var valor = parseFloat(Modals.extraValor.value.replace(',', '.')) || 0;
-
-            if (area === 0 && valor === 0) {
-                if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return;
-            }
-
+            if (area === 0 && valor === 0) { if (!confirm('Área e valor estão em branco. Criar mesmo assim?')) return; }
             state.extraCounter++;
             var id = 'extra_' + state.extraCounter + '_' + Date.now();
-            state.operacoes.push({
-                id: id,
-                nome: nome,
-                projetado: valor || 0,
-                areaProjetada: area || 0,
-                extra: true
-            });
-
+            state.operacoes.push({ id: id, nome: nome, projetado: valor || 0, areaProjetada: area || 0, extra: true });
             salvarOperacoes().then(function() {
                 fecharModal();
                 renderizarTudo();
                 showToast('✅ Operação extra "' + nome + '" criada!');
-            }).catch(function(error) {
-                console.error('Erro ao criar operação extra:', error);
-                showToast('❌ Erro ao criar operação extra', 'error');
-            });
+            }).catch(function(error) { console.error('Erro ao criar operação extra:', error); showToast('❌ Erro ao criar operação extra', 'error'); });
         }
 
         function removerExtra(id) {
@@ -1721,33 +1090,13 @@
             if (!op) return;
             if (!confirm('Remover operação extra "' + op.nome + '"?')) return;
             state.operacoes = state.operacoes.filter(function(o) { return o.id !== id; });
-            salvarOperacoes().then(function() {
-                renderizarTudo();
-                showToast('🗑️ Operação extra removida');
-            }).catch(function(error) {
-                console.error('Erro ao remover operação extra:', error);
-                showToast('❌ Erro ao remover operação extra', 'error');
-            });
+            salvarOperacoes().then(function() { renderizarTudo(); showToast('🗑️ Operação extra removida'); }).catch(function(error) { console.error('Erro ao remover operação extra:', error); showToast('❌ Erro ao remover operação extra', 'error'); });
         }
 
-        // ============================================================
-        // EVENTOS
-        // ============================================================
-
         function setupEvents() {
-            document.getElementById('btnPeriodoAnterior').addEventListener('click', function() {
-                navegarPeriodo(-1);
-            });
-            document.getElementById('btnPeriodoProximo').addEventListener('click', function() {
-                navegarPeriodo(1);
-            });
-            document.getElementById('periodoSelector').addEventListener('change', function() {
-                var parts = this.value.split('_');
-                if (parts.length === 2) {
-                    irParaPeriodo(parseInt(parts[0]), parseInt(parts[1]) - 1);
-                }
-            });
-
+            document.getElementById('btnPeriodoAnterior').addEventListener('click', function() { navegarPeriodo(-1); });
+            document.getElementById('btnPeriodoProximo').addEventListener('click', function() { navegarPeriodo(1); });
+            document.getElementById('periodoSelector').addEventListener('change', function() { var parts = this.value.split('_'); if (parts.length === 2) { irParaPeriodo(parseInt(parts[0]), parseInt(parts[1]) - 1); } });
             DOM.valorHa.addEventListener('input', calcularTotal);
             DOM.valorRha.addEventListener('input', calcularTotal);
             DOM.btnLancar.addEventListener('click', lancarValor);
@@ -1757,27 +1106,18 @@
             DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
             DOM.obsInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') salvarObservacao(); });
             DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
-            DOM.btnSync.addEventListener('click', function() {
-                carregarDoFirebase();
-                showToast('🔄 Dados sincronizados!', 'success');
-            });
-
+            DOM.btnSync.addEventListener('click', function() { carregarDoFirebase(); showToast('🔄 Dados sincronizados!', 'success'); });
             DOM.btnConfig.addEventListener('click', abrirConfig);
             DOM.btnSalvarConfig.addEventListener('click', salvarConfig);
             DOM.btnFecharConfig.addEventListener('click', fecharConfig);
-            DOM.configModal.addEventListener('click', function(e) {
-                if (e.target === DOM.configModal) fecharConfig();
-            });
-
+            DOM.configModal.addEventListener('click', function(e) { if (e.target === DOM.configModal) fecharConfig(); });
             Modals.btnCriarExtra.addEventListener('click', criarExtra);
             Modals.btnCancelarExtra.addEventListener('click', fecharModal);
             Modals.extra.addEventListener('click', function(e) { if (e.target === Modals.extra) fecharModal(); });
-
             Modals.editSalvar.addEventListener('click', salvarEdicao);
             Modals.editCancelar.addEventListener('click', fecharModal);
             Modals.editExcluir.addEventListener('click', excluirEdicao);
             Modals.edit.addEventListener('click', function(e) { if (e.target === Modals.edit) fecharModal(); });
-
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') fecharModal();
                 if (e.key === 'Enter' && Modals.edit.classList.contains('active')) salvarEdicao();
@@ -1785,23 +1125,15 @@
             });
         }
 
-        // ============================================================
-        // GLOBAIS
-        // ============================================================
         window.editarValor = editarValor;
         window.excluirLancamento = excluirLancamento;
         window.removerExtra = removerExtra;
 
-        // ============================================================
-        // INIT
-        // ============================================================
         function init() {
             console.log('🚀 LB FLORESTAL iniciando...');
-            
             DIAS = gerarDiasDoPeriodo(2026, 6);
             document.getElementById('periodoDisplay').textContent = getPeriodoLabel(2026, 6);
             atualizarPeriodoSelector();
-            
             carregarDoFirebase();
             setupEvents();
             console.log('✅ LB FLORESTAL iniciado com sucesso!');
