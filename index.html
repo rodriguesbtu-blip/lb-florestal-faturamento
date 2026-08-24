@@ -290,20 +290,20 @@ function getPeriodoLabel(year, month) {
 }
 
 // ============================================================
-// FUNÇÃO CORRIGIDA - ESSA ERA O PROBLEMA!
+// FUNÇÕES CORRIGIDAS - ESSA ERA O PROBLEMA!
 // ============================================================
-function getPeriodoPath() {
-    var periodo = periodState.currentYear + '_' + String(periodState.currentMonth + 1).padStart(2, '0');
-    return 'periodos/' + periodo + '/lancamentos';
+function getPeriodoKey() {
+    var ano = periodState.currentYear.toString();
+    var mes = String(periodState.currentMonth + 1).padStart(2, '0');
+    return ano + '_' + mes;
 }
 
-function getPeriodoKey() {
-    return periodState.currentYear + '_' + String(periodState.currentMonth + 1).padStart(2, '0');
+function getPeriodoPath() {
+    return 'periodos/' + getPeriodoKey() + '/lancamentos';
 }
 
 function getObservacoesPath() {
-    var periodo = periodState.currentYear + '_' + String(periodState.currentMonth + 1).padStart(2, '0');
-    return 'periodos/' + periodo + '/observacoes';
+    return 'periodos/' + getPeriodoKey() + '/observacoes';
 }
 
 function gerarPeriodosDisponiveis() {
