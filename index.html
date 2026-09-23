@@ -164,7 +164,7 @@
 <div class="header-controls">
 <div class="periodo-control">
 <button class="btn-periodo" id="btnPeriodoAnterior"><i class="fas fa-chevron-left"></i></button>
-<span class="badge-periodo" id="periodoDisplay">📅 21/07 a 20/08/2026</span>
+<span class="badge-periodo" id="periodoDisplay">📅 Carregando...</span>
 <button class="btn-periodo" id="btnPeriodoProximo"><i class="fas fa-chevron-right"></i></button>
 </div>
 <div class="periodo-selector-wrap"><select id="periodoSelector"><option value="">Carregando...</option></select></div>
@@ -255,9 +255,36 @@ var OPERACOES_BASE = [
 var CUSTOS_PADRAO = { TF: 503.00, MAQ: 2300.00, PIPA: 2500.00, APOIO: 2200.00 };
 
 // ============================================================
-// GERENCIAMENTO DE PERÍODOS - CORRIGIDO!
+// GERENCIAMENTO DE PERÍODOS (21 de um mês a 20 do mês seguinte)
 // ============================================================
-var periodState = { currentYear: 2026, currentMonth: 7, startDay: 21, endDay: 20 };
+
+// Descobre em qual período uma data cai.
+// Ex: 23/09 -> período que começa em 21/09 | 10/09 -> período que começa em 21/08
+function getPeriodoDaData(data) {
+    var ano = data.getFullYear();
+    var mes = data.getMonth();
+    if (data.getDate() < 21) {
+        mes--;
+        if (mes < 0) { mes = 11; ano--; }
+    }
+    return { year: ano, month: mes };
+}
+
+function isPeriodoAtual(year, month) {
+    var p = getPeriodoDaData(new Date());
+    return p.year === year && p.month === month;
+}
+
+// Número do dia de hoje dentro do período (dia 21 = 1)
+function getDiaHojeNoPeriodo(year, month) {
+    var inicio = new Date(year, month, 21);
+    var hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    return Math.round((hoje - inicio) / 86400000) + 1;
+}
+
+var periodoHoje = getPeriodoDaData(new Date());
+var periodState = { currentYear: periodoHoje.year, currentMonth: periodoHoje.month, startDay: 21, endDay: 20 };
 var DIAS = [];
 
 function gerarDiasDoPeriodo(year, month) {
@@ -289,9 +316,6 @@ function getPeriodoLabel(year, month) {
     return '📅 21/' + mesAtual + ' a 20/' + mesProximo + '/' + anoProximo;
 }
 
-// ============================================================
-// FUNÇÕES CORRIGIDAS - ESSA ERA O PROBLEMA!
-// ============================================================
 function getPeriodoKey() {
     var ano = periodState.currentYear.toString();
     var mes = String(periodState.currentMonth + 1).padStart(2, '0');
@@ -308,13 +332,10 @@ function getObservacoesPath() {
 
 function gerarPeriodosDisponiveis() {
     var periodos = [];
-    var anoAtual = new Date().getFullYear();
-    var mesAtual = new Date().getMonth();
+    var atual = getPeriodoDaData(new Date());
     for (var i = -24; i <= 24; i++) {
-        var mes = mesAtual + i;
-        var ano = anoAtual;
-        if (mes > 11) { mes = mes - 12; ano = anoAtual + Math.floor((mesAtual + i) / 12); } else if (mes < 0) { mes = mes + 12; ano = anoAtual - Math.floor(Math.abs(mesAtual + i) / 12) - 1; }
-        if (mes >= 0 && mes <= 11) { periodos.push({ year: ano, month: mes }); }
+        var d = new Date(atual.year, atual.month + i, 1);
+        periodos.push({ year: d.getFullYear(), month: d.getMonth() });
     }
     return periodos;
 }
@@ -341,7 +362,8 @@ function irParaPeriodo(year, month) {
     DIAS = gerarDiasDoPeriodo(year, month);
     document.getElementById('periodoDisplay').textContent = getPeriodoLabel(year, month);
     atualizarPeriodoSelector();
-    state.currentDia = 1;
+    // Se for o período atual, já seleciona o dia de hoje
+    state.currentDia = isPeriodoAtual(year, month) ? getDiaHojeNoPeriodo(year, month) : 1;
     carregarDoFirebase();
 }
 
@@ -469,7 +491,7 @@ function atualizarStatusFirebase(connected) {
 function calcularTotal() { var ha = parseFloat(DOM.valorHa.value) || 0; var rha = parseFloat(DOM.valorRha.value) || 0; var total = ha * rha; DOM.totalDisplay.textContent = 'R$ ' + formatMoney(total); return total; }
 
 // ============================================================
-// FIREBASE CRUD COM PERÍODO - CORRIGIDO!
+// FIREBASE CRUD COM PERÍODO
 // ============================================================
 function salvarOperacoes() {
     var batch = db.batch();
@@ -513,7 +535,7 @@ function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, 
     return ref.update({ ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, custo: custo || 0, dia: dia, opId: opId });
 }
 
-function salvarObservacao(dia, texto) { var ref = db.collection(getObservacoesPath()).doc(String(dia)); return ref.set({ texto: texto }); }
+function salvarObservacaoFirebase(dia, texto) { var ref = db.collection(getObservacoesPath()).doc(String(dia)); return ref.set({ texto: texto }); }
 
 function salvarConfiguracoes() {
     var ref = db.collection('config').doc('app');
@@ -521,7 +543,7 @@ function salvarConfiguracoes() {
 }
 
 // ============================================================
-// CARREGAR DO FIREBASE - CORRIGIDO!
+// CARREGAR DO FIREBASE
 // ============================================================
 function carregarDoFirebase() {
     if (state.isLoading) return;
@@ -568,7 +590,8 @@ function carregarDoFirebase() {
         state.observacoes = observacoes;
         return db.collection('config').doc('app').get();
     }).then(function(configDoc) {
-        if (configDoc.exists) { var data = configDoc.data(); state.currentDia = data.currentDia || 1; state.extraCounter = data.extraCounter || 0; }
+        // O dia selecionado NÃO vem mais do banco (ele definido pela data de hoje)
+        if (configDoc.exists) { state.extraCounter = configDoc.data().extraCounter || 0; }
         state.isLoaded = true;
         state.isLoading = false;
         atualizarStatusFirebase(true);
@@ -793,7 +816,7 @@ function renderizarTudo() {
 }
 
 // ============================================================
-// FUNÇÃO LANÇAR VALOR CORRIGIDA
+// LANÇAR VALOR
 // ============================================================
 function lancarValor() {
     if (state.isSaving) {
@@ -926,7 +949,7 @@ function resetarCompleto() {
     Promise.all(promises).then(function() {
         state.lancamentos = {};
         state.observacoes = {};
-        state.currentDia = 1;
+        state.currentDia = isPeriodoAtual(periodState.currentYear, periodState.currentMonth) ? getDiaHojeNoPeriodo(periodState.currentYear, periodState.currentMonth) : 1;
         renderizarTudo();
         showToast('🔄 Todos os dados do período foram resetados');
     }).catch(function(error) { console.error('Erro ao resetar:', error); showToast('Erro ao resetar dados', 'error'); });
@@ -1055,7 +1078,7 @@ function salvarObservacao() {
     var dia = state.currentDia;
     if (texto) {
         state.observacoes[dia] = texto;
-        salvarObservacao(dia, texto).then(function() { renderizarDias(); showToast('📝 Observação salva'); }).catch(function(error) { console.error('Erro ao salvar observação:', error); showToast('❌ Erro ao salvar observação', 'error'); });
+        salvarObservacaoFirebase(dia, texto).then(function() { renderizarDias(); showToast('📝 Observação salva'); }).catch(function(error) { console.error('Erro ao salvar observação:', error); showToast('❌ Erro ao salvar observação', 'error'); });
     } else {
         delete state.observacoes[dia];
         db.collection(getObservacoesPath()).doc(String(dia)).delete().catch(function() {});
@@ -1125,20 +1148,39 @@ function setupEvents() {
     });
 }
 
-window.editarValor = editarValor;
-window.excluirLancamento = excluirLancamento;
 window.removerExtra = removerExtra;
+
+// ============================================================
+// VIRADA AUTOMÁTICA DE PERÍODO
+// ============================================================
+function verificarViradaPeriodo() {
+    var atual = getPeriodoDaData(new Date());
+    if (atual.year === periodoHoje.year && atual.month === periodoHoje.month) return;
+    // Só vira sozinho se você estava olhando o período que acabou
+    var estavaNoAntigo = periodState.currentYear === periodoHoje.year && periodState.currentMonth === periodoHoje.month;
+    periodoHoje = atual;
+    if (estavaNoAntigo) {
+        irParaPeriodo(atual.year, atual.month);
+        showToast('📅 Novo período de faturamento iniciado!', 'info');
+    }
+}
 
 // ============================================================
 // INIT
 // ============================================================
 function init() {
     console.log('🚀 LB FLORESTAL iniciando...');
-    DIAS = gerarDiasDoPeriodo(2026, 7);
-    document.getElementById('periodoDisplay').textContent = getPeriodoLabel(2026, 7);
+    var p = getPeriodoDaData(new Date());
+    periodState.currentYear = p.year;
+    periodState.currentMonth = p.month;
+    DIAS = gerarDiasDoPeriodo(p.year, p.month);
+    document.getElementById('periodoDisplay').textContent = getPeriodoLabel(p.year, p.month);
     atualizarPeriodoSelector();
+    state.currentDia = getDiaHojeNoPeriodo(p.year, p.month);
     carregarDoFirebase();
     setupEvents();
+    setInterval(verificarViradaPeriodo, 60000); // checa a cada minuto
+    document.addEventListener('visibilitychange', function() { if (!document.hidden) verificarViradaPeriodo(); });
     console.log('✅ LB FLORESTAL iniciado com sucesso!');
 }
 
