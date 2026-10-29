@@ -153,6 +153,22 @@
         .edit-btn:hover{background:#bfdbfe}
         .resultado-positivo{color:#16a34a}
         .resultado-negativo{color:#dc3545}
+        .modal-custom .modal-content.wide{max-width:780px;max-height:90vh;overflow-y:auto}
+        .metas-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+        .metas-table th{position:static;background:#f1f4f8;padding:6px;font-size:10px}
+        .metas-table td{padding:4px 6px}
+        .metas-table input{width:100%;padding:4px 6px;border:1px solid #d1d9e6;border-radius:6px;font-size:12px;text-align:right;margin:0}
+        .metas-table .m-valor{font-weight:700;text-align:right;white-space:nowrap}
+        .metas-table tfoot td{font-weight:700;border-top:2px solid #cbd5e1;padding-top:8px}
+        .tag-status{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+        .tag-status.ok{background:#dcfce7;color:#166534}
+        .tag-status.atras{background:#fee2e2;color:#991b1b}
+        .tag-status.neutro{background:#f1f4f8;color:#64748b}
+        .meta-aviso{font-size:12px;padding:8px 12px;border-radius:8px;background:#fef3c7;color:#92400e;margin-bottom:10px;border:1px solid #fde68a}
+        .meta-aviso.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+        .progress-fill.extra{background:#8b5cf6}
+        .table-wrap{overflow-x:auto}
+        .card-dash .sub-valor{font-size:11px;font-weight:500;color:#64748b;margin-top:2px}
         .header-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
         @media(max-width:768px){.header-controls{justify-content:center;width:100%}}
     </style>
@@ -169,17 +185,21 @@
 </div>
 <div class="periodo-selector-wrap"><select id="periodoSelector"><option value="">Carregando...</option></select></div>
 <div class="status-indicator"><span class="dot online" id="statusDot"></span><span id="statusText">Conectado</span></div>
+<button class="btn-config" id="btnMetas"><i class="fas fa-bullseye"></i> Metas</button>
 <button class="btn-config" id="btnConfig"><i class="fas fa-cog"></i> Custos</button>
+<button class="btn-config" id="btnBackup" title="Baixar todos os lançamentos em planilha"><i class="fas fa-download"></i> Backup</button>
 <button class="btn btn-sm btn-outline-secondary" id="btnSync"><i class="fas fa-sync"></i></button>
 </div>
 </div>
 <div class="cards">
 <div class="card-dash"><div class="label">📅 Dia atual</div><div class="value" id="diaAtualDisplay">-</div></div>
-<div class="card-dash"><div class="label">🎯 Meta</div><div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div></div>
-<div class="card-dash highlight"><div class="label">✅ Receita</div><div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div></div>
+<div class="card-dash"><div class="label">🎯 Meta da RF</div><div class="value"><span class="currency">R$</span> <span id="metaPeriodo">0</span></div><div class="sub-valor" id="metaPeriodoSub"></div></div>
+<div class="card-dash highlight"><div class="label">✅ Receita da RF</div><div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div><div class="sub-valor" id="realizadoTotalSub" style="color:#94a3b8;"></div></div>
+<div class="card-dash"><div class="label">📆 Meta do dia</div><div class="value" id="metaDiaCard">-</div><div class="sub-valor" id="metaDiaCardSub"></div></div>
+<div class="card-dash"><div class="label">⏱️ Ritmo da RF</div><div class="value" id="ritmoCard">-</div><div class="sub-valor" id="ritmoCardSub"></div></div>
 <div class="card-dash"><div class="label">💰 Resultado</div><div class="value" id="resultadoTotal"><span class="currency">R$</span> 0</div></div>
 <div class="card-dash"><div class="label">📊 % Margem</div><div class="value" id="margemTotal">0%</div></div>
-<div class="card-dash"><div class="label">🌾 Área total</div><div class="value" id="areaRealizada">0 <span class="unit">ha</span></div></div>
+<div class="card-dash"><div class="label">🌾 Área total</div><div class="value" id="areaRealizada">0 <span class="unit">ha</span></div><div class="sub-valor" id="areaRealizadaSub"></div></div>
 </div>
 <div class="panel">
 <div class="dias-navegacao" id="diasContainer"></div>
@@ -207,15 +227,20 @@
 </div>
 <div class="resumo-dia" id="resumoDia">
 <div class="resumo-header"><h3><i class="fas fa-calendar-day"></i> Resumo do Dia <span id="resumoDiaData" style="font-weight:400;font-size:14px;color:#64748b;">-</span></h3><div class="totais-dia"><span class="rec">💰 Receita: R$ <span id="resumoDiaReceita">0,00</span></span><span class="cus">📉 Custo: R$ <span id="resumoDiaCusto">0,00</span></span><span class="res" id="resumoDiaResultado">📊 Resultado: R$ 0,00</span></div></div>
-<div class="table-wrap"><table><thead><tr><th>Data</th><th>Operação</th><th class="text-right">Produção</th><th class="text-right">Receita</th><th class="text-right">TF</th><th class="text-right">Máquina</th><th class="text-right">Pipa</th><th class="text-right">Apoio</th><th class="text-right">Custo</th><th class="text-right">Resultado</th><th class="text-right">Margem %</th><th>Obs</th><th class="text-center">Ação</th></tr></thead><tbody id="resumoDiaBody"><tr><td colspan="13" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Operação</th><th class="text-right">Produção</th><th class="text-right">Receita</th><th class="text-right">Meta dia</th><th class="text-right">% Meta</th><th class="text-right">TF</th><th class="text-right">Máquina</th><th class="text-right">Pipa</th><th class="text-right">Apoio</th><th class="text-right">Custo</th><th class="text-right">Resultado</th><th class="text-right">Margem %</th><th>Obs</th><th class="text-center">Ação</th></tr></thead><tbody id="resumoDiaBody"><tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr></tbody></table></div>
 </div>
-<div class="panel"><div class="panel-header"><h2><i class="fas fa-list"></i> Operações <span class="sub">projetado vs realizado</span></h2><button class="btn btn-sm btn-primary" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button></div><div class="table-wrap"><table><thead><tr><th>Operação</th><th class="num">Projetado</th><th class="num">Receita</th><th class="num">Custo</th><th class="num">Resultado</th><th class="num">Margem</th><th class="num">%</th><th class="num">Ação</th></tr></thead><tbody id="tbodyOperacoes"><tr><td colspan="8" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-header"><h2><i class="fas fa-list"></i> Operações <span class="sub">meta da RF vs realizado</span></h2><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-outline-secondary" id="btnAbrirMetas2"><i class="fas fa-bullseye"></i> Metas</button><button class="btn btn-sm btn-primary" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button></div></div><div id="avisoMetas"></div><div class="table-wrap"><table><thead><tr><th>Operação</th><th class="num">Meta ha</th><th class="num">Real. ha</th><th class="num">Meta R$</th><th class="num">Receita</th><th class="num">Custo</th><th class="num">Resultado</th><th class="num">Margem</th><th class="num">% Meta</th><th class="num">Ritmo</th><th class="num">Ação</th></tr></thead><tbody id="tbodyOperacoes"><tr><td colspan="11" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody></table></div><div style="font-size:11px;color:#64748b;margin-top:6px;">⏱️ <b>Ritmo</b>: quanto a operação está acima (▲) ou abaixo (▼) do que já deveria ter sido faturado até hoje, considerando a meta dividida pelos dias da RF.</div></div>
 <div class="panel"><div class="panel-header"><h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2></div><div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div></div>
 <div class="footer"><span><i class="fas fa-database"></i> Dados salvos no Firebase</span><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><div class="sync-status"><span class="dot synced" id="syncDot"></span><span id="syncStatusText">Sincronizado</span></div><span id="lastUpdate">Atualizado agora</span><button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar Período</button></div></div>
 </div>
 <div class="modal-custom" id="configModal"><div class="modal-content"><h3><i class="fas fa-cog"></i> Configuração de Custos</h3><div class="sub">Edite os valores dos recursos por dia</div><div class="config-item"><span class="config-label">👨‍🌾 TF (Trabalhador Rural)</span><span class="config-symbol">R$</span><input type="number" id="custo_TF" step="0.01" value="503.00"></div><div class="config-item"><span class="config-label">🚜 Máquina</span><span class="config-symbol">R$</span><input type="number" id="custo_MAQ" step="0.01" value="2300.00"></div><div class="config-item"><span class="config-label">🚛 Caminhão Pipa</span><span class="config-symbol">R$</span><input type="number" id="custo_PIPA" step="0.01" value="2500.00"></div><div class="config-item"><span class="config-label">🚚 Caminhão Apoio</span><span class="config-symbol">R$</span><input type="number" id="custo_APOIO" step="0.01" value="2200.00"></div><div class="btn-group" style="margin-top:16px;"><button class="btn-primary" id="btnSalvarConfig">💾 Salvar Configurações</button><button class="btn-secondary" id="btnFecharConfig">Fechar</button></div></div></div>
 <div class="modal-custom" id="editModal"><div class="modal-content"><h3>✏️ Editar Lançamento</h3><div class="info-text" id="editInfo">Dia: - | Operação: -</div><div class="row-campos"><div><label>Área (ha):</label><input type="number" id="editHa" step="0.01"></div><div><label>R$/ha:</label><input type="number" id="editRha" step="0.01"></div><div><label>👨‍🌾 TF:</label><input type="number" id="editTF" step="1"></div><div><label>🚜 Máquinas:</label><input type="number" id="editMAQ" step="1"></div><div><label>🚛 Pipa:</label><input type="number" id="editPIPA" step="1"></div><div><label>🚚 Apoio:</label><input type="number" id="editAPOIO" step="1"></div></div><label>Valor Total (R$):</label><input type="number" id="editValor" step="0.01"><div class="resultado-preview" id="editPreview"><span class="rec">Receita: R$ 0,00</span> | <span class="cus">Custo: R$ 0,00</span> | <span class="res">Resultado: R$ 0,00</span> | Margem: 0,0%</div><div class="dados-adicionais" id="editDadosAdicionais"></div><div class="btn-group"><button class="btn-primary" id="editSalvar">💾 Salvar</button><button class="btn-secondary" id="editCancelar">Cancelar</button><button class="btn-danger" id="editExcluir">🗑️ Excluir</button></div></div></div>
 <div class="modal-custom" id="extraModal"><div class="modal-content"><h3>➕ Criar Operação Extra</h3><div class="sub">Para serviços não previstos</div><label>Nome da operação:</label><input type="text" id="extraNome" placeholder="Ex: Adubação Extra..."><label>Área projetada (ha):</label><input type="number" id="extraArea" step="0.01" placeholder="0,00"><label>Valor projetado (R$):</label><input type="number" id="extraValor" step="0.01" placeholder="0,00"><div class="btn-group"><button class="btn-primary" id="btnCriarExtra">✅ Criar</button><button class="btn-secondary" id="btnCancelarExtra">Cancelar</button></div></div></div>
+<div class="modal-custom" id="metasModal"><div class="modal-content wide"><h3>🎯 Metas da RF</h3><div class="sub" id="metasPeriodoLabel">-</div>
+<div class="info-text">Digite a área e o R$/ha previstos de cada operação nesta RF. A meta em R$ é calculada sozinha. Cada RF tem as suas próprias metas, e os lançamentos não são alterados.</div>
+<div class="config-item"><span class="config-label">📆 Dias trabalhados na RF <span style="font-weight:400;font-size:11px;color:#64748b;">(usado para a meta do dia)</span></span><input type="number" id="metaDiasTrab" step="1" min="1"></div>
+<table class="metas-table"><thead><tr><th>Operação</th><th style="width:110px;">Área (ha)</th><th style="width:110px;">R$/ha</th><th style="width:130px;text-align:right;">Meta (R$)</th></tr></thead><tbody id="metasBody"></tbody><tfoot><tr><td>TOTAL</td><td id="metasTotalArea" class="num">0</td><td></td><td id="metasTotalValor" class="num">R$ 0,00</td></tr><tr><td colspan="3" style="font-weight:500;color:#64748b;">Meta por dia trabalhado</td><td id="metasPorDia" class="num">R$ 0,00</td></tr></tfoot></table>
+<div class="btn-group"><button class="btn-primary" id="btnSalvarMetas">💾 Salvar metas</button><button class="btn-secondary" id="btnCopiarMetas">📋 Copiar da RF anterior</button><button class="btn-secondary" id="btnFecharMetas">Fechar</button></div></div></div>
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
@@ -386,7 +411,11 @@ var state = {
     extraCounter: 0,
     isLoaded: false,
     isSaving: false,
-    isLoading: false
+    isLoading: false,
+    recarregarDepois: false,
+    metas: {},
+    metasDiasTrab: null,
+    metasDefinidas: false
 };
 var editTarget = null;
 
@@ -428,9 +457,54 @@ var Modals = {
 // ============================================================
 // HELPERS
 // ============================================================
-function formatMoney(v) { return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function formatMoney(v) { var partes = (v || 0).toFixed(2).split('.'); return partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + partes[1]; }
 
-function getTotalProjetado() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += state.operacoes[i].projetado || 0; } return total; }
+// ---------- METAS ----------
+// Se a RF tem metas próprias salvas, usa elas. Se não tem, usa o projetado padrão da operação.
+function getMetaOp(op) {
+    if (state.metasDefinidas) { var m = state.metas[op.id]; return m ? (m.valor || 0) : 0; }
+    return op.projetado || 0;
+}
+function getMetaAreaOp(op) {
+    if (state.metasDefinidas) { var m = state.metas[op.id]; return m ? (m.area || 0) : 0; }
+    return op.areaProjetada || 0;
+}
+function getDiasTrab() { return state.metasDiasTrab || DIAS.length || 30; }
+function getMetaDiaOp(op) { return getMetaOp(op) / getDiasTrab(); }
+// Quantos dias da RF já passaram (inclui hoje)
+function getDiasDecorridos() {
+    var total = DIAS.length;
+    if (isPeriodoAtual(periodState.currentYear, periodState.currentMonth)) return Math.max(0, Math.min(total, getDiaHojeNoPeriodo(periodState.currentYear, periodState.currentMonth)));
+    var inicio = new Date(periodState.currentYear, periodState.currentMonth, 21);
+    return inicio > new Date() ? 0 : total;
+}
+function getFracaoEsperada() { return DIAS.length ? Math.min(1, getDiasDecorridos() / DIAS.length) : 0; }
+function ritmoHtml(real, esperado, meta) {
+    if (meta <= 0) return '<span class="tag-status neutro">sem meta</span>';
+    if (esperado <= 0) return '<span class="tag-status neutro">não iniciou</span>';
+    var diff = real - esperado;
+    if (diff >= 0) return '<span class="tag-status ok">▲ R$ ' + formatMoney(diff) + '</span>';
+    return '<span class="tag-status atras">▼ R$ ' + formatMoney(-diff) + '</span>';
+}
+function getMetasPath() { return 'periodos/' + getPeriodoKey() + '/config'; }
+function aplicarMetasDoc(doc) {
+    if (doc && doc.exists) {
+        var data = doc.data();
+        state.metas = data.metas || {};
+        state.metasDiasTrab = data.diasTrab || null;
+        state.metasDefinidas = true;
+    } else {
+        state.metas = {};
+        state.metasDiasTrab = null;
+        state.metasDefinidas = false;
+    }
+}
+function salvarMetasFirebase() {
+    return db.collection(getMetasPath()).doc('metas').set({ metas: state.metas, diasTrab: state.metasDiasTrab, atualizadoEm: new Date() });
+}
+
+function getTotalProjetado() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += getMetaOp(state.operacoes[i]); } return total; }
+function getTotalMetaArea() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += getMetaAreaOp(state.operacoes[i]); } return total; }
 
 function getCustoRecursos(tf, maq, pipa, apoio) { var c = state.custos; return (tf * c.TF) + (maq * c.MAQ) + (pipa * c.PIPA) + (apoio * c.APOIO); }
 
@@ -528,6 +602,13 @@ function carregarCustos() {
     });
 }
 
+function deletarVarios(ids) {
+    if (!ids.length) return Promise.resolve();
+    var batch = db.batch();
+    ids.forEach(function(id) { batch.delete(db.collection(getPeriodoPath()).doc(id)); });
+    return batch.commit();
+}
+
 function deletarLancamento(docId) { return db.collection(getPeriodoPath()).doc(docId).delete(); }
 
 function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
@@ -546,8 +627,9 @@ function salvarConfiguracoes() {
 // CARREGAR DO FIREBASE
 // ============================================================
 function carregarDoFirebase() {
-    if (state.isLoading) return;
+    if (state.isLoading) { state.recarregarDepois = true; return; }
     state.isLoading = true;
+    state.recarregarDepois = false;
     console.log('📡 Carregando dados do Firebase...');
     console.log('📂 Período:', getPeriodoKey());
     console.log('📂 Path Lancamentos:', getPeriodoPath());
@@ -588,12 +670,16 @@ function carregarDoFirebase() {
         var observacoes = {};
         obsSnapshot.forEach(function(doc) { observacoes[doc.id] = doc.data().texto || ''; });
         state.observacoes = observacoes;
+        return db.collection(getMetasPath()).doc('metas').get().catch(function(e) { console.warn('Metas não carregadas:', e); return null; });
+    }).then(function(metasDoc) {
+        aplicarMetasDoc(metasDoc);
         return db.collection('config').doc('app').get();
     }).then(function(configDoc) {
         // O dia selecionado NÃO vem mais do banco (ele definido pela data de hoje)
         if (configDoc.exists) { state.extraCounter = configDoc.data().extraCounter || 0; }
         state.isLoaded = true;
         state.isLoading = false;
+        if (state.recarregarDepois) { state.recarregarDepois = false; setTimeout(carregarDoFirebase, 0); }
         atualizarStatusFirebase(true);
         renderizarTudo();
         atualizarUltimaAtualizacao();
@@ -602,6 +688,7 @@ function carregarDoFirebase() {
         console.error('❌ Erro ao carregar:', error);
         state.isLoaded = true;
         state.isLoading = false;
+        if (state.recarregarDepois) { state.recarregarDepois = false; setTimeout(carregarDoFirebase, 0); }
         atualizarStatusFirebase(false);
         renderizarTudo();
     });
@@ -651,7 +738,7 @@ function renderizarResumoDia() {
     var totalCusto = 0;
     var html = '';
     if (Object.keys(lancs).length === 0) {
-        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr>';
+        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia (meta do dia: R$ ' + formatMoney(getTotalProjetado() / getDiasTrab()) + ')</td></tr>';
         DOM.resumoDiaReceita.textContent = '0,00';
         DOM.resumoDiaCusto.textContent = '0,00';
         DOM.resumoDiaResultado.innerHTML = '📊 Resultado: R$ 0,00';
@@ -669,18 +756,27 @@ function renderizarResumoDia() {
         var apoio = lancs[opId].apoio || 0;
         var resultado = valor - custo;
         var margem = valor > 0 ? (resultado / valor) * 100 : 0;
+        var metaDiaOp = op ? getMetaDiaOp(op) : 0;
+        var pctMeta = metaDiaOp > 0 ? (valor / metaDiaOp) * 100 : 0;
         totalReceita += valor;
         totalCusto += custo;
         var corResultado = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
         var sinalResultado = resultado >= 0 ? '+' : '';
         var classeMargem = margem >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+        var classeMeta = pctMeta >= 100 ? 'resultado-positivo' : 'resultado-negativo';
         var dataLabel = diaLabel ? diaLabel.label : dia;
-        html += '<tr><td>' + dataLabel + '</td><td>' + nome + '</td><td class="text-right">' + ha.toFixed(2) + '</td><td class="text-right">R$ ' + formatMoney(valor) + '</td><td class="text-right">' + tf + '</td><td class="text-right">' + maq + '</td><td class="text-right">' + pipa + '</td><td class="text-right">' + apoio + '</td><td class="text-right">R$ ' + formatMoney(custo) + '</td><td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) + '</td><td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td><td>' + (op && op.extra ? '⭐ Extra' : '') + '</td><td class="text-center"><button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> <button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>';
+        html += '<tr><td>' + dataLabel + '</td><td>' + nome + '</td><td class="text-right">' + ha.toFixed(2) + '</td><td class="text-right">R$ ' + formatMoney(valor) + '</td>'
+            + '<td class="text-right">' + (metaDiaOp > 0 ? 'R$ ' + formatMoney(metaDiaOp) : '—') + '</td>'
+            + '<td class="text-right ' + (metaDiaOp > 0 ? classeMeta : '') + '">' + (metaDiaOp > 0 ? pctMeta.toFixed(0) + '%' : '—') + '</td>'
+            + '<td class="text-right">' + tf + '</td><td class="text-right">' + maq + '</td><td class="text-right">' + pipa + '</td><td class="text-right">' + apoio + '</td><td class="text-right">R$ ' + formatMoney(custo) + '</td><td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) + '</td><td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td><td>' + (op && op.extra ? '⭐ Extra' : '') + '</td><td class="text-center"><button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> <button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>';
     }
     var resultadoDia = totalReceita - totalCusto;
     var corTotal = resultadoDia >= 0 ? 'resultado-positivo' : 'resultado-negativo';
     var sinalTotal = resultadoDia >= 0 ? '+' : '';
-    html += '<tr class="total-row"><td colspan="3"><strong>TOTAL</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td colspan="5"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
+    var metaDiaTotal = getTotalProjetado() / getDiasTrab();
+    var pctDiaTotal = metaDiaTotal > 0 ? (totalReceita / metaDiaTotal) * 100 : 0;
+    var corMetaTotal = pctDiaTotal >= 100 ? 'resultado-positivo' : 'resultado-negativo';
+    html += '<tr class="total-row"><td colspan="3"><strong>TOTAL DO DIA</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="text-right"><strong>R$ ' + formatMoney(metaDiaTotal) + '</strong></td><td class="text-right ' + corMetaTotal + '"><strong>' + pctDiaTotal.toFixed(0) + '%</strong></td><td colspan="4"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
     DOM.resumoDiaBody.innerHTML = html;
     DOM.resumoDiaReceita.textContent = formatMoney(totalReceita);
     DOM.resumoDiaCusto.textContent = formatMoney(totalCusto);
@@ -706,14 +802,21 @@ window.excluirLancamento = function(opId) {
 
 function renderizarTabela() {
     var html = '';
-    var totalProj = getTotalProjetado();
+    var frac = getFracaoEsperada();
+    var tMetaArea = 0, tArea = 0, tMeta = 0, tRec = 0, tCusto = 0;
     for (var i = 0; i < state.operacoes.length; i++) {
         var op = state.operacoes[i];
+        var meta = getMetaOp(op);
+        var metaArea = getMetaAreaOp(op);
         var realizado = getRealizadoOp(op.id);
+        var area = getAreaOp(op.id);
         var custo = getCustoOp(op.id);
+        // Numa RF com metas próprias, esconde operações sem meta e sem lançamento
+        if (state.metasDefinidas && meta === 0 && metaArea === 0 && realizado === 0) continue;
+        tMetaArea += metaArea; tArea += area; tMeta += meta; tRec += realizado; tCusto += custo;
         var resultado = realizado - custo;
         var margem = realizado > 0 ? (resultado / realizado) * 100 : 0;
-        var pct = op.projetado > 0 ? (realizado / op.projetado) * 100 : 0;
+        var pct = meta > 0 ? (realizado / meta) * 100 : 0;
         var pctClamp = Math.min(pct, 100);
         var classe = 'danger';
         if (pctClamp >= 90) classe = 'success';
@@ -724,16 +827,33 @@ function renderizarTabela() {
         var corMargem = margem >= 0 ? 'green' : 'red';
         var extraTag = op.extra ? '<span class="extra-tag">⭐ extra</span>' : '';
         var clickFunc = "editarValor('" + op.id + "')";
-        html += '<tr><td>' + op.nome + ' ' + extraTag + '</td><td class="num">R$ ' + formatMoney(op.projetado || 0) + '</td><td class="num clickable" onclick="' + clickFunc + '" title="Clique para editar">R$ ' + formatMoney(realizado) + '</td><td class="num">R$ ' + formatMoney(custo) + '</td><td class="num"><span class="' + corResultado + '">' + sinal + 'R$ ' + formatMoney(resultado) + '</span></td><td class="num"><span class="' + corMargem + '">' + margem.toFixed(1) + '%</span></td><td class="num" style="width:60px;">' + pct.toFixed(1) + '%<div class="progress-bar"><div class="progress-fill ' + classe + '" style="width:' + pctClamp + '%;"></div></div></td><td class="num"><button class="edit-btn" onclick="' + clickFunc + '"><i class="fas fa-edit"></i></button></td></tr>';
+        html += '<tr><td>' + op.nome + ' ' + extraTag + '</td>'
+            + '<td class="num">' + metaArea.toFixed(2) + '</td>'
+            + '<td class="num">' + area.toFixed(2) + '</td>'
+            + '<td class="num">R$ ' + formatMoney(meta) + '</td>'
+            + '<td class="num clickable" onclick="' + clickFunc + '" title="Clique para editar o lançamento do dia selecionado">R$ ' + formatMoney(realizado) + '</td>'
+            + '<td class="num">R$ ' + formatMoney(custo) + '</td>'
+            + '<td class="num"><span class="' + corResultado + '">' + sinal + 'R$ ' + formatMoney(resultado) + '</span></td>'
+            + '<td class="num"><span class="' + corMargem + '">' + margem.toFixed(1) + '%</span></td>'
+            + '<td class="num" style="width:60px;">' + pct.toFixed(1) + '%<div class="progress-bar"><div class="progress-fill ' + classe + '" style="width:' + pctClamp + '%;"></div></div></td>'
+            + '<td class="num">' + ritmoHtml(realizado, meta * frac, meta) + '</td>'
+            + '<td class="num"><button class="edit-btn" onclick="' + clickFunc + '"><i class="fas fa-edit"></i></button></td></tr>';
     }
-    var totalReceita = getReceitaTotal();
-    var totalCusto = getCustoTotal();
-    var totalResultado = totalReceita - totalCusto;
-    var totalMargem = totalReceita > 0 ? (totalResultado / totalReceita) * 100 : 0;
-    var corTotal = totalResultado >= 0 ? 'green' : 'red';
-    var sinalTotal = totalResultado >= 0 ? '+' : '';
-    html += '<tr class="total-row"><td><strong>TOTAL</strong></td><td class="num"><strong>R$ ' + formatMoney(totalProj) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + sinalTotal + 'R$ ' + formatMoney(totalResultado) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + totalMargem.toFixed(1) + '%</strong></td><td class="num"><strong>' + (totalProj > 0 ? ((totalReceita / totalProj) * 100).toFixed(1) : 0) + '%</strong></td><td></td></tr>';
+    var tRes = tRec - tCusto;
+    var tMargem = tRec > 0 ? (tRes / tRec) * 100 : 0;
+    var corTotal = tRes >= 0 ? 'green' : 'red';
+    var sinalTotal = tRes >= 0 ? '+' : '';
+    html += '<tr class="total-row"><td><strong>TOTAL</strong></td><td class="num"><strong>' + tMetaArea.toFixed(2) + '</strong></td><td class="num"><strong>' + tArea.toFixed(2) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(tMeta) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(tRec) + '</strong></td><td class="num"><strong>R$ ' + formatMoney(tCusto) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + sinalTotal + 'R$ ' + formatMoney(tRes) + '</strong></td><td class="num"><strong class="' + corTotal + '">' + tMargem.toFixed(1) + '%</strong></td><td class="num"><strong>' + (tMeta > 0 ? ((tRec / tMeta) * 100).toFixed(1) : '0.0') + '%</strong></td><td class="num">' + ritmoHtml(tRec, tMeta * frac, tMeta) + '</td><td></td></tr>';
     DOM.tbody.innerHTML = html;
+}
+
+function atualizarAvisoMetas() {
+    var el = $('avisoMetas');
+    if (state.metasDefinidas) {
+        el.innerHTML = '<div class="meta-aviso ok">✅ Esta RF tem metas próprias definidas (' + getDiasTrab() + ' dias trabalhados).</div>';
+    } else {
+        el.innerHTML = '<div class="meta-aviso">⚠️ Esta RF ainda não tem metas próprias. Estão sendo usados os valores projetados padrão. Clique em <b>🎯 Metas</b> para definir as metas desta RF.</div>';
+    }
 }
 
 function atualizarCards() {
@@ -743,8 +863,25 @@ function atualizarCards() {
     var totalResultado = totalReceita - totalCusto;
     var totalMargem = totalReceita > 0 ? (totalResultado / totalReceita) * 100 : 0;
     var totalArea = getAreaTotal();
+    var totalMetaArea = getTotalMetaArea();
     DOM.metaPeriodo.textContent = formatMoney(totalProj);
+    $('metaPeriodoSub').textContent = state.metasDefinidas ? 'Meta própria da RF' : 'Projetado padrão';
     DOM.realizadoTotal.textContent = formatMoney(totalReceita);
+    $('realizadoTotalSub').textContent = (totalProj > 0 ? ((totalReceita / totalProj) * 100).toFixed(1) : '0.0') + '% da meta | falta R$ ' + formatMoney(Math.max(0, totalProj - totalReceita));
+    // Meta do dia selecionado
+    var metaDia = totalProj / getDiasTrab();
+    var recDia = getRealizadoDia(state.currentDia);
+    var pctDia = metaDia > 0 ? (recDia / metaDia) * 100 : 0;
+    $('metaDiaCard').innerHTML = '<span class="currency">R$</span> <span style="color:' + (pctDia >= 100 ? '#16a34a' : '#dc3545') + ';">' + formatMoney(recDia) + '</span>';
+    $('metaDiaCardSub').textContent = 'de R$ ' + formatMoney(metaDia) + ' (' + pctDia.toFixed(0) + '%)';
+    // Ritmo da RF
+    var esperado = totalProj * getFracaoEsperada();
+    var diff = totalReceita - esperado;
+    if (totalProj <= 0) { $('ritmoCard').textContent = '-'; $('ritmoCardSub').textContent = 'Defina as metas'; }
+    else {
+        $('ritmoCard').innerHTML = '<span style="color:' + (diff >= 0 ? '#16a34a' : '#dc3545') + ';">' + (diff >= 0 ? '▲' : '▼') + ' ' + formatMoney(Math.abs(diff)) + '</span>';
+        $('ritmoCardSub').textContent = (diff >= 0 ? 'Adiantado' : 'Atrasado') + ' | esperado até hoje: R$ ' + formatMoney(esperado);
+    }
     var cor = totalResultado >= 0 ? '#16a34a' : '#dc3545';
     var sinal = totalResultado >= 0 ? '+' : '';
     DOM.resultadoTotal.innerHTML = '<span class="currency">R$</span> <span style="color:' + cor + ';">' + sinal + formatMoney(totalResultado) + '</span>';
@@ -752,55 +889,43 @@ function atualizarCards() {
     DOM.margemTotal.textContent = totalMargem.toFixed(1) + '%';
     DOM.margemTotal.style.color = corMargem;
     DOM.areaRealizada.innerHTML = totalArea.toFixed(2) + ' <span class="unit">ha</span>';
+    $('areaRealizadaSub').textContent = totalMetaArea > 0 ? 'de ' + totalMetaArea.toFixed(2) + ' ha (' + ((totalArea / totalMetaArea) * 100).toFixed(1) + '%)' : '';
 }
 
 function renderizarGraficoEvolucao() {
     var hasData = false;
     for (var dia in state.lancamentos) { if (Object.keys(state.lancamentos[dia]).length > 0) { hasData = true; break; } }
     if (!hasData) { DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>'; return; }
-    var diasComLanc = Object.keys(state.lancamentos).map(Number).sort(function(a, b) { return a - b; });
-    var primeiroDia = Math.max(1, Math.min.apply(null, diasComLanc) - 1);
-    var ultimoDia = Math.min(31, Math.max.apply(null, diasComLanc) + 1);
+    var totalDias = DIAS.length || 31;
     var totalProj = getTotalProjetado();
     var labels = [], projAcum = [], realAcum = [];
-    for (var i = primeiroDia; i <= ultimoDia; i++) {
+    var real = 0;
+    for (var i = 1; i <= totalDias; i++) {
         labels.push(i);
-        projAcum.push(totalProj * (i / 31));
-        var real = 0;
-        for (var j = 1; j <= i; j++) real += getRealizadoDia(j);
+        projAcum.push(totalProj * (i / totalDias));
+        real += getRealizadoDia(i);
         realAcum.push(real);
     }
-    var width = 500, height = 130, pad = 25;
-    var maxVal = Math.max.apply(null, projAcum.concat(realAcum));
-    maxVal = Math.max(maxVal, 100);
+    var ultimoComDado = Math.max.apply(null, Object.keys(state.lancamentos).map(Number));
+    var limiteReal = Math.max(ultimoComDado, Math.min(getDiasDecorridos(), totalDias));
+    var width = 500, height = 140, pad = 25;
+    var maxVal = Math.max(Math.max.apply(null, projAcum.concat(realAcum)), 100);
     var scale = function(v) { return (v / maxVal) * (height - pad * 2) + pad; };
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%; height:130px; background:#fafcff; border-radius:10px; overflow:hidden;">';
+    var xDe = function(i) { return pad + (i / (labels.length - 1)) * (width - pad * 2); };
+    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%; height:140px; background:#fafcff; border-radius:10px; overflow:hidden;">';
     svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#fafcff" rx="8"/>';
     var projPoints = '';
-    for (var i = 0; i < labels.length; i++) {
-        var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-        var y = height - scale(projAcum[i]);
-        projPoints += x + ',' + y + ' ';
-    }
+    for (var i = 0; i < labels.length; i++) projPoints += xDe(i) + ',' + (height - scale(projAcum[i])) + ' ';
     svg += '<polyline points="' + projPoints.trim() + '" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />';
     var realPoints = '';
-    for (var i = 0; i < labels.length; i++) {
-        var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-        var y = height - scale(realAcum[i]);
-        realPoints += x + ',' + y + ' ';
-    }
+    for (var i = 0; i < limiteReal; i++) realPoints += xDe(i) + ',' + (height - scale(realAcum[i])) + ' ';
     svg += '<polyline points="' + realPoints.trim() + '" fill="none" stroke="#2563eb" stroke-width="4" />';
-    for (var i = 0; i < labels.length; i++) {
-        var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-        var y = height - scale(realAcum[i]);
-        svg += '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5"/>';
+    for (var i = 0; i < limiteReal; i++) svg += '<circle cx="' + xDe(i) + '" cy="' + (height - scale(realAcum[i])) + '" r="3" fill="#2563eb" stroke="white" stroke-width="1.5"/>';
+    for (var i = 0; i < labels.length; i += 2) {
+        var label = DIAS[i];
+        svg += '<text x="' + xDe(i) + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' + (label ? label.label : labels[i]) + '</text>';
     }
-    for (var i = 0; i < labels.length; i++) {
-        var x = pad + (i / (labels.length - 1)) * (width - pad * 2);
-        var label = DIAS.find(function(d) { return d.numero === labels[i]; });
-        var labelText = label ? label.label : labels[i];
-        svg += '<text x="' + x + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' + labelText + '</text>';
-    }
+    svg += '<text x="' + (width - pad) + '" y="12" font-size="8" fill="#64748b" text-anchor="end">— — meta acumulada   ━ receita acumulada</text>';
     svg += '</svg>';
     DOM.graficoEvolucao.innerHTML = svg;
 }
@@ -810,6 +935,7 @@ function renderizarTudo() {
     renderizarDias();
     renderizarTabela();
     renderizarGraficoEvolucao();
+    atualizarAvisoMetas();
     atualizarCards();
     atualizarUltimaAtualizacao();
     calcularTotal();
@@ -983,7 +1109,7 @@ window.editarValor = function(opId) {
     db.collection(getPeriodoPath()).where('dia', '==', dia).where('opId', '==', opId).get().then(function(snapshot) {
         if (snapshot.empty) { showToast('⚠️ Lançamento não encontrado no Firebase.', 'warning'); return; }
         var doc = snapshot.docs[0];
-        editTarget = { docId: doc.id, dia: dia, opId: opId };
+        editTarget = { docId: doc.id, outrosIds: snapshot.docs.slice(1).map(function(d) { return d.id; }), dia: dia, opId: opId };
         var opNome = state.operacoes.find(function(o) { return o.id === opId; });
         var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
         Modals.editInfo.textContent = '📅 Dia: ' + (diaLabel ? diaLabel.label : dia) + ' | 📋 Operação: ' + (opNome ? opNome.nome : opId);
@@ -997,14 +1123,22 @@ window.editarValor = function(opId) {
         atualizarPreviewEdicao();
         Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' + formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) + ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) + ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
         Modals.edit.classList.add('active');
-        Modals.editHa.oninput = atualizarPreviewEdicao;
-        Modals.editRha.oninput = atualizarPreviewEdicao;
+        Modals.editHa.oninput = recalcValorEdicao;
+        Modals.editRha.oninput = recalcValorEdicao;
+        Modals.editValor.oninput = atualizarPreviewEdicao;
         Modals.editTF.oninput = atualizarPreviewEdicao;
         Modals.editMAQ.oninput = atualizarPreviewEdicao;
         Modals.editPIPA.oninput = atualizarPreviewEdicao;
         Modals.editAPOIO.oninput = atualizarPreviewEdicao;
     }).catch(function(error) { console.error('Erro ao editar:', error); showToast('❌ Erro ao carregar edição', 'error'); });
 };
+
+function recalcValorEdicao() {
+    var ha = parseFloat(Modals.editHa.value) || 0;
+    var rha = parseFloat(Modals.editRha.value) || 0;
+    Modals.editValor.value = (ha * rha).toFixed(2);
+    atualizarPreviewEdicao();
+}
 
 function atualizarPreviewEdicao() {
     var ha = parseFloat(Modals.editHa.value) || 0;
@@ -1013,7 +1147,7 @@ function atualizarPreviewEdicao() {
     var maq = parseInt(Modals.editMAQ.value) || 0;
     var pipa = parseInt(Modals.editPIPA.value) || 0;
     var apoio = parseInt(Modals.editAPOIO.value) || 0;
-    var receita = ha * rha;
+    var receita = parseFloat(Modals.editValor.value) || (ha * rha);
     var custo = getCustoRecursos(tf, maq, pipa, apoio);
     var resultado = receita - custo;
     var margem = receita > 0 ? (resultado / receita) * 100 : 0;
@@ -1039,14 +1173,15 @@ function salvarEdicao() {
     var custo = getCustoRecursos(tf, maq, pipa, apoio);
     if (valor === 0 && ha > 0 && rha > 0) { valor = ha * rha; }
     if (ha === 0 && valor === 0) {
-        deletarLancamento(docId).then(function() {
+        deletarVarios([docId].concat((editTarget && editTarget.outrosIds) || [])).then(function() {
             if (state.lancamentos[dia] && state.lancamentos[dia][opId]) { delete state.lancamentos[dia][opId]; if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia]; }
             fecharModal();
             renderizarTudo();
             showToast('🗑️ Lançamento excluído');
         }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir', 'error'); });
     } else {
-        atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo).then(function() {
+        var outrosIds = editTarget.outrosIds || [];
+        atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo).then(function() { return deletarVarios(outrosIds); }).then(function() {
             if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
             state.lancamentos[dia][opId] = { ha: ha, valor: valor, custo: custo, tf: tf, maq: maq, pipa: pipa, apoio: apoio };
             fecharModal();
@@ -1063,7 +1198,7 @@ function excluirEdicao() {
     var docId = editTarget.docId;
     var dia = editTarget.dia;
     var opId = editTarget.opId;
-    deletarLancamento(docId).then(function() {
+    deletarVarios([docId].concat((editTarget && editTarget.outrosIds) || [])).then(function() {
         if (state.lancamentos[dia] && state.lancamentos[dia][opId]) { delete state.lancamentos[dia][opId]; if (Object.keys(state.lancamentos[dia]).length === 0) delete state.lancamentos[dia]; }
         fecharModal();
         renderizarTudo();
@@ -1071,7 +1206,7 @@ function excluirEdicao() {
     }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir', 'error'); });
 }
 
-function fecharModal() { Modals.edit.classList.remove('active'); Modals.extra.classList.remove('active'); editTarget = null; }
+function fecharModal() { Modals.edit.classList.remove('active'); Modals.extra.classList.remove('active'); $('metasModal').classList.remove('active'); editTarget = null; }
 
 function salvarObservacao() {
     var texto = DOM.obsInput.value.trim();
@@ -1099,6 +1234,11 @@ function criarExtra() {
     var id = 'extra_' + state.extraCounter + '_' + Date.now();
     state.operacoes.push({ id: id, nome: nome, projetado: valor || 0, areaProjetada: area || 0, extra: true });
     salvarOperacoes().then(function() {
+        if (state.metasDefinidas) {
+            state.metas[id] = { area: area || 0, rha: area > 0 ? (valor / area) : 0, valor: valor || 0 };
+            return salvarMetasFirebase();
+        }
+    }).then(function() {
         fecharModal();
         renderizarTudo();
         showToast('✅ Operação extra "' + nome + '" criada!');
@@ -1111,6 +1251,148 @@ function removerExtra(id) {
     if (!confirm('Remover operação extra "' + op.nome + '"?')) return;
     state.operacoes = state.operacoes.filter(function(o) { return o.id !== id; });
     salvarOperacoes().then(function() { renderizarTudo(); showToast('🗑️ Operação extra removida'); }).catch(function(error) { console.error('Erro ao remover operação extra:', error); showToast('❌ Erro ao remover operação extra', 'error'); });
+}
+
+// ============================================================
+// MODAL DE METAS
+// ============================================================
+function preencherMetasModal(metas, diasTrab) {
+    var body = $('metasBody');
+    var html = '';
+    for (var i = 0; i < state.operacoes.length; i++) {
+        var op = state.operacoes[i];
+        var area, rha;
+        if (metas) {
+            var m = metas[op.id] || {};
+            area = m.area || 0;
+            rha = m.rha || (m.area ? (m.valor || 0) / m.area : 0);
+        } else {
+            area = op.areaProjetada || 0;
+            rha = area > 0 ? (op.projetado || 0) / area : 0;
+        }
+        html += '<tr><td>' + op.nome + (op.extra ? ' ⭐' : '') + '</td>'
+            + '<td><input type="number" step="0.01" class="m-area" data-op="' + op.id + '" value="' + (area ? Number(area.toFixed(2)) : '') + '" placeholder="0"></td>'
+            + '<td><input type="number" step="0.01" class="m-rha" data-op="' + op.id + '" value="' + (rha ? Number(rha.toFixed(2)) : '') + '" placeholder="0"></td>'
+            + '<td class="m-valor" id="mval_' + op.id + '">R$ 0,00</td></tr>';
+    }
+    body.innerHTML = html;
+    $('metaDiasTrab').value = diasTrab || DIAS.length;
+    var inputs = body.querySelectorAll('input');
+    for (var j = 0; j < inputs.length; j++) inputs[j].addEventListener('input', recalcMetasModal);
+    recalcMetasModal();
+}
+
+function lerMetasModal() {
+    var metas = {};
+    for (var i = 0; i < state.operacoes.length; i++) {
+        var id = state.operacoes[i].id;
+        var area = parseFloat(document.querySelector('.m-area[data-op="' + id + '"]').value) || 0;
+        var rha = parseFloat(document.querySelector('.m-rha[data-op="' + id + '"]').value) || 0;
+        metas[id] = { area: area, rha: rha, valor: Math.round(area * rha * 100) / 100 };
+    }
+    return metas;
+}
+
+function recalcMetasModal() {
+    var metas = lerMetasModal();
+    var tArea = 0, tValor = 0;
+    for (var id in metas) {
+        tArea += metas[id].area; tValor += metas[id].valor;
+        var el = document.getElementById('mval_' + id);
+        if (el) el.textContent = 'R$ ' + formatMoney(metas[id].valor);
+    }
+    var dias = parseInt($('metaDiasTrab').value) || DIAS.length;
+    $('metasTotalArea').textContent = tArea.toFixed(2) + ' ha';
+    $('metasTotalValor').textContent = 'R$ ' + formatMoney(tValor);
+    $('metasPorDia').textContent = 'R$ ' + formatMoney(tValor / dias);
+}
+
+function abrirMetas() {
+    $('metasPeriodoLabel').textContent = getPeriodoLabel(periodState.currentYear, periodState.currentMonth) + (state.metasDefinidas ? '' : ' | ainda sem metas próprias, preenchido com o projetado padrão');
+    preencherMetasModal(state.metasDefinidas ? state.metas : null, state.metasDiasTrab);
+    $('metasModal').classList.add('active');
+}
+
+function salvarMetas() {
+    var metas = lerMetasModal();
+    var dias = parseInt($('metaDiasTrab').value) || 0;
+    if (dias <= 0 || dias > 31) { showToast('⚠️ Dias trabalhados deve ser entre 1 e 31.', 'warning'); return; }
+    var btn = $('btnSalvarMetas');
+    btn.disabled = true;
+    var anterior = { metas: state.metas, dias: state.metasDiasTrab, def: state.metasDefinidas };
+    state.metas = metas; state.metasDiasTrab = dias; state.metasDefinidas = true;
+    salvarMetasFirebase().then(function() {
+        btn.disabled = false;
+        fecharModal();
+        renderizarTudo();
+        showToast('🎯 Metas da RF salvas!', 'success');
+    }).catch(function(error) {
+        console.error('Erro ao salvar metas:', error);
+        state.metas = anterior.metas; state.metasDiasTrab = anterior.dias; state.metasDefinidas = anterior.def;
+        btn.disabled = false;
+        showToast(error.code === 'permission-denied' ? '🔒 Sem permissão para salvar metas. Verifique as regras do Firestore.' : '❌ Erro ao salvar metas', 'error');
+    });
+}
+
+function copiarMetasAnterior() {
+    var m = periodState.currentMonth - 1, y = periodState.currentYear;
+    if (m < 0) { m = 11; y--; }
+    var key = y + '_' + String(m + 1).padStart(2, '0');
+    db.collection('periodos/' + key + '/config').doc('metas').get().then(function(doc) {
+        if (doc.exists) {
+            var d = doc.data();
+            preencherMetasModal(d.metas || {}, d.diasTrab);
+            showToast('📋 Metas copiadas da RF anterior. Confira e clique em Salvar.', 'info');
+        } else {
+            showToast('⚠️ A RF anterior não tem metas salvas.', 'warning');
+        }
+    }).catch(function() { showToast('❌ Erro ao buscar metas da RF anterior', 'error'); });
+}
+
+// ============================================================
+// BACKUP (planilha com todos os lançamentos de todas as RFs)
+// ============================================================
+function baixarBackup() {
+    var btn = $('btnBackup');
+    btn.disabled = true;
+    showToast('⏳ Gerando backup...', 'info');
+    var nomes = {};
+    state.operacoes.forEach(function(o) { nomes[o.id] = o.nome; });
+    var periodos = gerarPeriodosDisponiveis();
+    var num = function(v) { return String(Math.round((v || 0) * 100) / 100).replace('.', ','); };
+    Promise.all(periodos.map(function(p) {
+        var key = p.year + '_' + String(p.month + 1).padStart(2, '0');
+        return db.collection('periodos/' + key + '/lancamentos').get().then(function(snap) { return { p: p, key: key, snap: snap }; });
+    })).then(function(resultados) {
+        var linhas = [];
+        var total = 0;
+        resultados.forEach(function(r) {
+            var dias = gerarDiasDoPeriodo(r.p.year, r.p.month);
+            var rf = '21/' + String(r.p.month + 1).padStart(2, '0') + '/' + r.p.year;
+            r.snap.forEach(function(doc) {
+                var d = doc.data();
+                var dl = dias[d.dia - 1];
+                var data = dl ? (dl.date.getDate() < 10 ? '0' : '') + dl.date.getDate() + '/' + String(dl.date.getMonth() + 1).padStart(2, '0') + '/' + dl.date.getFullYear() : 'dia ' + d.dia;
+                linhas.push({ ord: r.key + '_' + String(d.dia).padStart(2, '0'), cols: [rf, data, nomes[d.opId] || d.opId, num(d.ha), num(d.valor), d.tf || 0, d.maq || 0, d.pipa || 0, d.apoio || 0, num(d.custo), num((d.valor || 0) - (d.custo || 0)), doc.id] });
+                total++;
+            });
+        });
+        linhas.sort(function(a, b) { return a.ord < b.ord ? -1 : a.ord > b.ord ? 1 : 0; });
+        var csv = 'Início da RF;Data;Operação;Área (ha);Receita (R$);TF;Máquina;Pipa;Apoio;Custo (R$);Resultado (R$);ID\n';
+        csv += linhas.map(function(l) { return l.cols.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\n');
+        var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+        var a = document.createElement('a');
+        var hoje = new Date();
+        a.href = URL.createObjectURL(blob);
+        a.download = 'backup_lb_florestal_' + hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0') + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        btn.disabled = false;
+        showToast('✅ Backup baixado: ' + total + ' lançamentos', 'success');
+    }).catch(function(error) {
+        console.error('Erro no backup:', error);
+        btn.disabled = false;
+        showToast('❌ Erro ao gerar backup', 'error');
+    });
 }
 
 // ============================================================
@@ -1131,6 +1413,14 @@ function setupEvents() {
     DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
     DOM.btnSync.addEventListener('click', function() { carregarDoFirebase(); showToast('🔄 Dados sincronizados!', 'success'); });
     DOM.btnConfig.addEventListener('click', abrirConfig);
+    $('btnMetas').addEventListener('click', abrirMetas);
+    $('btnAbrirMetas2').addEventListener('click', abrirMetas);
+    $('btnBackup').addEventListener('click', baixarBackup);
+    $('btnSalvarMetas').addEventListener('click', salvarMetas);
+    $('btnCopiarMetas').addEventListener('click', copiarMetasAnterior);
+    $('btnFecharMetas').addEventListener('click', fecharModal);
+    $('metaDiasTrab').addEventListener('input', recalcMetasModal);
+    $('metasModal').addEventListener('click', function(e) { if (e.target === $('metasModal')) fecharModal(); });
     DOM.btnSalvarConfig.addEventListener('click', salvarConfig);
     DOM.btnFecharConfig.addEventListener('click', fecharConfig);
     DOM.configModal.addEventListener('click', function(e) { if (e.target === DOM.configModal) fecharConfig(); });
