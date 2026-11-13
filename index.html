@@ -169,6 +169,48 @@
         .progress-fill.extra{background:#8b5cf6}
         .table-wrap{overflow-x:auto}
         .card-dash .sub-valor{font-size:11px;font-weight:500;color:#64748b;margin-top:2px}
+        .diario{margin-top:8px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px}
+        .diario-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
+        .diario-top h4{font-size:13px;font-weight:700;color:#92400e;margin:0}
+        .diario-top .status-obs{font-size:11px;color:#a16207;margin-left:auto}
+        .diario select{padding:5px 10px;border-radius:6px;border:1px solid #fde68a;font-size:12px;background:#fff;color:#1e293b}
+        .diario textarea{width:100%;min-height:64px;padding:8px 10px;border-radius:6px;border:1px solid #fde68a;font-size:13px;background:#fff;font-family:inherit;resize:vertical;color:#1e293b}
+        .diario textarea:focus,.diario select:focus{outline:2px solid #f59e0b;outline-offset:0}
+        .diario-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+        .diario-acoes button{border:none;font-weight:600;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:12px}
+        .diario-acoes .salvar{background:#f59e0b;color:#fff}
+        .diario-acoes .salvar:hover{background:#d97706}
+        .diario-acoes .salvar:disabled{opacity:.5;cursor:not-allowed}
+        .diario-acoes .limpar{background:transparent;border:1px solid #fde68a;color:#92400e}
+        .diario-acoes .dica{font-size:11px;color:#a16207}
+        .alerta-baixa{font-size:12px;padding:6px 10px;border-radius:6px;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;margin-bottom:8px}
+        .dias-navegacao button.dia-com-obs{box-shadow:inset 0 -3px 0 #f59e0b}
+        .dias-navegacao button.dia-sem-justificativa{box-shadow:inset 0 -3px 0 #dc3545}
+        .motivo-tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#fef3c7;color:#92400e;white-space:nowrap}
+        .diario-lista tr.clicavel{cursor:pointer}
+        .diario-lista tr.clicavel:hover td{background:#fffbeb}
+        .diario-lista td.texto{white-space:pre-wrap;color:#334155;min-width:220px}
+        .legenda-dias{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:#64748b;margin:-2px 0 8px}
+        .legenda-dias span::before{content:'';display:inline-block;width:12px;height:3px;margin-right:4px;vertical-align:middle;border-radius:2px}
+        .legenda-dias .l-lanc::before{background:#2563eb;width:6px;height:6px;border-radius:50%}
+        .legenda-dias .l-obs::before{background:#f59e0b}
+        .legenda-dias .l-sem::before{background:#dc3545}
+        .dias-navegacao button.dia-folga{background:repeating-linear-gradient(135deg,#f8fafc,#f8fafc 4px,#eef2f7 4px,#eef2f7 8px);color:#94a3b8;text-decoration:line-through}
+        .dias-navegacao button.dia-folga.active{background:#475569;color:#fff;text-decoration:none}
+        .legenda-dias .l-folga::before{background:repeating-linear-gradient(135deg,#cbd5e1,#cbd5e1 2px,#f1f5f9 2px,#f1f5f9 4px);height:8px}
+        .tipo-dia{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:12px;font-weight:600}
+        .tipo-dia.trab{background:#dcfce7;color:#166534}
+        .tipo-dia.folga{background:#e2e8f0;color:#475569}
+        .btn-tipo-dia{background:transparent;border:1px solid #d1d9e6;color:#475569;padding:3px 10px;border-radius:12px;font-size:11px;cursor:pointer}
+        .btn-tipo-dia:hover{background:#f1f4f8}
+        .proj-table tr.folga td{color:#94a3b8;background:#f8fafc}
+        .proj-table tr.hoje td{background:#eff6ff;font-weight:600}
+        .proj-table tr.futuro td.real{color:#cbd5e1}
+        .proj-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px}
+        .proj-resumo div{background:#f8fafc;border:1px solid #e9eef3;border-radius:10px;padding:10px 12px}
+        .proj-resumo .l{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.3px}
+        .proj-resumo .v{font-size:18px;font-weight:700;margin-top:2px}
+        .proj-resumo .s{font-size:11px;color:#64748b}
         .header-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
         @media(max-width:768px){.header-controls{justify-content:center;width:100%}}
     </style>
@@ -197,12 +239,14 @@
 <div class="card-dash highlight"><div class="label">✅ Receita da RF</div><div class="value"><span class="currency">R$</span> <span id="realizadoTotal">0</span></div><div class="sub-valor" id="realizadoTotalSub" style="color:#94a3b8;"></div></div>
 <div class="card-dash"><div class="label">📆 Meta do dia</div><div class="value" id="metaDiaCard">-</div><div class="sub-valor" id="metaDiaCardSub"></div></div>
 <div class="card-dash"><div class="label">⏱️ Ritmo da RF</div><div class="value" id="ritmoCard">-</div><div class="sub-valor" id="ritmoCardSub"></div></div>
+<div class="card-dash"><div class="label">🔮 Previsão de fechamento</div><div class="value" id="previsaoCard">-</div><div class="sub-valor" id="previsaoCardSub"></div></div>
 <div class="card-dash"><div class="label">💰 Resultado</div><div class="value" id="resultadoTotal"><span class="currency">R$</span> 0</div></div>
 <div class="card-dash"><div class="label">📊 % Margem</div><div class="value" id="margemTotal">0%</div></div>
 <div class="card-dash"><div class="label">🌾 Área total</div><div class="value" id="areaRealizada">0 <span class="unit">ha</span></div><div class="sub-valor" id="areaRealizadaSub"></div></div>
 </div>
 <div class="panel">
 <div class="dias-navegacao" id="diasContainer"></div>
+<div class="legenda-dias"><span class="l-lanc">tem lançamento</span><span class="l-obs">tem diário</span><span class="l-sem">abaixo da meta sem justificativa</span><span class="l-folga">folga (domingo, sábado de folga, feriado)</span></div>
 <div class="lancamento-area">
 <label for="opSelect">Operação:</label><select id="opSelect"></select>
 <label for="valorHa">ha:</label><input type="number" id="valorHa" step="0.01" placeholder="0,00">
@@ -217,11 +261,29 @@
 <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar</button>
 <span class="info-dia" id="infoLancamentoDia"></span>
 </div>
-<div class="obs-area" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 12px;background:#fefce8;border-radius:8px;border:1px solid #fde68a;margin-top:4px;">
-<label style="font-weight:600;font-size:11px;color:#92400e;"><i class="fas fa-pencil"></i> Obs.:</label>
-<input type="text" id="obsInput" placeholder="Observação..." style="flex:1;min-width:120px;padding:4px 10px;border-radius:6px;border:1px solid #fde68a;font-size:11px;background:#fff;">
-<button id="btnSalvarObs" style="background:#f59e0b;border:none;color:#fff;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;">Salvar</button>
-<span class="obs-exibir" id="obsExibir" style="font-size:11px;color:#92400e;font-style:italic;flex:1;"></span>
+<div class="diario" id="diarioDia">
+<div class="diario-top"><h4><i class="fas fa-book"></i> Diário do dia <span id="diarioDataLabel" style="font-weight:500;">-</span></h4><span id="tipoDiaLabel"></span><button class="btn-tipo-dia" id="btnTipoDia" title="Use para feriado municipal, domingo trabalhado, etc.">Trocar</button><span class="status-obs" id="obsStatus"></span></div>
+<div id="alertaBaixa"></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+<label for="obsMotivo" style="font-weight:600;font-size:12px;color:#92400e;">Como foi o dia:</label>
+<select id="obsMotivo">
+<option value="">— selecione —</option>
+<option value="Dia normal">✅ Dia normal</option>
+<option value="Chuva">🌧️ Chuva</option>
+<option value="Máquina quebrada">🔧 Máquina quebrada / manutenção</option>
+<option value="Falta de pessoal">👷 Falta de pessoal</option>
+<option value="Falta de insumo">📦 Falta de insumo</option>
+<option value="Falta de água / pipa">💧 Falta de água / pipa</option>
+<option value="Deslocamento / logística">🚚 Deslocamento / logística</option>
+<option value="Área difícil">⛰️ Área difícil / terreno</option>
+<option value="Aguardando liberação">⏳ Aguardando liberação de área</option>
+<option value="Feriado / folga">📅 Feriado / folga</option>
+<option value="Outro">📝 Outro</option>
+</select>
+</div>
+<textarea id="obsInput" placeholder="Descreva como foi o dia. Ex.: choveu das 10h às 14h, a frente parou e só retomou à tarde..."></textarea>
+<div class="diario-acoes"><button class="salvar" id="btnSalvarObs"><i class="fas fa-save"></i> Salvar diário</button><button class="limpar" id="btnLimparObs">Apagar</button><span class="dica">Dica: Ctrl + Enter também salva</span></div>
+<span id="obsExibir" style="display:none;"></span>
 </div>
 <div style="font-size:11px;color:#64748b;margin-top:6px;">💡 Digite a área, R$/ha e os recursos usados. Custo e resultado são calculados automaticamente! <span style="margin-left:12px;background:#f1f4f8;padding:2px 10px;border-radius:12px;font-size:10px;">⚙️ Clique em "Custos" para editar os valores</span> <span style="margin-left:12px;background:#dbeafe;padding:2px 10px;border-radius:12px;font-size:10px;">✏️ Clique no valor R$ da coluna "Receita" para editar</span></div>
 </div>
@@ -230,7 +292,12 @@
 <div class="table-wrap"><table><thead><tr><th>Data</th><th>Operação</th><th class="text-right">Produção</th><th class="text-right">Receita</th><th class="text-right">Meta dia</th><th class="text-right">% Meta</th><th class="text-right">TF</th><th class="text-right">Máquina</th><th class="text-right">Pipa</th><th class="text-right">Apoio</th><th class="text-right">Custo</th><th class="text-right">Resultado</th><th class="text-right">Margem %</th><th>Obs</th><th class="text-center">Ação</th></tr></thead><tbody id="resumoDiaBody"><tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr></tbody></table></div>
 </div>
 <div class="panel"><div class="panel-header"><h2><i class="fas fa-list"></i> Operações <span class="sub">meta da RF vs realizado</span></h2><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-outline-secondary" id="btnAbrirMetas2"><i class="fas fa-bullseye"></i> Metas</button><button class="btn btn-sm btn-primary" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button></div></div><div id="avisoMetas"></div><div class="table-wrap"><table><thead><tr><th>Operação</th><th class="num">Meta ha</th><th class="num">Real. ha</th><th class="num">Meta R$</th><th class="num">Receita</th><th class="num">Custo</th><th class="num">Resultado</th><th class="num">Margem</th><th class="num">% Meta</th><th class="num">Ritmo</th><th class="num">Ação</th></tr></thead><tbody id="tbodyOperacoes"><tr><td colspan="11" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody></table></div><div style="font-size:11px;color:#64748b;margin-top:6px;">⏱️ <b>Ritmo</b>: quanto a operação está acima (▲) ou abaixo (▼) do que já deveria ter sido faturado até hoje, considerando a meta dividida pelos dias da RF.</div></div>
-<div class="panel"><div class="panel-header"><h2><i class="fas fa-chart-line"></i> Evolução diária <span class="sub">acumulado</span></h2></div><div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div></div>
+<div class="panel"><div class="panel-header"><h2><i class="fas fa-book"></i> Diário da RF <span class="sub">observações e justificativas de cada dia</span></h2><span id="diarioResumo" style="font-size:12px;"></span></div><div class="table-wrap"><table class="diario-lista"><thead><tr><th>Data</th><th class="num">Receita</th><th class="num">% Meta dia</th><th>Motivo</th><th>Observação</th></tr></thead><tbody id="diarioListaBody"><tr><td colspan="5" class="text-center text-muted py-3">Nenhuma observação nesta RF.</td></tr></tbody></table></div><div style="font-size:11px;color:#64748b;margin-top:6px;">Clique em uma linha para abrir o dia.</div></div>
+<div class="panel"><div class="panel-header"><h2><i class="fas fa-chart-line"></i> Projeção da RF <span class="sub">meta por dia trabalhado vs realizado</span></h2><button class="btn btn-sm btn-outline-secondary" id="btnVerTabelaProj"><i class="fas fa-table"></i> Ver dia a dia</button></div>
+<div class="proj-resumo" id="projResumo"></div>
+<div class="grafico-evolucao" id="graficoEvolucao"><div class="vazio">Nenhum lançamento ainda.</div></div>
+<div class="table-wrap" id="projTabelaWrap" style="display:none;margin-top:12px;"><table class="proj-table"><thead><tr><th>Data</th><th>Dia</th><th class="num">Meta do dia</th><th class="num">Meta acumulada</th><th class="num">Realizado</th><th class="num">Real. acumulado</th><th class="num">Diferença</th></tr></thead><tbody id="projTabelaBody"></tbody></table></div>
+<div style="font-size:11px;color:#64748b;margin-top:6px;">📅 Dias trabalhados: segunda a sexta + sábados alternados (24/10, 07/11, 21/11...). Domingos e feriados nacionais são folga. Para mudar um dia, selecione o dia e use o botão <b>Trocar</b> no Diário do dia.</div></div>
 <div class="footer"><span><i class="fas fa-database"></i> Dados salvos no Firebase</span><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><div class="sync-status"><span class="dot synced" id="syncDot"></span><span id="syncStatusText">Sincronizado</span></div><span id="lastUpdate">Atualizado agora</span><button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar Período</button></div></div>
 </div>
 <div class="modal-custom" id="configModal"><div class="modal-content"><h3><i class="fas fa-cog"></i> Configuração de Custos</h3><div class="sub">Edite os valores dos recursos por dia</div><div class="config-item"><span class="config-label">👨‍🌾 TF (Trabalhador Rural)</span><span class="config-symbol">R$</span><input type="number" id="custo_TF" step="0.01" value="503.00"></div><div class="config-item"><span class="config-label">🚜 Máquina</span><span class="config-symbol">R$</span><input type="number" id="custo_MAQ" step="0.01" value="2300.00"></div><div class="config-item"><span class="config-label">🚛 Caminhão Pipa</span><span class="config-symbol">R$</span><input type="number" id="custo_PIPA" step="0.01" value="2500.00"></div><div class="config-item"><span class="config-label">🚚 Caminhão Apoio</span><span class="config-symbol">R$</span><input type="number" id="custo_APOIO" step="0.01" value="2200.00"></div><div class="btn-group" style="margin-top:16px;"><button class="btn-primary" id="btnSalvarConfig">💾 Salvar Configurações</button><button class="btn-secondary" id="btnFecharConfig">Fechar</button></div></div></div>
@@ -238,7 +305,7 @@
 <div class="modal-custom" id="extraModal"><div class="modal-content"><h3>➕ Criar Operação Extra</h3><div class="sub">Para serviços não previstos</div><label>Nome da operação:</label><input type="text" id="extraNome" placeholder="Ex: Adubação Extra..."><label>Área projetada (ha):</label><input type="number" id="extraArea" step="0.01" placeholder="0,00"><label>Valor projetado (R$):</label><input type="number" id="extraValor" step="0.01" placeholder="0,00"><div class="btn-group"><button class="btn-primary" id="btnCriarExtra">✅ Criar</button><button class="btn-secondary" id="btnCancelarExtra">Cancelar</button></div></div></div>
 <div class="modal-custom" id="metasModal"><div class="modal-content wide"><h3>🎯 Metas da RF</h3><div class="sub" id="metasPeriodoLabel">-</div>
 <div class="info-text">Digite a área e o R$/ha previstos de cada operação nesta RF. A meta em R$ é calculada sozinha. Cada RF tem as suas próprias metas, e os lançamentos não são alterados.</div>
-<div class="config-item"><span class="config-label">📆 Dias trabalhados na RF <span style="font-weight:400;font-size:11px;color:#64748b;">(usado para a meta do dia)</span></span><input type="number" id="metaDiasTrab" step="1" min="1"></div>
+<div class="config-item"><span class="config-label">📆 Dias trabalhados na RF <span style="font-weight:400;font-size:11px;color:#64748b;">(calculado pelo calendário: seg a sex + sábados alternados, sem feriados)</span></span><input type="number" id="metaDiasTrab" readonly style="background:#f1f4f8;"></div>
 <table class="metas-table"><thead><tr><th>Operação</th><th style="width:110px;">Área (ha)</th><th style="width:110px;">R$/ha</th><th style="width:130px;text-align:right;">Meta (R$)</th></tr></thead><tbody id="metasBody"></tbody><tfoot><tr><td>TOTAL</td><td id="metasTotalArea" class="num">0</td><td></td><td id="metasTotalValor" class="num">R$ 0,00</td></tr><tr><td colspan="3" style="font-weight:500;color:#64748b;">Meta por dia trabalhado</td><td id="metasPorDia" class="num">R$ 0,00</td></tr></tfoot></table>
 <div class="btn-group"><button class="btn-primary" id="btnSalvarMetas">💾 Salvar metas</button><button class="btn-secondary" id="btnCopiarMetas">📋 Copiar da RF anterior</button><button class="btn-secondary" id="btnFecharMetas">Fechar</button></div></div></div>
 <div class="toast-container" id="toastContainer"></div>
@@ -382,6 +449,8 @@ function atualizarPeriodoSelector() {
 }
 
 function irParaPeriodo(year, month) {
+    if (typeof obsAlterado !== 'undefined' && obsAlterado && !confirm('Você escreveu no Diário do dia e não salvou. Sair mesmo assim?')) { atualizarPeriodoSelector(); return; }
+    if (typeof obsAlterado !== 'undefined') obsAlterado = false;
     periodState.currentYear = year;
     periodState.currentMonth = month;
     DIAS = gerarDiasDoPeriodo(year, month);
@@ -415,6 +484,7 @@ var state = {
     recarregarDepois: false,
     metas: {},
     metasDiasTrab: null,
+    calendarioExcecoes: {},
     metasDefinidas: false
 };
 var editTarget = null;
@@ -469,8 +539,84 @@ function getMetaAreaOp(op) {
     if (state.metasDefinidas) { var m = state.metas[op.id]; return m ? (m.area || 0) : 0; }
     return op.areaProjetada || 0;
 }
-function getDiasTrab() { return state.metasDiasTrab || DIAS.length || 30; }
-function getMetaDiaOp(op) { return getMetaOp(op) / getDiasTrab(); }
+// ---------- CALENDÁRIO DE TRABALHO ----------
+// Seg a sex trabalha. Domingo é folga. Sábado: um sim, outro não (24/10/2026 foi trabalhado).
+var SABADO_REFERENCIA = new Date(2026, 9, 24);
+function pascoa(ano) {
+    var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+    var f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(ano, mes - 1, dia);
+}
+var _feriadosCache = {};
+function feriadosDoAno(ano) {
+    if (_feriadosCache[ano]) return _feriadosCache[ano];
+    var f = {};
+    var add = function(d, nome) { f[d.getMonth() + '_' + d.getDate()] = nome; };
+    add(new Date(ano, 0, 1), 'Confraternização Universal');
+    add(new Date(ano, 3, 21), 'Tiradentes');
+    add(new Date(ano, 4, 1), 'Dia do Trabalho');
+    add(new Date(ano, 8, 7), 'Independência');
+    add(new Date(ano, 9, 12), 'Nossa Senhora Aparecida');
+    add(new Date(ano, 10, 2), 'Finados');
+    add(new Date(ano, 10, 15), 'Proclamação da República');
+    add(new Date(ano, 10, 20), 'Consciência Negra');
+    add(new Date(ano, 11, 25), 'Natal');
+    var p = pascoa(ano);
+    var mais = function(n) { var d = new Date(p); d.setDate(d.getDate() + n); return d; };
+    add(mais(-48), 'Carnaval');
+    add(mais(-47), 'Carnaval');
+    add(mais(-2), 'Sexta-feira Santa');
+    add(mais(60), 'Corpus Christi');
+    _feriadosCache[ano] = f;
+    return f;
+}
+function getFeriado(data) { return feriadosDoAno(data.getFullYear())[data.getMonth() + '_' + data.getDate()] || ''; }
+function sabadoTrabalhado(data) {
+    var ref = Date.UTC(SABADO_REFERENCIA.getFullYear(), SABADO_REFERENCIA.getMonth(), SABADO_REFERENCIA.getDate());
+    var d = Date.UTC(data.getFullYear(), data.getMonth(), data.getDate());
+    var semanas = Math.round((d - ref) / (7 * 86400000));
+    return Math.abs(semanas) % 2 === 0;
+}
+// Regra padrão (sem exceções): { trabalho: bool, motivo: '...' }
+function tipoPadraoData(data) {
+    var feriado = getFeriado(data);
+    if (feriado) return { trabalho: false, motivo: 'Feriado: ' + feriado };
+    var sem = data.getDay();
+    if (sem === 0) return { trabalho: false, motivo: 'Domingo' };
+    if (sem === 6) return sabadoTrabalhado(data) ? { trabalho: true, motivo: 'Sábado trabalhado' } : { trabalho: false, motivo: 'Sábado de folga' };
+    return { trabalho: true, motivo: 'Dia útil' };
+}
+function getInfoDia(numero) {
+    var d = DIAS[numero - 1];
+    if (!d) return { trabalho: false, motivo: '', excecao: false };
+    var padrao = tipoPadraoData(d.date);
+    var exc = state.calendarioExcecoes[String(numero)];
+    if (exc === 'trabalho') return { trabalho: true, motivo: 'Marcado como trabalhado' + (padrao.trabalho ? '' : ' (era ' + padrao.motivo.toLowerCase() + ')'), excecao: true };
+    if (exc === 'folga') return { trabalho: false, motivo: 'Marcado como folga' + (padrao.trabalho ? '' : ' (' + padrao.motivo.toLowerCase() + ')'), excecao: true };
+    return { trabalho: padrao.trabalho, motivo: padrao.motivo, excecao: false };
+}
+function isDiaTrabalho(numero) { return getInfoDia(numero).trabalho; }
+function getDiasTrab() {
+    var n = 0;
+    for (var i = 0; i < DIAS.length; i++) if (isDiaTrabalho(DIAS[i].numero)) n++;
+    return n || 1;
+}
+function getMetaDiaOp(op, dia) {
+    if (dia !== undefined && !isDiaTrabalho(dia)) return 0;
+    return getMetaOp(op) / getDiasTrab();
+}
+// Dias trabalhados que já passaram (inclui hoje)
+function getDiasTrabDecorridos() {
+    var lim = getDiasDecorridos(), n = 0;
+    for (var i = 1; i <= lim; i++) if (isDiaTrabalho(i)) n++;
+    return n;
+}
+function getCalendarioPath() { return 'periodos/' + getPeriodoKey() + '/config'; }
+function salvarCalendarioFirebase() {
+    return db.collection(getCalendarioPath()).doc('calendario').set({ excecoes: state.calendarioExcecoes, atualizadoEm: new Date() });
+}
 // Quantos dias da RF já passaram (inclui hoje)
 function getDiasDecorridos() {
     var total = DIAS.length;
@@ -478,7 +624,7 @@ function getDiasDecorridos() {
     var inicio = new Date(periodState.currentYear, periodState.currentMonth, 21);
     return inicio > new Date() ? 0 : total;
 }
-function getFracaoEsperada() { return DIAS.length ? Math.min(1, getDiasDecorridos() / DIAS.length) : 0; }
+function getFracaoEsperada() { return Math.min(1, getDiasTrabDecorridos() / getDiasTrab()); }
 function ritmoHtml(real, esperado, meta) {
     if (meta <= 0) return '<span class="tag-status neutro">sem meta</span>';
     if (esperado <= 0) return '<span class="tag-status neutro">não iniciou</span>';
@@ -540,7 +686,26 @@ function getCustoDia(dia) { var d = state.lancamentos[dia] || {}; var total = 0;
 
 function getAreaDia(dia) { var d = state.lancamentos[dia] || {}; var total = 0; for (var opId in d) { total += d[opId].ha || 0; } return total; }
 
-function getObsDia(dia) { return state.observacoes[dia] || ''; }
+function getObsDia(dia) {
+    var o = state.observacoes[dia];
+    if (!o) return { texto: '', motivo: '' };
+    if (typeof o === 'string') return { texto: o, motivo: '' };
+    return o;
+}
+function temObs(dia) { var o = getObsDia(dia); return !!(o.texto || o.motivo); }
+function escHtml(s) { return String(s || '').replace(/[&<>"']/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function getMetaDiaTotal(dia) { if (dia !== undefined && !isDiaTrabalho(dia)) return 0; return getTotalProjetado() / getDiasTrab(); }
+// Dia que já passou (ou é hoje) e ficou abaixo da meta diária
+function diaAbaixoMeta(dia) {
+    var meta = getMetaDiaTotal(dia);
+    if (meta <= 0 || dia > getDiasDecorridos()) return false;
+    return getRealizadoDia(dia) < meta;
+}
+function diaPrecisaJustificar(dia) {
+    // Só cobra justificativa em dias que já terminaram (antes de hoje) e ficaram abaixo da meta
+    if (dia >= getDiasDecorridos() && isPeriodoAtual(periodState.currentYear, periodState.currentMonth)) return false;
+    return diaAbaixoMeta(dia) && !temObs(dia);
+}
 
 function getDiasRestantes() { var hoje = new Date(); var fim = new Date(periodState.currentYear, periodState.currentMonth + 1, 20); var diff = (fim - hoje) / (1000 * 60 * 60 * 24); return Math.max(0, Math.ceil(diff)); }
 
@@ -616,7 +781,7 @@ function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, 
     return ref.update({ ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, custo: custo || 0, dia: dia, opId: opId });
 }
 
-function salvarObservacaoFirebase(dia, texto) { var ref = db.collection(getObservacoesPath()).doc(String(dia)); return ref.set({ texto: texto }); }
+function salvarObservacaoFirebase(dia, texto, motivo) { var ref = db.collection(getObservacoesPath()).doc(String(dia)); return ref.set({ texto: texto, motivo: motivo || '', atualizadoEm: new Date() }); }
 
 function salvarConfiguracoes() {
     var ref = db.collection('config').doc('app');
@@ -668,11 +833,14 @@ function carregarDoFirebase() {
         return db.collection(getObservacoesPath()).get();
     }).then(function(obsSnapshot) {
         var observacoes = {};
-        obsSnapshot.forEach(function(doc) { observacoes[doc.id] = doc.data().texto || ''; });
+        obsSnapshot.forEach(function(doc) { var d = doc.data() || {}; observacoes[doc.id] = { texto: d.texto || '', motivo: d.motivo || '', atualizadoEm: d.atualizadoEm || null }; });
         state.observacoes = observacoes;
         return db.collection(getMetasPath()).doc('metas').get().catch(function(e) { console.warn('Metas não carregadas:', e); return null; });
     }).then(function(metasDoc) {
         aplicarMetasDoc(metasDoc);
+        return db.collection(getCalendarioPath()).doc('calendario').get().catch(function(e) { console.warn('Calendário não carregado:', e); return null; });
+    }).then(function(calDoc) {
+        state.calendarioExcecoes = (calDoc && calDoc.exists && calDoc.data().excecoes) || {};
         return db.collection('config').doc('app').get();
     }).then(function(configDoc) {
         // O dia selecionado NÃO vem mais do banco (ele definido pela data de hoje)
@@ -718,7 +886,11 @@ function renderizarDias() {
         btn.textContent = dia.label;
         if (dia.numero === state.currentDia) btn.classList.add('active');
         if (temLancamento(dia.numero)) btn.classList.add('dia-com-lancamento');
-        btn.addEventListener('click', function(d) { return function() { state.currentDia = d.numero; salvarConfiguracoes(); renderizarTudo(); }; }(dia));
+        var infoD = getInfoDia(dia.numero);
+        if (!infoD.trabalho) { btn.classList.add('dia-folga'); btn.title = infoD.motivo; }
+        if (temObs(dia.numero)) { btn.classList.add('dia-com-obs'); var o = getObsDia(dia.numero); btn.title = (infoD.trabalho ? '' : infoD.motivo + '\n') + (o.motivo ? o.motivo + ': ' : '') + o.texto; }
+        else if (diaPrecisaJustificar(dia.numero)) { btn.classList.add('dia-sem-justificativa'); btn.title = 'Abaixo da meta e sem justificativa'; }
+        btn.addEventListener('click', function(d) { return function() { irParaDia(d.numero); }; }(dia));
         DOM.diasContainer.appendChild(btn);
     }
     var diaAtual = DIAS.find(function(d) { return d.numero === state.currentDia; });
@@ -726,6 +898,7 @@ function renderizarDias() {
     var totalDia = getRealizadoDia(state.currentDia);
     var areaDia = getAreaDia(state.currentDia);
     DOM.infoLancamentoDia.textContent = 'R$ ' + formatMoney(totalDia) + ' | ' + areaDia.toFixed(2) + ' ha';
+    renderizarDiario();
     renderizarResumoDia();
 }
 
@@ -738,7 +911,7 @@ function renderizarResumoDia() {
     var totalCusto = 0;
     var html = '';
     if (Object.keys(lancs).length === 0) {
-        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia (meta do dia: R$ ' + formatMoney(getTotalProjetado() / getDiasTrab()) + ')</td></tr>';
+        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia (meta do dia: R$ ' + formatMoney(getMetaDiaTotal(dia)) + (isDiaTrabalho(dia) ? '' : ', dia de folga') + ')</td></tr>';
         DOM.resumoDiaReceita.textContent = '0,00';
         DOM.resumoDiaCusto.textContent = '0,00';
         DOM.resumoDiaResultado.innerHTML = '📊 Resultado: R$ 0,00';
@@ -756,7 +929,7 @@ function renderizarResumoDia() {
         var apoio = lancs[opId].apoio || 0;
         var resultado = valor - custo;
         var margem = valor > 0 ? (resultado / valor) * 100 : 0;
-        var metaDiaOp = op ? getMetaDiaOp(op) : 0;
+        var metaDiaOp = op ? getMetaDiaOp(op, dia) : 0;
         var pctMeta = metaDiaOp > 0 ? (valor / metaDiaOp) * 100 : 0;
         totalReceita += valor;
         totalCusto += custo;
@@ -773,7 +946,7 @@ function renderizarResumoDia() {
     var resultadoDia = totalReceita - totalCusto;
     var corTotal = resultadoDia >= 0 ? 'resultado-positivo' : 'resultado-negativo';
     var sinalTotal = resultadoDia >= 0 ? '+' : '';
-    var metaDiaTotal = getTotalProjetado() / getDiasTrab();
+    var metaDiaTotal = getMetaDiaTotal(dia);
     var pctDiaTotal = metaDiaTotal > 0 ? (totalReceita / metaDiaTotal) * 100 : 0;
     var corMetaTotal = pctDiaTotal >= 100 ? 'resultado-positivo' : 'resultado-negativo';
     html += '<tr class="total-row"><td colspan="3"><strong>TOTAL DO DIA</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="text-right"><strong>R$ ' + formatMoney(metaDiaTotal) + '</strong></td><td class="text-right ' + corMetaTotal + '"><strong>' + pctDiaTotal.toFixed(0) + '%</strong></td><td colspan="4"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
@@ -869,18 +1042,30 @@ function atualizarCards() {
     DOM.realizadoTotal.textContent = formatMoney(totalReceita);
     $('realizadoTotalSub').textContent = (totalProj > 0 ? ((totalReceita / totalProj) * 100).toFixed(1) : '0.0') + '% da meta | falta R$ ' + formatMoney(Math.max(0, totalProj - totalReceita));
     // Meta do dia selecionado
-    var metaDia = totalProj / getDiasTrab();
+    var metaDia = getMetaDiaTotal(state.currentDia);
     var recDia = getRealizadoDia(state.currentDia);
     var pctDia = metaDia > 0 ? (recDia / metaDia) * 100 : 0;
-    $('metaDiaCard').innerHTML = '<span class="currency">R$</span> <span style="color:' + (pctDia >= 100 ? '#16a34a' : '#dc3545') + ';">' + formatMoney(recDia) + '</span>';
-    $('metaDiaCardSub').textContent = 'de R$ ' + formatMoney(metaDia) + ' (' + pctDia.toFixed(0) + '%)';
+    if (!isDiaTrabalho(state.currentDia)) {
+        $('metaDiaCard').innerHTML = '<span class="currency">R$</span> <span style="color:#475569;">' + formatMoney(recDia) + '</span>';
+        $('metaDiaCardSub').textContent = '🛌 Folga, sem meta';
+    } else {
+        $('metaDiaCard').innerHTML = '<span class="currency">R$</span> <span style="color:' + (pctDia >= 100 ? '#16a34a' : '#dc3545') + ';">' + formatMoney(recDia) + '</span>';
+        $('metaDiaCardSub').textContent = 'de R$ ' + formatMoney(metaDia) + ' (' + pctDia.toFixed(0) + '%)';
+    }
+    var prev = calcularPrevisao();
+    if (!prev) { $('previsaoCard').textContent = '-'; $('previsaoCardSub').textContent = 'Aguardando lançamentos'; }
+    else {
+        var corPrev = totalProj > 0 && prev.valor >= totalProj ? '#16a34a' : '#dc3545';
+        $('previsaoCard').innerHTML = '<span class="currency">R$</span> <span style="color:' + (totalProj > 0 ? corPrev : '#0f172a') + ';">' + formatMoney(prev.valor) + '</span>';
+        $('previsaoCardSub').textContent = prev.fechada ? 'RF encerrada' : (totalProj > 0 ? ((prev.valor / totalProj) * 100).toFixed(0) + '% da meta, no ritmo atual' : 'no ritmo atual');
+    }
     // Ritmo da RF
     var esperado = totalProj * getFracaoEsperada();
     var diff = totalReceita - esperado;
     if (totalProj <= 0) { $('ritmoCard').textContent = '-'; $('ritmoCardSub').textContent = 'Defina as metas'; }
     else {
         $('ritmoCard').innerHTML = '<span style="color:' + (diff >= 0 ? '#16a34a' : '#dc3545') + ';">' + (diff >= 0 ? '▲' : '▼') + ' ' + formatMoney(Math.abs(diff)) + '</span>';
-        $('ritmoCardSub').textContent = (diff >= 0 ? 'Adiantado' : 'Atrasado') + ' | esperado até hoje: R$ ' + formatMoney(esperado);
+        $('ritmoCardSub').textContent = (diff >= 0 ? 'Adiantado' : 'Atrasado') + ' | esperado até hoje: R$ ' + formatMoney(esperado) + ' (' + getDiasTrabDecorridos() + ' de ' + getDiasTrab() + ' dias trab.)';
     }
     var cor = totalResultado >= 0 ? '#16a34a' : '#dc3545';
     var sinal = totalResultado >= 0 ? '+' : '';
@@ -892,40 +1077,134 @@ function atualizarCards() {
     $('areaRealizadaSub').textContent = totalMetaArea > 0 ? 'de ' + totalMetaArea.toFixed(2) + ' ha (' + ((totalArea / totalMetaArea) * 100).toFixed(1) + '%)' : '';
 }
 
-function renderizarGraficoEvolucao() {
-    var hasData = false;
-    for (var dia in state.lancamentos) { if (Object.keys(state.lancamentos[dia]).length > 0) { hasData = true; break; } }
-    if (!hasData) { DOM.graficoEvolucao.innerHTML = '<div class="vazio">Nenhum lançamento ainda.</div>'; return; }
-    var totalDias = DIAS.length || 31;
+// Previsão de fechamento: média por dia trabalhado já realizado × total de dias trabalhados
+function calcularPrevisao() {
+    var receita = getReceitaTotal();
+    var lim = getDiasDecorridos();
+    var total = DIAS.length;
+    var fechada = lim >= total && !isPeriodoAtual(periodState.currentYear, periodState.currentMonth);
+    if (fechada) return { valor: receita, fechada: true, media: 0, base: 0, restantes: 0 };
+    if (lim <= 0) return null;
+    var hoje = lim;
+    // Conta os dias trabalhados já encerrados (antes de hoje) e hoje só se já tiver lançamento
+    var base = 0;
+    for (var i = 1; i < hoje; i++) if (isDiaTrabalho(i)) base++;
+    if (isDiaTrabalho(hoje) && temLancamento(hoje)) base++;
+    if (base === 0 || receita <= 0) return null;
+    var media = receita / base;
+    var restantes = Math.max(0, getDiasTrab() - base);
+    return { valor: receita + media * restantes, fechada: false, media: media, base: base, restantes: restantes };
+}
+
+function montarProjecao() {
     var totalProj = getTotalProjetado();
-    var labels = [], projAcum = [], realAcum = [];
-    var real = 0;
-    for (var i = 1; i <= totalDias; i++) {
-        labels.push(i);
-        projAcum.push(totalProj * (i / totalDias));
-        real += getRealizadoDia(i);
-        realAcum.push(real);
+    var metaDia = totalProj / getDiasTrab();
+    var linhas = [], metaAc = 0, realAc = 0;
+    var lim = getDiasDecorridos();
+    for (var i = 0; i < DIAS.length; i++) {
+        var n = DIAS[i].numero;
+        var info = getInfoDia(n);
+        var md = info.trabalho ? metaDia : 0;
+        var rd = getRealizadoDia(n);
+        metaAc += md; realAc += rd;
+        linhas.push({ numero: n, label: DIAS[i].label, date: DIAS[i].date, info: info, metaDia: md, metaAc: metaAc, real: rd, realAc: realAc, passou: n <= lim, hoje: n === lim && isPeriodoAtual(periodState.currentYear, periodState.currentMonth) });
     }
-    var ultimoComDado = Math.max.apply(null, Object.keys(state.lancamentos).map(Number));
-    var limiteReal = Math.max(ultimoComDado, Math.min(getDiasDecorridos(), totalDias));
-    var width = 500, height = 140, pad = 25;
-    var maxVal = Math.max(Math.max.apply(null, projAcum.concat(realAcum)), 100);
-    var scale = function(v) { return (v / maxVal) * (height - pad * 2) + pad; };
-    var xDe = function(i) { return pad + (i / (labels.length - 1)) * (width - pad * 2); };
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%; height:140px; background:#fafcff; border-radius:10px; overflow:hidden;">';
-    svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#fafcff" rx="8"/>';
-    var projPoints = '';
-    for (var i = 0; i < labels.length; i++) projPoints += xDe(i) + ',' + (height - scale(projAcum[i])) + ' ';
-    svg += '<polyline points="' + projPoints.trim() + '" fill="none" stroke="#93bbfc" stroke-width="3" stroke-dasharray="6,4" />';
-    var realPoints = '';
-    for (var i = 0; i < limiteReal; i++) realPoints += xDe(i) + ',' + (height - scale(realAcum[i])) + ' ';
-    svg += '<polyline points="' + realPoints.trim() + '" fill="none" stroke="#2563eb" stroke-width="4" />';
-    for (var i = 0; i < limiteReal; i++) svg += '<circle cx="' + xDe(i) + '" cy="' + (height - scale(realAcum[i])) + '" r="3" fill="#2563eb" stroke="white" stroke-width="1.5"/>';
-    for (var i = 0; i < labels.length; i += 2) {
-        var label = DIAS[i];
-        svg += '<text x="' + xDe(i) + '" y="' + (height - 4) + '" font-size="7" fill="#64748b" text-anchor="middle">' + (label ? label.label : labels[i]) + '</text>';
+    return linhas;
+}
+
+function renderizarProjecao() {
+    var linhas = montarProjecao();
+    var totalProj = getTotalProjetado();
+    var receita = getReceitaTotal();
+    var diasTrab = getDiasTrab();
+    var decorr = getDiasTrabDecorridos();
+    var restantesTrab = 0;
+    var lim = getDiasDecorridos();
+    var aindaHoje = isPeriodoAtual(periodState.currentYear, periodState.currentMonth);
+    for (var i = 0; i < linhas.length; i++) {
+        var n = linhas[i].numero;
+        if (!linhas[i].info.trabalho) continue;
+        if (n > lim || (aindaHoje && n === lim && !temLancamento(n))) restantesTrab++;
     }
-    svg += '<text x="' + (width - pad) + '" y="12" font-size="8" fill="#64748b" text-anchor="end">— — meta acumulada   ━ receita acumulada</text>';
+    var falta = Math.max(0, totalProj - receita);
+    var necessario = restantesTrab > 0 ? falta / restantesTrab : 0;
+    var prev = calcularPrevisao();
+    var mediaReal = prev && prev.base ? prev.media : 0;
+    var html = '';
+    html += '<div><div class="l">Dias trabalhados</div><div class="v">' + diasTrab + '</div><div class="s">' + (diasTrab - restantesTrab) + ' feitos · ' + restantesTrab + ' restantes' + (aindaHoje && isDiaTrabalho(lim) && !temLancamento(lim) ? ' (com hoje)' : '') + ' · ' + (DIAS.length - diasTrab) + ' folgas</div></div>';
+    html += '<div><div class="l">Meta por dia trabalhado</div><div class="v">R$ ' + formatMoney(totalProj / diasTrab) + '</div><div class="s">meta da RF ÷ ' + diasTrab + ' dias</div></div>';
+    html += '<div><div class="l">Média real por dia</div><div class="v" style="color:' + (mediaReal >= totalProj / diasTrab ? '#16a34a' : '#dc3545') + ';">' + (mediaReal ? 'R$ ' + formatMoney(mediaReal) : '-') + '</div><div class="s">' + (prev && prev.base ? 'em ' + prev.base + ' dia(s) trabalhado(s)' : 'sem lançamentos ainda') + '</div></div>';
+    if (restantesTrab > 0 && totalProj > 0) {
+        html += '<div><div class="l">Para bater a meta</div><div class="v" style="color:' + (falta <= 0 ? '#16a34a' : '#0f172a') + ';">' + (falta <= 0 ? '✅ Batida' : 'R$ ' + formatMoney(necessario) + '/dia') + '</div><div class="s">' + (falta <= 0 ? 'meta da RF já atingida' : 'faltam R$ ' + formatMoney(falta) + ' em ' + restantesTrab + ' dia(s)') + '</div></div>';
+    }
+    if (prev) {
+        html += '<div><div class="l">Previsão de fechamento</div><div class="v" style="color:' + (totalProj > 0 && prev.valor >= totalProj ? '#16a34a' : '#dc3545') + ';">R$ ' + formatMoney(prev.valor) + '</div><div class="s">' + (prev.fechada ? 'RF encerrada' : (totalProj > 0 ? ((prev.valor / totalProj) * 100).toFixed(0) + '% da meta' : '') + ' mantendo a média atual') + '</div></div>';
+    }
+    $('projResumo').innerHTML = html;
+
+    var tb = '';
+    for (var i = 0; i < linhas.length; i++) {
+        var l = linhas[i];
+        var cls = (!l.info.trabalho ? 'folga ' : '') + (l.hoje ? 'hoje ' : '') + (!l.passou ? 'futuro' : '');
+        var diff = l.realAc - l.metaAc;
+        var nomeSem = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][l.date.getDay()];
+        tb += '<tr class="' + cls + '" style="cursor:pointer;" onclick="irParaDia(' + l.numero + ')"><td><b>' + l.label + '</b> <span style="color:#94a3b8;">' + nomeSem + '</span>' + (l.hoje ? ' <span class="tag-status neutro">hoje</span>' : '') + '</td>'
+            + '<td>' + (l.info.trabalho ? '🛠️' : '🛌 ' + escHtml(l.info.motivo)) + '</td>'
+            + '<td class="num">' + (l.metaDia ? 'R$ ' + formatMoney(l.metaDia) : '—') + '</td>'
+            + '<td class="num">R$ ' + formatMoney(l.metaAc) + '</td>'
+            + '<td class="num real">' + (l.passou || l.real ? 'R$ ' + formatMoney(l.real) : '—') + '</td>'
+            + '<td class="num real">' + (l.passou || l.real ? 'R$ ' + formatMoney(l.realAc) : '—') + '</td>'
+            + '<td class="num real ' + (l.passou ? (diff >= 0 ? 'resultado-positivo' : 'resultado-negativo') : '') + '">' + (l.passou ? (diff >= 0 ? '+' : '−') + 'R$ ' + formatMoney(Math.abs(diff)) : '—') + '</td></tr>';
+    }
+    $('projTabelaBody').innerHTML = tb;
+    renderizarGraficoEvolucao(linhas, prev);
+}
+
+function renderizarGraficoEvolucao(linhas, prev) {
+    if (!linhas) linhas = montarProjecao();
+    var totalProj = getTotalProjetado();
+    var n = linhas.length;
+    if (!n || (totalProj <= 0 && getReceitaTotal() <= 0)) { DOM.graficoEvolucao.innerHTML = '<div class="vazio">Defina as metas ou faça lançamentos para ver a projeção.</div>'; return; }
+    var lim = getDiasDecorridos();
+    var ultimoComDado = 0;
+    for (var k in state.lancamentos) ultimoComDado = Math.max(ultimoComDado, Number(k));
+    var limiteReal = Math.min(n, Math.max(ultimoComDado, lim));
+    var width = 600, height = 190, padL = 8, padR = 8, padT = 22, padB = 22;
+    var maxVal = Math.max(totalProj, linhas[n - 1].realAc, prev ? prev.valor : 0, 100) * 1.05;
+    var colW = (width - padL - padR) / n;
+    var xC = function(i) { return padL + colW * (i + 0.5); };
+    var xR = function(i) { return padL + colW * (i + 1); };
+    var y = function(v) { return padT + (1 - v / maxVal) * (height - padT - padB); };
+    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="width:100%;height:auto;max-height:240px;display:block;">';
+    // faixas das folgas
+    for (var i = 0; i < n; i++) if (!linhas[i].info.trabalho) svg += '<rect x="' + (padL + colW * i) + '" y="' + padT + '" width="' + colW + '" height="' + (height - padT - padB) + '" fill="#eef2f7"><title>' + linhas[i].label + ' · ' + escHtml(linhas[i].info.motivo) + '</title></rect>';
+    // linha da meta 100%
+    if (totalProj > 0) svg += '<line x1="' + padL + '" x2="' + (width - padR) + '" y1="' + y(totalProj) + '" y2="' + y(totalProj) + '" stroke="#cbd5e1" stroke-dasharray="2,3"/><text x="' + padL + '" y="' + (y(totalProj) - 4) + '" font-size="8" fill="#64748b">Meta da RF R$ ' + formatMoney(totalProj) + '</text>';
+    // meta acumulada em degraus (só sobe em dia trabalhado)
+    var pts = padL + ',' + y(0);
+    for (var i = 0; i < n; i++) pts += ' ' + xR(i) + ',' + y(i === 0 ? 0 : linhas[i - 1].metaAc) + ' ' + xR(i) + ',' + y(linhas[i].metaAc);
+    svg += '<polyline points="' + pts + '" fill="none" stroke="#93bbfc" stroke-width="2.5" stroke-dasharray="5,3"/>';
+    // realizado acumulado
+    if (limiteReal > 0) {
+        var rp = padL + ',' + y(0);
+        for (var i = 0; i < limiteReal; i++) rp += ' ' + xR(i) + ',' + y(linhas[i].realAc);
+        svg += '<polyline points="' + rp + '" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round"/>';
+        for (var i = 0; i < limiteReal; i++) if (linhas[i].real > 0) svg += '<circle cx="' + xR(i) + '" cy="' + y(linhas[i].realAc) + '" r="2.8" fill="#2563eb" stroke="#fff" stroke-width="1.2"><title>' + linhas[i].label + ': R$ ' + formatMoney(linhas[i].real) + ' no dia · acumulado R$ ' + formatMoney(linhas[i].realAc) + '</title></circle>';
+        // previsão até o fim
+        // a previsão começa no último dia já "feito" (hoje só conta se já tiver lançamento)
+        var inicioPrev = (isPeriodoAtual(periodState.currentYear, periodState.currentMonth) && lim >= 1 && !temLancamento(lim)) ? lim - 1 : limiteReal;
+        if (prev && !prev.fechada && inicioPrev >= 1 && inicioPrev < n) {
+            var acum = linhas[inicioPrev - 1].realAc, pp = xR(inicioPrev - 1) + ',' + y(acum);
+            for (var i = inicioPrev; i < n; i++) { if (linhas[i].info.trabalho) acum += prev.media; pp += ' ' + xR(i) + ',' + y(acum); }
+            svg += '<polyline points="' + pp + '" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="2,3" opacity=".6"/>';
+            svg += '<text x="' + (width - padR) + '" y="' + (y(acum) - 5) + '" font-size="8" fill="#2563eb" text-anchor="end">previsão R$ ' + formatMoney(acum) + '</text>';
+        }
+    }
+    // hoje
+    if (isPeriodoAtual(periodState.currentYear, periodState.currentMonth) && lim >= 1 && lim <= n) svg += '<line x1="' + xR(lim - 1) + '" x2="' + xR(lim - 1) + '" y1="' + padT + '" y2="' + (height - padB) + '" stroke="#0f172a" stroke-width="1" opacity=".35"/><text x="' + xR(lim - 1) + '" y="' + (padT - 4) + '" font-size="8" fill="#0f172a" text-anchor="middle">hoje</text>';
+    // rótulos
+    for (var i = 0; i < n; i += 3) svg += '<text x="' + xC(i) + '" y="' + (height - 7) + '" font-size="8" fill="#64748b" text-anchor="middle">' + linhas[i].label + '</text>';
+    svg += '<text x="' + (width - padR) + '" y="10" font-size="8" fill="#64748b" text-anchor="end">- - meta acumulada   ━ realizado   ··· previsão   ▒ folga</text>';
     svg += '</svg>';
     DOM.graficoEvolucao.innerHTML = svg;
 }
@@ -934,9 +1213,10 @@ function renderizarTudo() {
     renderizarSelect();
     renderizarDias();
     renderizarTabela();
-    renderizarGraficoEvolucao();
+    renderizarProjecao();
     atualizarAvisoMetas();
     atualizarCards();
+    renderizarDiarioLista();
     atualizarUltimaAtualizacao();
     calcularTotal();
 }
@@ -1208,7 +1488,146 @@ function excluirEdicao() {
 
 function fecharModal() { Modals.edit.classList.remove('active'); Modals.extra.classList.remove('active'); $('metasModal').classList.remove('active'); editTarget = null; }
 
+var obsDiaCarregado = null;
+var obsAlterado = false;
+
+function irParaDia(numero) {
+    if (obsAlterado && numero !== state.currentDia && (DOM.obsInput.value.trim() || $('obsMotivo').value)) {
+        if (!confirm('Você escreveu no Diário do dia e não salvou. Sair mesmo assim?')) return;
+    }
+    obsAlterado = false;
+    state.currentDia = numero;
+    salvarConfiguracoes();
+    renderizarTudo();
+}
+
+function renderizarDiario() {
+    var dia = state.currentDia;
+    var diaLabel = DIAS.find(function(d) { return d.numero === dia; });
+    $('diarioDataLabel').textContent = diaLabel ? diaLabel.label : '';
+    var o = getObsDia(dia);
+    // Só sobrescreve o que está digitado quando troca de dia (para não apagar o que a pessoa está escrevendo)
+    if (obsDiaCarregado !== periodState.currentYear + '_' + periodState.currentMonth + '_' + dia || !obsAlterado) {
+        DOM.obsInput.value = o.texto || '';
+        $('obsMotivo').value = o.motivo || '';
+        obsDiaCarregado = periodState.currentYear + '_' + periodState.currentMonth + '_' + dia;
+        obsAlterado = false;
+    }
+    var st = $('obsStatus');
+    if (temObs(dia)) {
+        var quando = o.atualizadoEm && o.atualizadoEm.toDate ? o.atualizadoEm.toDate() : (o.atualizadoEm instanceof Date ? o.atualizadoEm : null);
+        st.textContent = '✅ Salvo' + (quando ? ' em ' + quando.toLocaleDateString('pt-BR') + ' ' + quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
+    } else {
+        st.textContent = 'Sem anotação neste dia';
+    }
+    var info = getInfoDia(dia);
+    $('tipoDiaLabel').innerHTML = '<span class="tipo-dia ' + (info.trabalho ? 'trab' : 'folga') + '">' + (info.trabalho ? '🛠️ Dia trabalhado' : '🛌 Folga') + ' · ' + escHtml(info.motivo) + '</span>';
+    $('btnTipoDia').textContent = info.trabalho ? 'Marcar como folga' : 'Marcar como trabalhado';
+    var alerta = $('alertaBaixa');
+    var meta = getMetaDiaTotal(dia);
+    if (diaAbaixoMeta(dia)) {
+        var rec = getRealizadoDia(dia);
+        var pct = meta > 0 ? (rec / meta) * 100 : 0;
+        var ehHoje = isPeriodoAtual(periodState.currentYear, periodState.currentMonth) && dia === getDiasDecorridos();
+        if (ehHoje) alerta.innerHTML = '<div class="alerta-baixa" style="background:#fef3c7;color:#92400e;border-color:#fde68a;">⏳ Hoje até agora: R$ ' + formatMoney(getRealizadoDia(dia)) + ' de R$ ' + formatMoney(meta) + ' (' + (meta > 0 ? (getRealizadoDia(dia) / meta * 100).toFixed(0) : 0) + '%) da meta do dia.</div>';
+        else alerta.innerHTML = '<div class="alerta-baixa">📉 Dia abaixo da meta: R$ ' + formatMoney(rec) + ' de R$ ' + formatMoney(meta) + ' (' + pct.toFixed(0) + '%).' + (temObs(dia) ? '' : ' <b>Registre o motivo abaixo.</b>') + '</div>';
+    } else {
+        alerta.innerHTML = '';
+    }
+}
+
+function trocarTipoDia() {
+    var dia = state.currentDia;
+    var d = DIAS[dia - 1];
+    if (!d) return;
+    var padrao = tipoPadraoData(d.date);
+    var atual = getInfoDia(dia);
+    var novoTrabalho = !atual.trabalho;
+    var anterior = state.calendarioExcecoes[String(dia)];
+    var novo = Object.assign({}, state.calendarioExcecoes);
+    // Se voltar ao padrão, remove a exceção
+    if (novoTrabalho === padrao.trabalho) delete novo[String(dia)];
+    else novo[String(dia)] = novoTrabalho ? 'trabalho' : 'folga';
+    state.calendarioExcecoes = novo;
+    var btn = $('btnTipoDia');
+    btn.disabled = true;
+    salvarCalendarioFirebase().then(function() {
+        btn.disabled = false;
+        renderizarTudo();
+        showToast((novoTrabalho ? '🛠️ ' : '🛌 ') + d.label + ' marcado como ' + (novoTrabalho ? 'dia trabalhado' : 'folga') + '. A meta diária foi recalculada (' + getDiasTrab() + ' dias trabalhados).', 'success');
+    }).catch(function(error) {
+        console.error('Erro ao salvar calendário:', error);
+        if (anterior === undefined) delete state.calendarioExcecoes[String(dia)]; else state.calendarioExcecoes[String(dia)] = anterior;
+        btn.disabled = false;
+        renderizarTudo();
+        showToast(error.code === 'permission-denied' ? '🔒 Sem permissão para salvar o calendário. Verifique as regras do Firestore.' : '❌ Erro ao salvar o calendário', 'error');
+    });
+}
+
+function renderizarDiarioLista() {
+    var body = $('diarioListaBody');
+    var html = '';
+    var comObs = 0, semJust = 0;
+    for (var i = 0; i < DIAS.length; i++) {
+        var d = DIAS[i];
+        var tem = temObs(d.numero);
+        var precisa = diaPrecisaJustificar(d.numero);
+        if (tem) comObs++;
+        if (precisa) semJust++;
+        if (!tem && !precisa) continue;
+        var o = getObsDia(d.numero);
+        var rec = getRealizadoDia(d.numero);
+        var meta = getMetaDiaTotal(d.numero);
+        var pct = meta > 0 ? (rec / meta) * 100 : 0;
+        var corPct = pct >= 100 ? 'resultado-positivo' : 'resultado-negativo';
+        html += '<tr class="clicavel" onclick="irParaDia(' + d.numero + ')"><td><b>' + d.label + '</b></td>'
+            + '<td class="num">R$ ' + formatMoney(rec) + '</td>'
+            + '<td class="num ' + (meta > 0 ? corPct : '') + '">' + (meta > 0 ? pct.toFixed(0) + '%' : '—') + '</td>'
+            + '<td>' + (o.motivo ? '<span class="motivo-tag">' + escHtml(o.motivo) + '</span>' : (precisa ? '<span class="tag-status atras">sem justificativa</span>' : '')) + '</td>'
+            + '<td class="texto">' + escHtml(o.texto) + '</td></tr>';
+    }
+    body.innerHTML = html || '<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma observação nesta RF.</td></tr>';
+    $('diarioResumo').innerHTML = '📝 ' + comObs + ' dia(s) com anotação' + (semJust ? ' | <span style="color:#dc3545;font-weight:600;">⚠️ ' + semJust + ' abaixo da meta sem justificativa</span>' : '');
+}
+
 function salvarObservacao() {
+    var texto = DOM.obsInput.value.trim();
+    var motivo = $('obsMotivo').value;
+    var dia = state.currentDia;
+    if (!texto && !motivo) { apagarObservacao(); return; }
+    if (motivo === 'Outro' && !texto) { showToast('⚠️ Descreva o motivo no campo de texto.', 'warning'); DOM.obsInput.focus(); return; }
+    var btn = DOM.btnSalvarObs;
+    btn.disabled = true;
+    salvarObservacaoFirebase(dia, texto, motivo).then(function() {
+        state.observacoes[dia] = { texto: texto, motivo: motivo, atualizadoEm: new Date() };
+        obsAlterado = false;
+        btn.disabled = false;
+        renderizarDias();
+        renderizarDiarioLista();
+        showToast('📝 Diário do dia salvo', 'success');
+    }).catch(function(error) {
+        console.error('Erro ao salvar observação:', error);
+        btn.disabled = false;
+        showToast('❌ Erro ao salvar o diário. O texto continua no campo, tente de novo.', 'error');
+    });
+}
+
+function apagarObservacao() {
+    var dia = state.currentDia;
+    if (!temObs(dia)) { DOM.obsInput.value = ''; $('obsMotivo').value = ''; obsAlterado = false; return; }
+    if (!confirm('Apagar a anotação deste dia?')) return;
+    db.collection(getObservacoesPath()).doc(String(dia)).delete().then(function() {
+        delete state.observacoes[dia];
+        obsAlterado = false;
+        obsDiaCarregado = null;
+        renderizarDias();
+        renderizarDiarioLista();
+        showToast('🗑️ Anotação apagada');
+    }).catch(function() { showToast('❌ Erro ao apagar anotação', 'error'); });
+}
+
+function salvarObservacaoAntiga() {
+    return;
     var texto = DOM.obsInput.value.trim();
     var dia = state.currentDia;
     if (texto) {
@@ -1276,7 +1695,7 @@ function preencherMetasModal(metas, diasTrab) {
             + '<td class="m-valor" id="mval_' + op.id + '">R$ 0,00</td></tr>';
     }
     body.innerHTML = html;
-    $('metaDiasTrab').value = diasTrab || DIAS.length;
+    $('metaDiasTrab').value = getDiasTrab();
     var inputs = body.querySelectorAll('input');
     for (var j = 0; j < inputs.length; j++) inputs[j].addEventListener('input', recalcMetasModal);
     recalcMetasModal();
@@ -1301,7 +1720,7 @@ function recalcMetasModal() {
         var el = document.getElementById('mval_' + id);
         if (el) el.textContent = 'R$ ' + formatMoney(metas[id].valor);
     }
-    var dias = parseInt($('metaDiasTrab').value) || DIAS.length;
+    var dias = getDiasTrab();
     $('metasTotalArea').textContent = tArea.toFixed(2) + ' ha';
     $('metasTotalValor').textContent = 'R$ ' + formatMoney(tValor);
     $('metasPorDia').textContent = 'R$ ' + formatMoney(tValor / dias);
@@ -1315,8 +1734,7 @@ function abrirMetas() {
 
 function salvarMetas() {
     var metas = lerMetasModal();
-    var dias = parseInt($('metaDiasTrab').value) || 0;
-    if (dias <= 0 || dias > 31) { showToast('⚠️ Dias trabalhados deve ser entre 1 e 31.', 'warning'); return; }
+    var dias = getDiasTrab();
     var btn = $('btnSalvarMetas');
     btn.disabled = true;
     var anterior = { metas: state.metas, dias: state.metasDiasTrab, def: state.metasDefinidas };
@@ -1362,7 +1780,10 @@ function baixarBackup() {
     var num = function(v) { return String(Math.round((v || 0) * 100) / 100).replace('.', ','); };
     Promise.all(periodos.map(function(p) {
         var key = p.year + '_' + String(p.month + 1).padStart(2, '0');
-        return db.collection('periodos/' + key + '/lancamentos').get().then(function(snap) { return { p: p, key: key, snap: snap }; });
+        return Promise.all([
+            db.collection('periodos/' + key + '/lancamentos').get(),
+            db.collection('periodos/' + key + '/observacoes').get()
+        ]).then(function(r) { var obs = {}; r[1].forEach(function(d) { obs[d.id] = d.data() || {}; }); return { p: p, key: key, snap: r[0], obs: obs }; });
     })).then(function(resultados) {
         var linhas = [];
         var total = 0;
@@ -1373,12 +1794,21 @@ function baixarBackup() {
                 var d = doc.data();
                 var dl = dias[d.dia - 1];
                 var data = dl ? (dl.date.getDate() < 10 ? '0' : '') + dl.date.getDate() + '/' + String(dl.date.getMonth() + 1).padStart(2, '0') + '/' + dl.date.getFullYear() : 'dia ' + d.dia;
-                linhas.push({ ord: r.key + '_' + String(d.dia).padStart(2, '0'), cols: [rf, data, nomes[d.opId] || d.opId, num(d.ha), num(d.valor), d.tf || 0, d.maq || 0, d.pipa || 0, d.apoio || 0, num(d.custo), num((d.valor || 0) - (d.custo || 0)), doc.id] });
+                var ob = r.obs[String(d.dia)] || {};
+                linhas.push({ ord: r.key + '_' + String(d.dia).padStart(2, '0'), cols: [rf, data, nomes[d.opId] || d.opId, num(d.ha), num(d.valor), d.tf || 0, d.maq || 0, d.pipa || 0, d.apoio || 0, num(d.custo), num((d.valor || 0) - (d.custo || 0)), ob.motivo || '', ob.texto || '', doc.id] });
                 total++;
+            });
+            Object.keys(r.obs).forEach(function(diaId) {
+                var temLanc = false;
+                r.snap.forEach(function(doc) { if (String(doc.data().dia) === diaId) temLanc = true; });
+                if (temLanc) return;
+                var dl = dias[parseInt(diaId) - 1];
+                var data = dl ? (dl.date.getDate() < 10 ? '0' : '') + dl.date.getDate() + '/' + String(dl.date.getMonth() + 1).padStart(2, '0') + '/' + dl.date.getFullYear() : 'dia ' + diaId;
+                linhas.push({ ord: r.key + '_' + String(diaId).padStart(2, '0'), cols: [rf, data, '(sem lançamento)', '0', '0', 0, 0, 0, 0, '0', '0', r.obs[diaId].motivo || '', r.obs[diaId].texto || '', ''] });
             });
         });
         linhas.sort(function(a, b) { return a.ord < b.ord ? -1 : a.ord > b.ord ? 1 : 0; });
-        var csv = 'Início da RF;Data;Operação;Área (ha);Receita (R$);TF;Máquina;Pipa;Apoio;Custo (R$);Resultado (R$);ID\n';
+        var csv = 'Início da RF;Data;Operação;Área (ha);Receita (R$);TF;Máquina;Pipa;Apoio;Custo (R$);Resultado (R$);Motivo do dia;Observação do dia;ID\n';
         csv += linhas.map(function(l) { return l.cols.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\n');
         var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
         var a = document.createElement('a');
@@ -1409,7 +1839,13 @@ function setupEvents() {
     DOM.btnResetDia.addEventListener('click', resetarDia);
     DOM.resetCompleto.addEventListener('click', resetarCompleto);
     DOM.btnSalvarObs.addEventListener('click', salvarObservacao);
-    DOM.obsInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') salvarObservacao(); });
+    DOM.obsInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); salvarObservacao(); } });
+    DOM.obsInput.addEventListener('input', function() { obsAlterado = true; });
+    $('obsMotivo').addEventListener('change', function() { obsAlterado = true; });
+    $('btnLimparObs').addEventListener('click', apagarObservacao);
+    $('btnTipoDia').addEventListener('click', trocarTipoDia);
+    $('btnVerTabelaProj').addEventListener('click', function() { var w = $('projTabelaWrap'); var abrir = w.style.display === 'none'; w.style.display = abrir ? 'block' : 'none'; this.innerHTML = abrir ? '<i class="fas fa-chart-line"></i> Esconder dia a dia' : '<i class="fas fa-table"></i> Ver dia a dia'; });
+    window.addEventListener('beforeunload', function(e) { if (obsAlterado) { e.preventDefault(); e.returnValue = ''; } });
     DOM.btnAbrirExtra.addEventListener('click', abrirExtraModal);
     DOM.btnSync.addEventListener('click', function() { carregarDoFirebase(); showToast('🔄 Dados sincronizados!', 'success'); });
     DOM.btnConfig.addEventListener('click', abrirConfig);
@@ -1439,6 +1875,7 @@ function setupEvents() {
 }
 
 window.removerExtra = removerExtra;
+window.irParaDia = irParaDia;
 
 // ============================================================
 // VIRADA AUTOMÁTICA DE PERÍODO
