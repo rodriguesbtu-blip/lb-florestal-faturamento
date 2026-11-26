@@ -257,6 +257,7 @@
 <input type="number" id="maqQtd" step="1" placeholder="Máq" style="width:55px;" title="Máquinas">
 <input type="number" id="pipaQtd" step="1" placeholder="Pipa" style="width:55px;" title="Caminhão Pipa">
 <input type="number" id="apoioQtd" step="1" placeholder="Apoio" style="width:55px;" title="Caminhão Apoio">
+<input type="number" id="camQtd" step="1" placeholder="Cam." style="width:55px;" title="Caminhonete">
 <button class="btn-primary" id="btnLancar"><i class="fas fa-check"></i> Lançar</button>
 <button class="btn-reset" id="btnResetDia"><i class="fas fa-undo"></i> Resetar</button>
 <span class="info-dia" id="infoLancamentoDia"></span>
@@ -289,7 +290,7 @@
 </div>
 <div class="resumo-dia" id="resumoDia">
 <div class="resumo-header"><h3><i class="fas fa-calendar-day"></i> Resumo do Dia <span id="resumoDiaData" style="font-weight:400;font-size:14px;color:#64748b;">-</span></h3><div class="totais-dia"><span class="rec">💰 Receita: R$ <span id="resumoDiaReceita">0,00</span></span><span class="cus">📉 Custo: R$ <span id="resumoDiaCusto">0,00</span></span><span class="res" id="resumoDiaResultado">📊 Resultado: R$ 0,00</span></div></div>
-<div class="table-wrap"><table><thead><tr><th>Data</th><th>Operação</th><th class="text-right">Produção</th><th class="text-right">Receita</th><th class="text-right">Meta dia</th><th class="text-right">% Meta</th><th class="text-right">TF</th><th class="text-right">Máquina</th><th class="text-right">Pipa</th><th class="text-right">Apoio</th><th class="text-right">Custo</th><th class="text-right">Resultado</th><th class="text-right">Margem %</th><th>Obs</th><th class="text-center">Ação</th></tr></thead><tbody id="resumoDiaBody"><tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Operação</th><th class="text-right">Produção</th><th class="text-right">Receita</th><th class="text-right">Meta dia</th><th class="text-right">% Meta</th><th class="text-right">TF</th><th class="text-right">Máquina</th><th class="text-right">Pipa</th><th class="text-right">Apoio</th><th class="text-right">Caminh.</th><th class="text-right">Custo</th><th class="text-right">Resultado</th><th class="text-right">Margem %</th><th>Obs</th><th class="text-center">Ação</th></tr></thead><tbody id="resumoDiaBody"><tr><td colspan="16" class="text-center text-muted py-3">Nenhum lançamento neste dia</td></tr></tbody></table></div>
 </div>
 <div class="panel"><div class="panel-header"><h2><i class="fas fa-list"></i> Operações <span class="sub">meta da RF vs realizado</span></h2><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-outline-secondary" id="btnAbrirMetas2"><i class="fas fa-bullseye"></i> Metas</button><button class="btn btn-sm btn-primary" id="btnAbrirExtra"><i class="fas fa-plus"></i> Extra</button></div></div><div id="avisoMetas"></div><div class="table-wrap"><table><thead><tr><th>Operação</th><th class="num">Meta ha</th><th class="num">Real. ha</th><th class="num">Meta R$</th><th class="num">Receita</th><th class="num">Custo</th><th class="num">Resultado</th><th class="num">Margem</th><th class="num">% Meta</th><th class="num">Ritmo</th><th class="num">Ação</th></tr></thead><tbody id="tbodyOperacoes"><tr><td colspan="11" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Carregando...</td></tr></tbody></table></div><div style="font-size:11px;color:#64748b;margin-top:6px;">⏱️ <b>Ritmo</b>: quanto a operação está acima (▲) ou abaixo (▼) do que já deveria ter sido faturado até hoje, considerando a meta dividida pelos dias da RF.</div></div>
 <div class="panel"><div class="panel-header"><h2><i class="fas fa-book"></i> Diário da RF <span class="sub">observações e justificativas de cada dia</span></h2><span id="diarioResumo" style="font-size:12px;"></span></div><div class="table-wrap"><table class="diario-lista"><thead><tr><th>Data</th><th class="num">Receita</th><th class="num">% Meta dia</th><th>Motivo</th><th>Observação</th></tr></thead><tbody id="diarioListaBody"><tr><td colspan="5" class="text-center text-muted py-3">Nenhuma observação nesta RF.</td></tr></tbody></table></div><div style="font-size:11px;color:#64748b;margin-top:6px;">Clique em uma linha para abrir o dia.</div></div>
@@ -300,8 +301,8 @@
 <div style="font-size:11px;color:#64748b;margin-top:6px;">📅 Dias trabalhados: segunda a sexta + sábados alternados (24/10, 07/11, 21/11...). Domingos e feriados nacionais são folga. Para mudar um dia, selecione o dia e use o botão <b>Trocar</b> no Diário do dia.</div></div>
 <div class="footer"><span><i class="fas fa-database"></i> Dados salvos no Firebase</span><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><div class="sync-status"><span class="dot synced" id="syncDot"></span><span id="syncStatusText">Sincronizado</span></div><span id="lastUpdate">Atualizado agora</span><button id="resetCompleto" class="ms-3"><i class="fas fa-trash-alt"></i> Resetar Período</button></div></div>
 </div>
-<div class="modal-custom" id="configModal"><div class="modal-content"><h3><i class="fas fa-cog"></i> Configuração de Custos</h3><div class="sub">Edite os valores dos recursos por dia</div><div class="config-item"><span class="config-label">👨‍🌾 TF (Trabalhador Rural)</span><span class="config-symbol">R$</span><input type="number" id="custo_TF" step="0.01" value="503.00"></div><div class="config-item"><span class="config-label">🚜 Máquina</span><span class="config-symbol">R$</span><input type="number" id="custo_MAQ" step="0.01" value="2300.00"></div><div class="config-item"><span class="config-label">🚛 Caminhão Pipa</span><span class="config-symbol">R$</span><input type="number" id="custo_PIPA" step="0.01" value="2500.00"></div><div class="config-item"><span class="config-label">🚚 Caminhão Apoio</span><span class="config-symbol">R$</span><input type="number" id="custo_APOIO" step="0.01" value="2200.00"></div><div class="btn-group" style="margin-top:16px;"><button class="btn-primary" id="btnSalvarConfig">💾 Salvar Configurações</button><button class="btn-secondary" id="btnFecharConfig">Fechar</button></div></div></div>
-<div class="modal-custom" id="editModal"><div class="modal-content"><h3>✏️ Editar Lançamento</h3><div class="info-text" id="editInfo">Dia: - | Operação: -</div><div class="row-campos"><div><label>Área (ha):</label><input type="number" id="editHa" step="0.01"></div><div><label>R$/ha:</label><input type="number" id="editRha" step="0.01"></div><div><label>👨‍🌾 TF:</label><input type="number" id="editTF" step="1"></div><div><label>🚜 Máquinas:</label><input type="number" id="editMAQ" step="1"></div><div><label>🚛 Pipa:</label><input type="number" id="editPIPA" step="1"></div><div><label>🚚 Apoio:</label><input type="number" id="editAPOIO" step="1"></div></div><label>Valor Total (R$):</label><input type="number" id="editValor" step="0.01"><div class="resultado-preview" id="editPreview"><span class="rec">Receita: R$ 0,00</span> | <span class="cus">Custo: R$ 0,00</span> | <span class="res">Resultado: R$ 0,00</span> | Margem: 0,0%</div><div class="dados-adicionais" id="editDadosAdicionais"></div><div class="btn-group"><button class="btn-primary" id="editSalvar">💾 Salvar</button><button class="btn-secondary" id="editCancelar">Cancelar</button><button class="btn-danger" id="editExcluir">🗑️ Excluir</button></div></div></div>
+<div class="modal-custom" id="configModal"><div class="modal-content"><h3><i class="fas fa-cog"></i> Configuração de Custos</h3><div class="sub">Edite os valores dos recursos por dia</div><div class="config-item"><span class="config-label">👨‍🌾 TF (Trabalhador Rural)</span><span class="config-symbol">R$</span><input type="number" id="custo_TF" step="0.01" value="503.00"></div><div class="config-item"><span class="config-label">🚜 Máquina</span><span class="config-symbol">R$</span><input type="number" id="custo_MAQ" step="0.01" value="2300.00"></div><div class="config-item"><span class="config-label">🚛 Caminhão Pipa</span><span class="config-symbol">R$</span><input type="number" id="custo_PIPA" step="0.01" value="2500.00"></div><div class="config-item"><span class="config-label">🚚 Caminhão Apoio</span><span class="config-symbol">R$</span><input type="number" id="custo_APOIO" step="0.01" value="2200.00"></div><div class="config-item"><span class="config-label">🛻 Caminhonete</span><span class="config-symbol">R$</span><input type="number" id="custo_CAM" step="0.01" value="3200.00"></div><div class="btn-group" style="margin-top:16px;"><button class="btn-primary" id="btnSalvarConfig">💾 Salvar Configurações</button><button class="btn-secondary" id="btnFecharConfig">Fechar</button></div></div></div>
+<div class="modal-custom" id="editModal"><div class="modal-content"><h3>✏️ Editar Lançamento</h3><div class="info-text" id="editInfo">Dia: - | Operação: -</div><div class="row-campos"><div><label>Área (ha):</label><input type="number" id="editHa" step="0.01"></div><div><label>R$/ha:</label><input type="number" id="editRha" step="0.01"></div><div><label>👨‍🌾 TF:</label><input type="number" id="editTF" step="1"></div><div><label>🚜 Máquinas:</label><input type="number" id="editMAQ" step="1"></div><div><label>🚛 Pipa:</label><input type="number" id="editPIPA" step="1"></div><div><label>🚚 Apoio:</label><input type="number" id="editAPOIO" step="1"></div><div><label>🛻 Caminhonete:</label><input type="number" id="editCAM" step="1"></div></div><label>Valor Total (R$):</label><input type="number" id="editValor" step="0.01"><div class="resultado-preview" id="editPreview"><span class="rec">Receita: R$ 0,00</span> | <span class="cus">Custo: R$ 0,00</span> | <span class="res">Resultado: R$ 0,00</span> | Margem: 0,0%</div><div class="dados-adicionais" id="editDadosAdicionais"></div><div class="btn-group"><button class="btn-primary" id="editSalvar">💾 Salvar</button><button class="btn-secondary" id="editCancelar">Cancelar</button><button class="btn-danger" id="editExcluir">🗑️ Excluir</button></div></div></div>
 <div class="modal-custom" id="extraModal"><div class="modal-content"><h3>➕ Criar Operação Extra</h3><div class="sub">Para serviços não previstos</div><label>Nome da operação:</label><input type="text" id="extraNome" placeholder="Ex: Adubação Extra..."><label>Área projetada (ha):</label><input type="number" id="extraArea" step="0.01" placeholder="0,00"><label>Valor projetado (R$):</label><input type="number" id="extraValor" step="0.01" placeholder="0,00"><div class="btn-group"><button class="btn-primary" id="btnCriarExtra">✅ Criar</button><button class="btn-secondary" id="btnCancelarExtra">Cancelar</button></div></div></div>
 <div class="modal-custom" id="metasModal"><div class="modal-content wide"><h3>🎯 Metas da RF</h3><div class="sub" id="metasPeriodoLabel">-</div>
 <div class="info-text">Digite a área e o R$/ha previstos de cada operação nesta RF. A meta em R$ é calculada sozinha. Cada RF tem as suas próprias metas, e os lançamentos não são alterados.</div>
@@ -344,7 +345,7 @@ var OPERACOES_BASE = [
     { id: 'plantio', nome: 'Plantio', projetado: 195301.24, areaProjetada: 246.44 }
 ];
 
-var CUSTOS_PADRAO = { TF: 503.00, MAQ: 2300.00, PIPA: 2500.00, APOIO: 2200.00 };
+var CUSTOS_PADRAO = { TF: 503.00, MAQ: 2300.00, PIPA: 2500.00, APOIO: 2200.00, CAM: 3200.00 };
 
 // ============================================================
 // GERENCIAMENTO DE PERÍODOS (21 de um mês a 20 do mês seguinte)
@@ -475,7 +476,7 @@ var state = {
     operacoes: [],
     lancamentos: {},
     observacoes: {},
-    custos: { TF: 503, MAQ: 2300, PIPA: 2500, APOIO: 2200 },
+    custos: { TF: 503, MAQ: 2300, PIPA: 2500, APOIO: 2200, CAM: 3200 },
     currentDia: 1,
     extraCounter: 0,
     isLoaded: false,
@@ -499,7 +500,7 @@ var DOM = {
     areaRealizada: $('areaRealizada'), diaAtualDisplay: $('diaAtualDisplay'),
     diasContainer: $('diasContainer'), opSelect: $('opSelect'),
     valorHa: $('valorHa'), valorRha: $('valorRha'), totalDisplay: $('totalDisplay'),
-    tfQtd: $('tfQtd'), maqQtd: $('maqQtd'), pipaQtd: $('pipaQtd'), apoioQtd: $('apoioQtd'),
+    tfQtd: $('tfQtd'), maqQtd: $('maqQtd'), pipaQtd: $('pipaQtd'), apoioQtd: $('apoioQtd'), camQtd: $('camQtd'),
     btnLancar: $('btnLancar'), btnResetDia: $('btnResetDia'), resetCompleto: $('resetCompleto'),
     graficoEvolucao: $('graficoEvolucao'), infoLancamentoDia: $('infoLancamentoDia'),
     obsInput: $('obsInput'), btnSalvarObs: $('btnSalvarObs'), obsExibir: $('obsExibir'),
@@ -516,7 +517,7 @@ var DOM = {
 var Modals = {
     edit: $('editModal'), extra: $('extraModal'), config: $('configModal'),
     editInfo: $('editInfo'), editHa: $('editHa'), editRha: $('editRha'),
-    editTF: $('editTF'), editMAQ: $('editMAQ'), editPIPA: $('editPIPA'), editAPOIO: $('editAPOIO'),
+    editTF: $('editTF'), editMAQ: $('editMAQ'), editPIPA: $('editPIPA'), editAPOIO: $('editAPOIO'), editCAM: $('editCAM'),
     editValor: $('editValor'), editPreview: $('editPreview'),
     editDadosAdicionais: $('editDadosAdicionais'),
     editSalvar: $('editSalvar'), editCancelar: $('editCancelar'), editExcluir: $('editExcluir'),
@@ -652,7 +653,7 @@ function salvarMetasFirebase() {
 function getTotalProjetado() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += getMetaOp(state.operacoes[i]); } return total; }
 function getTotalMetaArea() { var total = 0; for (var i = 0; i < state.operacoes.length; i++) { total += getMetaAreaOp(state.operacoes[i]); } return total; }
 
-function getCustoRecursos(tf, maq, pipa, apoio) { var c = state.custos; return (tf * c.TF) + (maq * c.MAQ) + (pipa * c.PIPA) + (apoio * c.APOIO); }
+function getCustoRecursos(tf, maq, pipa, apoio, cam) { var c = state.custos; return (tf * c.TF) + (maq * c.MAQ) + (pipa * c.PIPA) + (apoio * c.APOIO) + ((cam || 0) * (c.CAM || 0)); }
 
 function getReceitaTotal() { var total = 0; for (var dia in state.lancamentos) { for (var opId in state.lancamentos[dia]) { total += state.lancamentos[dia][opId].valor || 0; } } return total; }
 
@@ -742,7 +743,7 @@ function salvarOperacoes() {
     return batch.commit();
 }
 
-function salvarLancamento(dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
+function salvarLancamento(dia, opId, ha, valor, tf, maq, pipa, apoio, custo, cam) {
     var ref = db.collection(getPeriodoPath()).doc();
     return ref.set({
         dia: dia,
@@ -753,6 +754,7 @@ function salvarLancamento(dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
         maq: maq || 0,
         pipa: pipa || 0,
         apoio: apoio || 0,
+        cam: cam || 0,
         custo: custo || 0,
         periodo: getPeriodoKey()
     });
@@ -762,7 +764,7 @@ function salvarCustos(custos) { return db.collection('config').doc('custos').set
 
 function carregarCustos() {
     return db.collection('config').doc('custos').get().then(function(doc) {
-        if (doc.exists) { var data = doc.data(); state.custos.TF = data.TF || CUSTOS_PADRAO.TF; state.custos.MAQ = data.MAQ || CUSTOS_PADRAO.MAQ; state.custos.PIPA = data.PIPA || CUSTOS_PADRAO.PIPA; state.custos.APOIO = data.APOIO || CUSTOS_PADRAO.APOIO; } else { state.custos = { TF: CUSTOS_PADRAO.TF, MAQ: CUSTOS_PADRAO.MAQ, PIPA: CUSTOS_PADRAO.PIPA, APOIO: CUSTOS_PADRAO.APOIO }; salvarCustos(state.custos); }
+        if (doc.exists) { var data = doc.data(); state.custos.TF = data.TF || CUSTOS_PADRAO.TF; state.custos.MAQ = data.MAQ || CUSTOS_PADRAO.MAQ; state.custos.PIPA = data.PIPA || CUSTOS_PADRAO.PIPA; state.custos.APOIO = data.APOIO || CUSTOS_PADRAO.APOIO; state.custos.CAM = data.CAM || CUSTOS_PADRAO.CAM; } else { state.custos = { TF: CUSTOS_PADRAO.TF, MAQ: CUSTOS_PADRAO.MAQ, PIPA: CUSTOS_PADRAO.PIPA, APOIO: CUSTOS_PADRAO.APOIO, CAM: CUSTOS_PADRAO.CAM }; salvarCustos(state.custos); }
         return state.custos;
     });
 }
@@ -776,9 +778,9 @@ function deletarVarios(ids) {
 
 function deletarLancamento(docId) { return db.collection(getPeriodoPath()).doc(docId).delete(); }
 
-function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo) {
+function atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo, cam) {
     var ref = db.collection(getPeriodoPath()).doc(docId);
-    return ref.update({ ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, custo: custo || 0, dia: dia, opId: opId });
+    return ref.update({ ha: ha, valor: valor, tf: tf || 0, maq: maq || 0, pipa: pipa || 0, apoio: apoio || 0, cam: cam || 0, custo: custo || 0, dia: dia, opId: opId });
 }
 
 function salvarObservacaoFirebase(dia, texto, motivo) { var ref = db.collection(getObservacoesPath()).doc(String(dia)); return ref.set({ texto: texto, motivo: motivo || '', atualizadoEm: new Date() }); }
@@ -805,6 +807,7 @@ function carregarDoFirebase() {
         $('custo_MAQ').value = custos.MAQ;
         $('custo_PIPA').value = custos.PIPA;
         $('custo_APOIO').value = custos.APOIO;
+        $('custo_CAM').value = custos.CAM;
         return db.collection('operacoes').get();
     }).then(function(opsSnapshot) {
         var operacoes = [];
@@ -820,7 +823,7 @@ function carregarDoFirebase() {
             var dia = data.dia;
             var opId = data.opId;
             if (!lancamentos[dia]) lancamentos[dia] = {};
-            if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0 };
+            if (!lancamentos[dia][opId]) lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0, cam: 0 };
             lancamentos[dia][opId].ha += data.ha || 0;
             lancamentos[dia][opId].valor += data.valor || 0;
             lancamentos[dia][opId].custo += data.custo || 0;
@@ -828,6 +831,7 @@ function carregarDoFirebase() {
             lancamentos[dia][opId].maq += data.maq || 0;
             lancamentos[dia][opId].pipa += data.pipa || 0;
             lancamentos[dia][opId].apoio += data.apoio || 0;
+            lancamentos[dia][opId].cam += data.cam || 0;
         });
         state.lancamentos = lancamentos;
         return db.collection(getObservacoesPath()).get();
@@ -911,7 +915,7 @@ function renderizarResumoDia() {
     var totalCusto = 0;
     var html = '';
     if (Object.keys(lancs).length === 0) {
-        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-3">Nenhum lançamento neste dia (meta do dia: R$ ' + formatMoney(getMetaDiaTotal(dia)) + (isDiaTrabalho(dia) ? '' : ', dia de folga') + ')</td></tr>';
+        DOM.resumoDiaBody.innerHTML = '<tr><td colspan="16" class="text-center text-muted py-3">Nenhum lançamento neste dia (meta do dia: R$ ' + formatMoney(getMetaDiaTotal(dia)) + (isDiaTrabalho(dia) ? '' : ', dia de folga') + ')</td></tr>';
         DOM.resumoDiaReceita.textContent = '0,00';
         DOM.resumoDiaCusto.textContent = '0,00';
         DOM.resumoDiaResultado.innerHTML = '📊 Resultado: R$ 0,00';
@@ -927,6 +931,7 @@ function renderizarResumoDia() {
         var maq = lancs[opId].maq || 0;
         var pipa = lancs[opId].pipa || 0;
         var apoio = lancs[opId].apoio || 0;
+        var cam = lancs[opId].cam || 0;
         var resultado = valor - custo;
         var margem = valor > 0 ? (resultado / valor) * 100 : 0;
         var metaDiaOp = op ? getMetaDiaOp(op, dia) : 0;
@@ -941,7 +946,7 @@ function renderizarResumoDia() {
         html += '<tr><td>' + dataLabel + '</td><td>' + nome + '</td><td class="text-right">' + ha.toFixed(2) + '</td><td class="text-right">R$ ' + formatMoney(valor) + '</td>'
             + '<td class="text-right">' + (metaDiaOp > 0 ? 'R$ ' + formatMoney(metaDiaOp) : '—') + '</td>'
             + '<td class="text-right ' + (metaDiaOp > 0 ? classeMeta : '') + '">' + (metaDiaOp > 0 ? pctMeta.toFixed(0) + '%' : '—') + '</td>'
-            + '<td class="text-right">' + tf + '</td><td class="text-right">' + maq + '</td><td class="text-right">' + pipa + '</td><td class="text-right">' + apoio + '</td><td class="text-right">R$ ' + formatMoney(custo) + '</td><td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) + '</td><td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td><td>' + (op && op.extra ? '⭐ Extra' : '') + '</td><td class="text-center"><button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> <button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>';
+            + '<td class="text-right">' + tf + '</td><td class="text-right">' + maq + '</td><td class="text-right">' + pipa + '</td><td class="text-right">' + apoio + '</td><td class="text-right">' + cam + '</td><td class="text-right">R$ ' + formatMoney(custo) + '</td><td class="text-right ' + corResultado + '">' + sinalResultado + 'R$ ' + formatMoney(resultado) + '</td><td class="text-right ' + classeMargem + '">' + margem.toFixed(1) + '%</td><td>' + (op && op.extra ? '⭐ Extra' : '') + '</td><td class="text-center"><button class="btn-sm-action edit" onclick="editarValor(\'' + opId + '\')" title="Editar"><i class="fas fa-edit"></i></button> <button class="btn-sm-action delete" onclick="excluirLancamento(\'' + opId + '\')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>';
     }
     var resultadoDia = totalReceita - totalCusto;
     var corTotal = resultadoDia >= 0 ? 'resultado-positivo' : 'resultado-negativo';
@@ -949,7 +954,7 @@ function renderizarResumoDia() {
     var metaDiaTotal = getMetaDiaTotal(dia);
     var pctDiaTotal = metaDiaTotal > 0 ? (totalReceita / metaDiaTotal) * 100 : 0;
     var corMetaTotal = pctDiaTotal >= 100 ? 'resultado-positivo' : 'resultado-negativo';
-    html += '<tr class="total-row"><td colspan="3"><strong>TOTAL DO DIA</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="text-right"><strong>R$ ' + formatMoney(metaDiaTotal) + '</strong></td><td class="text-right ' + corMetaTotal + '"><strong>' + pctDiaTotal.toFixed(0) + '%</strong></td><td colspan="4"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
+    html += '<tr class="total-row"><td colspan="3"><strong>TOTAL DO DIA</strong></td><td class="text-right"><strong>R$ ' + formatMoney(totalReceita) + '</strong></td><td class="text-right"><strong>R$ ' + formatMoney(metaDiaTotal) + '</strong></td><td class="text-right ' + corMetaTotal + '"><strong>' + pctDiaTotal.toFixed(0) + '%</strong></td><td colspan="5"></td><td class="text-right"><strong>R$ ' + formatMoney(totalCusto) + '</strong></td><td class="text-right ' + corTotal + '"><strong>' + sinalTotal + 'R$ ' + formatMoney(resultadoDia) + '</strong></td><td class="text-right"></td><td colspan="2"></td></tr>';
     DOM.resumoDiaBody.innerHTML = html;
     DOM.resumoDiaReceita.textContent = formatMoney(totalReceita);
     DOM.resumoDiaCusto.textContent = formatMoney(totalCusto);
@@ -1252,9 +1257,10 @@ function lancarValor() {
     var maq = parseInt(DOM.maqQtd.value) || 0;
     var pipa = parseInt(DOM.pipaQtd.value) || 0;
     var apoio = parseInt(DOM.apoioQtd.value) || 0;
+    var cam = parseInt(DOM.camQtd.value) || 0;
 
     var valorTotal = ha * rha;
-    var custo = getCustoRecursos(tf, maq, pipa, apoio);
+    var custo = getCustoRecursos(tf, maq, pipa, apoio, cam);
     var dia = state.currentDia;
 
     DOM.btnLancar.disabled = true;
@@ -1267,11 +1273,11 @@ function lancarValor() {
         state.isSaving = false;
     }
 
-    salvarLancamento(dia, opId, ha, valorTotal, tf, maq, pipa, apoio, custo)
+    salvarLancamento(dia, opId, ha, valorTotal, tf, maq, pipa, apoio, custo, cam)
         .then(function() {
             if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
             if (!state.lancamentos[dia][opId]) {
-                state.lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0 };
+                state.lancamentos[dia][opId] = { ha: 0, valor: 0, custo: 0, tf: 0, maq: 0, pipa: 0, apoio: 0, cam: 0 };
             }
             state.lancamentos[dia][opId].ha += ha;
             state.lancamentos[dia][opId].valor += valorTotal;
@@ -1280,6 +1286,7 @@ function lancarValor() {
             state.lancamentos[dia][opId].maq += maq;
             state.lancamentos[dia][opId].pipa += pipa;
             state.lancamentos[dia][opId].apoio += apoio;
+            state.lancamentos[dia][opId].cam = (state.lancamentos[dia][opId].cam || 0) + cam;
 
             DOM.valorHa.value = '';
             DOM.valorRha.value = '';
@@ -1287,6 +1294,7 @@ function lancarValor() {
             DOM.maqQtd.value = '';
             DOM.pipaQtd.value = '';
             DOM.apoioQtd.value = '';
+            DOM.camQtd.value = '';
             DOM.totalDisplay.textContent = 'R$ 0,00';
 
             renderizarTudo();
@@ -1366,14 +1374,15 @@ function abrirConfig() {
     $('custo_MAQ').value = state.custos.MAQ;
     $('custo_PIPA').value = state.custos.PIPA;
     $('custo_APOIO').value = state.custos.APOIO;
+    $('custo_CAM').value = state.custos.CAM;
     DOM.configModal.classList.add('active');
 }
 
 function fecharConfig() { DOM.configModal.classList.remove('active'); }
 
 function salvarConfig() {
-    var custos = { TF: parseFloat($('custo_TF').value) || 0, MAQ: parseFloat($('custo_MAQ').value) || 0, PIPA: parseFloat($('custo_PIPA').value) || 0, APOIO: parseFloat($('custo_APOIO').value) || 0 };
-    if (custos.TF <= 0 || custos.MAQ <= 0 || custos.PIPA <= 0 || custos.APOIO <= 0) { showToast('⚠️ Todos os custos devem ser maiores que zero!', 'warning'); return; }
+    var custos = { TF: parseFloat($('custo_TF').value) || 0, MAQ: parseFloat($('custo_MAQ').value) || 0, PIPA: parseFloat($('custo_PIPA').value) || 0, APOIO: parseFloat($('custo_APOIO').value) || 0, CAM: parseFloat($('custo_CAM').value) || 0 };
+    if (custos.TF <= 0 || custos.MAQ <= 0 || custos.PIPA <= 0 || custos.APOIO <= 0 || custos.CAM <= 0) { showToast('⚠️ Todos os custos devem ser maiores que zero!', 'warning'); return; }
     state.custos = custos;
     salvarCustos(custos).then(function() {
         fecharConfig();
@@ -1399,9 +1408,10 @@ window.editarValor = function(opId) {
         Modals.editMAQ.value = lanc.maq || 0;
         Modals.editPIPA.value = lanc.pipa || 0;
         Modals.editAPOIO.value = lanc.apoio || 0;
+        Modals.editCAM.value = lanc.cam || 0;
         Modals.editValor.value = lanc.valor || 0;
         atualizarPreviewEdicao();
-        Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' + formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) + ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) + ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0);
+        Modals.editDadosAdicionais.textContent = '📌 Atual: ' + (lanc.ha || 0).toFixed(2) + ' ha | R$ ' + formatMoney(lanc.valor || 0) + ' | Custo: R$ ' + formatMoney(lanc.custo || 0) + ' | TF:' + (lanc.tf || 0) + ' M:' + (lanc.maq || 0) + ' P:' + (lanc.pipa || 0) + ' A:' + (lanc.apoio || 0) + ' C:' + (lanc.cam || 0);
         Modals.edit.classList.add('active');
         Modals.editHa.oninput = recalcValorEdicao;
         Modals.editRha.oninput = recalcValorEdicao;
@@ -1410,6 +1420,7 @@ window.editarValor = function(opId) {
         Modals.editMAQ.oninput = atualizarPreviewEdicao;
         Modals.editPIPA.oninput = atualizarPreviewEdicao;
         Modals.editAPOIO.oninput = atualizarPreviewEdicao;
+        Modals.editCAM.oninput = atualizarPreviewEdicao;
     }).catch(function(error) { console.error('Erro ao editar:', error); showToast('❌ Erro ao carregar edição', 'error'); });
 };
 
@@ -1427,8 +1438,9 @@ function atualizarPreviewEdicao() {
     var maq = parseInt(Modals.editMAQ.value) || 0;
     var pipa = parseInt(Modals.editPIPA.value) || 0;
     var apoio = parseInt(Modals.editAPOIO.value) || 0;
+    var cam = parseInt(Modals.editCAM.value) || 0;
     var receita = parseFloat(Modals.editValor.value) || (ha * rha);
-    var custo = getCustoRecursos(tf, maq, pipa, apoio);
+    var custo = getCustoRecursos(tf, maq, pipa, apoio, cam);
     var resultado = receita - custo;
     var margem = receita > 0 ? (resultado / receita) * 100 : 0;
     var cor = resultado >= 0 ? '#16a34a' : '#dc3545';
@@ -1447,10 +1459,11 @@ function salvarEdicao() {
     var maq = parseInt(Modals.editMAQ.value) || 0;
     var pipa = parseInt(Modals.editPIPA.value) || 0;
     var apoio = parseInt(Modals.editAPOIO.value) || 0;
+    var cam = parseInt(Modals.editCAM.value) || 0;
     var valor = parseFloat(Modals.editValor.value) || 0;
     if (ha > 0 && rha > 0 && valor === 0) { valor = ha * rha; }
-    if (ha < 0 || rha < 0 || valor < 0 || tf < 0 || maq < 0 || pipa < 0 || apoio < 0) { alert('Valores não podem ser negativos.'); return; }
-    var custo = getCustoRecursos(tf, maq, pipa, apoio);
+    if (ha < 0 || rha < 0 || valor < 0 || tf < 0 || maq < 0 || pipa < 0 || apoio < 0 || cam < 0) { alert('Valores não podem ser negativos.'); return; }
+    var custo = getCustoRecursos(tf, maq, pipa, apoio, cam);
     if (valor === 0 && ha > 0 && rha > 0) { valor = ha * rha; }
     if (ha === 0 && valor === 0) {
         deletarVarios([docId].concat((editTarget && editTarget.outrosIds) || [])).then(function() {
@@ -1461,9 +1474,9 @@ function salvarEdicao() {
         }).catch(function(error) { console.error('Erro ao excluir:', error); showToast('❌ Erro ao excluir', 'error'); });
     } else {
         var outrosIds = editTarget.outrosIds || [];
-        atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo).then(function() { return deletarVarios(outrosIds); }).then(function() {
+        atualizarLancamento(docId, dia, opId, ha, valor, tf, maq, pipa, apoio, custo, cam).then(function() { return deletarVarios(outrosIds); }).then(function() {
             if (!state.lancamentos[dia]) state.lancamentos[dia] = {};
-            state.lancamentos[dia][opId] = { ha: ha, valor: valor, custo: custo, tf: tf, maq: maq, pipa: pipa, apoio: apoio };
+            state.lancamentos[dia][opId] = { ha: ha, valor: valor, custo: custo, tf: tf, maq: maq, pipa: pipa, apoio: apoio, cam: cam };
             fecharModal();
             renderizarTudo();
             var resultado = valor - custo;
@@ -1795,7 +1808,7 @@ function baixarBackup() {
                 var dl = dias[d.dia - 1];
                 var data = dl ? (dl.date.getDate() < 10 ? '0' : '') + dl.date.getDate() + '/' + String(dl.date.getMonth() + 1).padStart(2, '0') + '/' + dl.date.getFullYear() : 'dia ' + d.dia;
                 var ob = r.obs[String(d.dia)] || {};
-                linhas.push({ ord: r.key + '_' + String(d.dia).padStart(2, '0'), cols: [rf, data, nomes[d.opId] || d.opId, num(d.ha), num(d.valor), d.tf || 0, d.maq || 0, d.pipa || 0, d.apoio || 0, num(d.custo), num((d.valor || 0) - (d.custo || 0)), ob.motivo || '', ob.texto || '', doc.id] });
+                linhas.push({ ord: r.key + '_' + String(d.dia).padStart(2, '0'), cols: [rf, data, nomes[d.opId] || d.opId, num(d.ha), num(d.valor), d.tf || 0, d.maq || 0, d.pipa || 0, d.apoio || 0, d.cam || 0, num(d.custo), num((d.valor || 0) - (d.custo || 0)), ob.motivo || '', ob.texto || '', doc.id] });
                 total++;
             });
             Object.keys(r.obs).forEach(function(diaId) {
@@ -1804,11 +1817,11 @@ function baixarBackup() {
                 if (temLanc) return;
                 var dl = dias[parseInt(diaId) - 1];
                 var data = dl ? (dl.date.getDate() < 10 ? '0' : '') + dl.date.getDate() + '/' + String(dl.date.getMonth() + 1).padStart(2, '0') + '/' + dl.date.getFullYear() : 'dia ' + diaId;
-                linhas.push({ ord: r.key + '_' + String(diaId).padStart(2, '0'), cols: [rf, data, '(sem lançamento)', '0', '0', 0, 0, 0, 0, '0', '0', r.obs[diaId].motivo || '', r.obs[diaId].texto || '', ''] });
+                linhas.push({ ord: r.key + '_' + String(diaId).padStart(2, '0'), cols: [rf, data, '(sem lançamento)', '0', '0', 0, 0, 0, 0, 0, '0', '0', r.obs[diaId].motivo || '', r.obs[diaId].texto || '', ''] });
             });
         });
         linhas.sort(function(a, b) { return a.ord < b.ord ? -1 : a.ord > b.ord ? 1 : 0; });
-        var csv = 'Início da RF;Data;Operação;Área (ha);Receita (R$);TF;Máquina;Pipa;Apoio;Custo (R$);Resultado (R$);Motivo do dia;Observação do dia;ID\n';
+        var csv = 'Início da RF;Data;Operação;Área (ha);Receita (R$);TF;Máquina;Pipa;Apoio;Caminhonete;Custo (R$);Resultado (R$);Motivo do dia;Observação do dia;ID\n';
         csv += linhas.map(function(l) { return l.cols.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\n');
         var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
         var a = document.createElement('a');
